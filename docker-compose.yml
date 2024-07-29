@@ -1,0 +1,27 @@
+networks:
+  nmenet:
+volumes:
+  lagrange:
+  nmeboot:
+services:
+  lagrange:
+    image: ghcr.io/lagrangedev/lagrange.onebot:edge
+    container_name: Lagrange.OneBot
+    volumes:
+      - lagrange:/app/data
+    networks:
+      - nmenet
+    restart: always
+    tty: true
+  nmeboot:
+    depends_on:
+      - lagrange
+    build: .
+    container_name: NMEBoot2
+    volumes:
+      - nmeboot:/app
+    networks:
+      - nmenet
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
