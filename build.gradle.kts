@@ -18,6 +18,12 @@ repositories {
 dependencies {
     testImplementation(kotlin("test"))
 
+    // datetime
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
+
+    // reflect
+    implementation(kotlin("reflect"))
+
     // logging
     implementation("io.github.oshai:kotlin-logging:7.0.0")
     val log4jVersion = "2.23.1"
@@ -26,9 +32,6 @@ dependencies {
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion")
     val slf4jVersion = "2.0.13"
     runtimeOnly("org.slf4j:slf4j-api:$slf4jVersion")
-
-    // reflect
-    implementation(kotlin("reflect"))
 
     // brigadier
     implementation("com.mojang:brigadier:1.0.18")

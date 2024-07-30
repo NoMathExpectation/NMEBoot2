@@ -6,10 +6,12 @@ import love.forte.simbot.component.onebot.v11.core.actor.OneBotFriend
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotGroup
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotMember
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotFriendMessageEvent
+import love.forte.simbot.component.onebot.v11.core.event.message.OneBotGroupPrivateMessageEvent
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotNormalGroupMessageEvent
 import love.forte.simbot.definition.Actor
 import love.forte.simbot.definition.User
 import love.forte.simbot.message.Message
+import love.forte.simbot.message.MessageReceipt
 
 interface OneBotCommandSource<out T> : CommandSource<T> {
     override val subject: Actor
@@ -53,6 +55,43 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
 
         companion object {
             suspend operator fun invoke(origin: OneBotNormalGroupMessageEvent) = NormalEvent(origin).apply { init() }
+        }
+    }
+}
+
+interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>, MemberPrivateCommandSource<T> {
+    override val globalSubject: OneBotGroup
+    override val subject: OneBotMember
+    override val executor: OneBotMember get() = subject
+
+    override val permissionIds: List<String>
+        get() = listOf(uidToPermissionId, id, "$platform-group-${subject.id}-private", platform)
+
+    class Event private constructor(override val origin: OneBotGroupPrivateMessageEvent) : OneBotGroupMemberPrivateCommandSource<OneBotGroupPrivateMessageEvent> {
+        private var _globalSubject: OneBotGroup? = null
+        override val globalSubject: OneBotGroup
+            get() = _globalSubject ?: error("globalSubject not initialized!")
+
+        private var _subject: OneBotMember? = null
+        override val subject: OneBotMember
+            get() = _subject ?: error("subject not initialized!")
+
+        private var _uid: ID? = null
+        override val uid: ID
+            get() = _uid ?: error("uid not initialized!")
+
+        override suspend fun sendRaw(message: Message) = subject.send(message)
+
+        override suspend fun replyRaw(message: Message) = origin.reply(message)
+
+        suspend fun init() {
+            _globalSubject = origin.source()
+            _subject = origin.content()
+            _uid = idToUid()
+        }
+
+        companion object {
+            suspend operator fun invoke(origin: OneBotGroupPrivateMessageEvent) = Event(origin).apply { init() }
         }
     }
 }

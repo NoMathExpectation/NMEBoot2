@@ -109,6 +109,7 @@ interface CommandSource<out T> {
 
         init {
             register(OneBotGroupMemberCommandSource.NormalEvent::invoke)
+            register(OneBotGroupMemberPrivateCommandSource.Event::invoke)
             register(OneBotFriendCommandSource.Event::invoke)
         }
     }
@@ -138,6 +139,10 @@ interface ChatGroupMemberCommandSource<out T> : MemberCommandSource<T> {
 
     override val permissionIds: List<String>
         get() = listOf(uidToPermissionId, id, "$platform-group-${subject.id}", platform)
+}
+
+interface MemberPrivateCommandSource<out T> : MemberCommandSource<T> {
+    override val subject get() = executor
 }
 
 interface ContactCommandSource<out T> : UserCommandSource<T> {
