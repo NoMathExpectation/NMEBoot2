@@ -1,4 +1,5 @@
 FROM amazoncorretto:11.0.24-alpine
+RUN apk add tzdata
 COPY build/install/NMEBoot2 /app/
 WORKDIR /app
 VOLUME /app
