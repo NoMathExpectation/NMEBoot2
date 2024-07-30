@@ -3,6 +3,7 @@ package NoMathExpectation.NMEBoot.command.impl
 import NoMathExpectation.NMEBoot.command.impl.command.commandLuck
 import NoMathExpectation.NMEBoot.command.impl.command.commandRepeat
 import NoMathExpectation.NMEBoot.command.impl.command.commandStop
+import NoMathExpectation.NMEBoot.command.impl.command.commandWhoAmI
 import NoMathExpectation.NMEBoot.command.parser.CommandDispatcher
 import NoMathExpectation.NMEBoot.command.source.CommandSource
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -19,6 +20,7 @@ suspend fun initDispatcher() {
         commandStop()
         commandRepeat()
         commandLuck()
+        commandWhoAmI()
     }
 }
 
