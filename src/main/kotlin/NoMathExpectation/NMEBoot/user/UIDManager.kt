@@ -11,7 +11,7 @@ import love.forte.simbot.common.id.LongID.Companion.ID
 object UIDManager {
     @Serializable
     data class Data(
-        var nextAllocate: Long = 0,
+        var nextAllocate: Long = 1,
         val mappings: MutableMap<String, ID> = mutableMapOf(
             ConsoleCommandSource.id to ConsoleCommandSource.uid,
         ),

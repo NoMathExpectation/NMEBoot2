@@ -15,7 +15,7 @@ object PermissionService {
     )
 
     private val rootStore = storageOf(
-        "permission", PermissionNode(
+        "data/permission.json", PermissionNode(
             allow = mutableMapOf("console" to true)
         )
     )
