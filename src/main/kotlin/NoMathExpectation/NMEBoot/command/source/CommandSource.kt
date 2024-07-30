@@ -1,5 +1,6 @@
 package NoMathExpectation.NMEBoot.command.source
 
+import NoMathExpectation.NMEBoot.command.util.PermissionAware
 import NoMathExpectation.NMEBoot.command.util.PermissionService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.common.id.ID
@@ -11,7 +12,7 @@ import love.forte.simbot.message.toText
 import kotlin.reflect.KClass
 import kotlin.reflect.full.superclasses
 
-interface CommandSource<out T> {
+interface CommandSource<out T> : PermissionAware {
     val origin: T
 
     val uid: ID
@@ -20,7 +21,7 @@ interface CommandSource<out T> {
 
     val uidToPermissionId get() = "uid-$uid"
 
-    val permissionIds: List<String>
+    override val permissionIds: List<String>
         get() = listOf(uidToPermissionId, id, platform)
 
     val platform: String
@@ -58,14 +59,6 @@ interface CommandSource<out T> {
     }
 
     suspend fun reply(messageContent: MessageContent): MessageReceipt? = reply(messageContent.messages)
-
-    suspend fun hasPermission(permission: String): Boolean {
-        return PermissionService.hasPermission(permission, *permissionIds.toTypedArray())
-    }
-
-    suspend fun setPermission(permission: String, value: Boolean?) {
-        PermissionService.setPermission(permission, uidToPermissionId, value)
-    }
 
     companion object {
         fun interface CommandSourceBuilder<T : Any, R> {

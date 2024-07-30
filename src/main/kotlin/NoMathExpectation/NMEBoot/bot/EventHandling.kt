@@ -1,7 +1,7 @@
 package NoMathExpectation.NMEBoot.bot
 
-import NoMathExpectation.NMEBoot.command.commandConfig
-import NoMathExpectation.NMEBoot.command.executeCommand
+import NoMathExpectation.NMEBoot.command.impl.commandConfig
+import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.source.CommandSource
 import NoMathExpectation.NMEBoot.util.nickOrName
 import NoMathExpectation.NMEBoot.util.toReadableString

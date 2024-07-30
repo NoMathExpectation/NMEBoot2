@@ -1,5 +1,8 @@
 package NoMathExpectation.NMEBoot.command.util
 
+import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
+import NoMathExpectation.NMEBoot.command.parser.node.on
+import NoMathExpectation.NMEBoot.command.source.ConsoleCommandSource.uidToPermissionId
 import NoMathExpectation.NMEBoot.util.storageOf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
@@ -16,6 +19,8 @@ object PermissionService {
             allow = mutableMapOf("console" to true)
         )
     )
+
+    const val anyonePermissionId = "*"
 
     private val logger = KotlinLogging.logger { }
 
@@ -38,18 +43,17 @@ object PermissionService {
 
     private suspend fun makeNodes(path: String): List<PermissionNode> {
         val nodes = mutableListOf<PermissionNode>()
-        rootStore.referenceUpdate { root ->
-            nodes += root
-            var current = root
-            for (name in path.split(".")) {
-                if (name == "*") {
-                    break
-                }
-
-                val next = current.children.getOrPut(name) { PermissionNode() }
-                nodes += next
-                current = next
+        val root = rootStore.get()
+        nodes += root
+        var current = root
+        for (name in path.split(".")) {
+            if (name == "*") {
+                break
             }
+
+            val next = current.children.getOrPut(name) { PermissionNode() }
+            nodes += next
+            current = next
         }
         nodes.reverse()
         return nodes
@@ -57,7 +61,7 @@ object PermissionService {
 
     suspend fun hasPermission(path: String, vararg ids: String): Boolean {
         val nodes = getNodes(path)
-        ids.reversed().forEach { id ->
+        listOf(*ids, anyonePermissionId).forEach { id ->
             nodes.forEach { node ->
                 val status = node.allow[id]
                 if (status != null) {
@@ -79,3 +83,25 @@ object PermissionService {
         }
     }
 }
+
+interface PermissionAware {
+    val permissionIds: List<String>
+
+    suspend fun hasPermission(permission: String): Boolean {
+        return PermissionService.hasPermission(permission, *permissionIds.toTypedArray())
+    }
+
+    suspend fun setPermission(permission: String, value: Boolean?) {
+        PermissionService.setPermission(permission, uidToPermissionId, value)
+    }
+}
+
+suspend fun <S : PermissionAware> InsertableCommandNode<S>.requirePermission(
+    permission: String,
+    defaultPermission: Boolean = false
+) =
+    on {
+        PermissionService.hasPermission(permission, *it.permissionIds.toTypedArray())
+    }.also {
+        PermissionService.setPermission(permission, PermissionService.anyonePermissionId, defaultPermission)
+    }

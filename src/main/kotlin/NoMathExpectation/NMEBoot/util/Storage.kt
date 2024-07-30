@@ -18,7 +18,10 @@ inline fun <reified T : Any> mutableNullableStorageOf(path: String, default: T? 
 inline fun <reified T : Any> nullableStorageOf(path: String, default: T? = null): Storage<T?> =
     mutableNullableStorageOf(path, default)
 
-inline fun <reified K, reified V> mutableMapStorageOf(path: String, noinline defaultCompute: (K) -> V): MutableMapStorage<K, V> =
+inline fun <reified K, reified V> mutableMapStorageOf(
+    path: String,
+    noinline defaultCompute: (K) -> V
+): MutableMapStorage<K, V> =
     MapKStoreStorage.of(path, defaultCompute)
 
 @RequiresOptIn("This api is for internal use only.")
@@ -106,6 +109,7 @@ interface MutableMapStorage<K, V> : Storage<MutableMap<K, V>> {
     suspend fun set(key: K, value: V) {
         referenceUpdate { it[key] = value }
     }
+
     suspend fun getOrPut(key: K, compute: suspend (K) -> V): V
     suspend fun update(key: K, block: suspend (V) -> V): V
 }
@@ -135,7 +139,7 @@ class MapKStoreStorage<K : @Serializable Any?, V : @Serializable Any?> @Internal
 
     override suspend fun update(key: K, block: suspend (V) -> V) = mutex.withLock {
         val map = get()
-        val value = block(get(key))
+        val value = map.getOrPut(key) { defaultCompute(key) }
         map[key] = value
         set(map)
         value
@@ -152,10 +156,9 @@ class MapKStoreStorage<K : @Serializable Any?, V : @Serializable Any?> @Internal
 
 suspend inline fun <K, V> MutableMapStorage<K, V>.referenceUpdate(
     key: K,
-    crossinline default: suspend (K) -> V,
-    crossinline block: suspend (V?) -> Unit
+    crossinline block: suspend (V) -> Unit
 ) = update(key) {
-    val value = it ?: default(key)
+    val value = it
     block(value)
     value
 }

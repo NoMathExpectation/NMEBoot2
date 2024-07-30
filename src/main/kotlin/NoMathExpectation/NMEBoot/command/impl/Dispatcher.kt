@@ -1,22 +1,24 @@
-package NoMathExpectation.NMEBoot.command
+package NoMathExpectation.NMEBoot.command.impl
 
+import NoMathExpectation.NMEBoot.command.impl.command.commandLuck
+import NoMathExpectation.NMEBoot.command.impl.command.commandRepeat
+import NoMathExpectation.NMEBoot.command.impl.command.commandStop
 import NoMathExpectation.NMEBoot.command.parser.CommandDispatcher
-import NoMathExpectation.NMEBoot.command.parser.node.executes
-import NoMathExpectation.NMEBoot.command.parser.node.literal
 import NoMathExpectation.NMEBoot.command.source.CommandSource
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger { }
 
-val commandDispatcher = CommandDispatcher<CommandSource<*>> {
-    literal("stop").executes {
-        it.reply("Stopping!")
-    }
+lateinit var commandDispatcher: CommandDispatcher<CommandSource<*>>
+    private set
 
-    literal("repeat").executes {
-        reader.alignNextWord()
-        val str = reader.readRemain() ?: " "
-        it.reply(str)
+suspend fun initDispatcher() {
+    logger.info { "构建指令树......" }
+
+    commandDispatcher = CommandDispatcher {
+        commandStop()
+        commandRepeat()
+        commandLuck()
     }
 }
 

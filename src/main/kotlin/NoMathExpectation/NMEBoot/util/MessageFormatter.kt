@@ -22,7 +22,7 @@ object MessageFormatter {
     fun messageToReadableString(message: Message): String {
         return when (message) {
             is Message.Element -> messageElementToReadableString(message)
-            is Messages -> message.joinToString { messageElementToReadableString(it) }
+            is Messages -> message.joinToString("") { messageElementToReadableString(it) }
             else -> message.toString()
         }
     }
