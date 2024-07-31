@@ -2,7 +2,6 @@ package NoMathExpectation.NMEBoot.command.util
 
 import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.on
-import NoMathExpectation.NMEBoot.command.source.ConsoleCommandSource.uidToPermissionId
 import NoMathExpectation.NMEBoot.util.storageOf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
@@ -91,9 +90,7 @@ interface PermissionAware {
         return PermissionService.hasPermission(permission, *permissionIds.toTypedArray())
     }
 
-    suspend fun setPermission(permission: String, value: Boolean?) {
-        PermissionService.setPermission(permission, uidToPermissionId, value)
-    }
+    suspend fun setPermission(permission: String, value: Boolean?)
 }
 
 suspend fun <S : PermissionAware> InsertableCommandNode<S>.requirePermission(

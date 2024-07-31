@@ -51,7 +51,9 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
 
     // simbot
-    implementation("love.forte.simbot:simbot-core:4.1.0")
+    val simbotVersion = "4.1.0"
+    implementation("love.forte.simbot:simbot-core:$simbotVersion")
+    compileOnly("love.forte.simbot.common:simbot-common-annotations:$simbotVersion")
     implementation("love.forte.simbot.component:simbot-component-onebot-v11-core:1.0.0")
     implementation("love.forte.simbot.component:simbot-component-kook-core:4.0.0-beta4")
 

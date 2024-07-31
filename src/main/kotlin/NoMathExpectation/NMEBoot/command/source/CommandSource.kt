@@ -1,6 +1,7 @@
 package NoMathExpectation.NMEBoot.command.source
 
 import NoMathExpectation.NMEBoot.command.util.PermissionAware
+import NoMathExpectation.NMEBoot.command.util.PermissionService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.definition.*
 import love.forte.simbot.message.Message
@@ -16,8 +17,6 @@ interface CommandSource<out T> : PermissionAware {
     val uid: Long
 
     val id: String
-
-    val uidToPermissionId get() = "uid-$uid"
 
     override val permissionIds: List<String>
         get() = listOf(uidToPermissionId, id, platform)
@@ -57,6 +56,10 @@ interface CommandSource<out T> : PermissionAware {
     }
 
     suspend fun reply(messageContent: MessageContent): MessageReceipt? = reply(messageContent.messages)
+
+    override suspend fun setPermission(permission: String, value: Boolean?) {
+        PermissionService.setPermission(permission, uidToPermissionId, value)
+    }
 
     companion object {
         fun interface CommandSourceBuilder<T : Any, R> {
@@ -99,12 +102,19 @@ interface CommandSource<out T> : PermissionAware {
         }
 
         init {
+            // onebot
             register(OneBotGroupMemberCommandSource.NormalEvent::invoke)
             register(OneBotGroupMemberPrivateCommandSource.Event::invoke)
             register(OneBotFriendCommandSource.Event::invoke)
+
+            // kook
+            register(KookChannelCommandSource.Event::invoke)
+            register(KookPrivateCommandSource.Event::invoke)
         }
     }
 }
+
+val CommandSource<*>.uidToPermissionId get() = "uid-$uid"
 
 interface UserCommandSource<out T> : CommandSource<T> {
     override val subject: Actor
@@ -120,9 +130,22 @@ interface GuildMemberCommandSource<out T> : MemberCommandSource<T> {
     override val globalSubject: Guild
     override val subject: Channel
 
+    val roles: List<Role>
+
     override val permissionIds: List<String>
-        get() = listOf(uidToPermissionId, id, "$platform-guild-${globalSubject.id}-${subject.id}", platform)
+        get() = listOf(
+            uidToPermissionId,
+            id,
+            *rolesToPermissionIds.toTypedArray(),
+            "$platform-guild-${globalSubject.id}-${subject.id}",
+            platform
+        )
 }
+
+val GuildMemberCommandSource<*>.rolesToPermissionIds
+    get() = roles.map {
+        "$platform-guild-${globalSubject.id}-role-${it.id}"
+    }
 
 interface ChatGroupMemberCommandSource<out T> : MemberCommandSource<T> {
     override val globalSubject get() = subject
