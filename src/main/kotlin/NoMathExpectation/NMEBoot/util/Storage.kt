@@ -5,6 +5,7 @@ import io.github.xxfast.kstore.file.storeOf
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import okio.Path.Companion.toPath
 
 inline fun <reified T : Any> mutableStorageOf(path: String, default: T): MutableStorage<T> =
@@ -27,6 +28,13 @@ inline fun <reified K, reified V> mutableMapStorageOf(
 @RequiresOptIn("This api is for internal use only.")
 @Retention(AnnotationRetention.BINARY)
 annotation class InternalStorageApi
+
+@InternalStorageApi
+val storageJson = Json {
+    prettyPrint = true
+    ignoreUnknownKeys = true
+    encodeDefaults = true
+}
 
 interface Storage<out T> {
     val path: String
@@ -70,7 +78,7 @@ open class NullableKStoreStorage<T : @Serializable Any> @InternalStorageApi cons
     @OptIn(InternalStorageApi::class)
     companion object {
         inline fun <reified T : @Serializable Any> of(path: String, default: T? = null) =
-            NullableKStoreStorage(path, storeOf(path.toPath(), default))
+            NullableKStoreStorage(path, storeOf(path.toPath(), default, json = storageJson))
     }
 }
 
@@ -98,7 +106,7 @@ open class NotNullKStoreStorage<T : @Serializable Any> @InternalStorageApi const
     @OptIn(InternalStorageApi::class)
     companion object {
         inline fun <reified T : @Serializable Any> of(path: String, default: T) =
-            NotNullKStoreStorage(path, storeOf(path.toPath(), default), default)
+            NotNullKStoreStorage(path, storeOf(path.toPath(), default, json = storageJson), default)
     }
 }
 
@@ -150,7 +158,7 @@ class MapKStoreStorage<K : @Serializable Any?, V : @Serializable Any?> @Internal
             path: String,
             noinline defaultCompute: (K) -> V
         ) =
-            MapKStoreStorage(path, storeOf(path.toPath(), mutableMapOf()), defaultCompute)
+            MapKStoreStorage(path, storeOf(path.toPath(), mutableMapOf(), json = storageJson), defaultCompute)
     }
 }
 
