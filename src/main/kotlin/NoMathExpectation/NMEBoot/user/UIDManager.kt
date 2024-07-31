@@ -4,25 +4,22 @@ import NoMathExpectation.NMEBoot.command.source.CommandSource
 import NoMathExpectation.NMEBoot.command.source.ConsoleCommandSource
 import NoMathExpectation.NMEBoot.util.storageOf
 import kotlinx.serialization.Serializable
-import love.forte.simbot.common.id.ID
-import love.forte.simbot.common.id.IntID.Companion.ID
-import love.forte.simbot.common.id.LongID.Companion.ID
 
 object UIDManager {
     @Serializable
     data class Data(
         var nextAllocate: Long = 1,
-        val mappings: MutableMap<String, ID> = mutableMapOf(
+        val mappings: MutableMap<String, Long> = mutableMapOf(
             ConsoleCommandSource.id to ConsoleCommandSource.uid,
         ),
     )
 
     private val data = storageOf("data/uid.json", Data())
 
-    suspend fun fromId(id: String): ID {
-        var result: ID = (-1).ID
+    suspend fun fromId(id: String): Long {
+        var result = -1L
         data.referenceUpdate {
-            result = it.mappings.getOrPut(id) { (it.nextAllocate++).ID }
+            result = it.mappings.getOrPut(id) { it.nextAllocate++ }
         }
         return result
     }

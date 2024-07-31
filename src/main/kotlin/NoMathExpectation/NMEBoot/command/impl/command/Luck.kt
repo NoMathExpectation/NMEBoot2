@@ -10,7 +10,6 @@ import NoMathExpectation.NMEBoot.util.UseCounter
 import NoMathExpectation.NMEBoot.util.mutableMapStorageOf
 import NoMathExpectation.NMEBoot.util.referenceUpdate
 import kotlinx.serialization.Serializable
-import love.forte.simbot.common.id.ID
 import love.forte.simbot.message.buildMessages
 import kotlin.random.Random
 
@@ -45,9 +44,9 @@ class Luck(var counter: UseCounter = FixedRateUseCounter.ofDay(1)) : Comparable<
     override fun hashCode() = luck
 
     companion object {
-        private val lucks = mutableMapStorageOf<String, Luck>("data/luck.json") { Luck() }
+        private val lucks = mutableMapStorageOf<Long, Luck>("data/luck.json") { Luck() }
 
-        suspend fun get(id: ID) = lucks.referenceUpdate(id.toString()) { }.luck
+        suspend fun get(id: Long) = lucks.referenceUpdate(id) { }.luck
     }
 }
 

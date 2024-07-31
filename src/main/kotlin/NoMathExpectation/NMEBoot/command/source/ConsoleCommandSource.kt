@@ -2,13 +2,12 @@ package NoMathExpectation.NMEBoot.command.source
 
 import NoMathExpectation.NMEBoot.util.toReadableString
 import io.github.oshai.kotlinlogging.KotlinLogging
-import love.forte.simbot.common.id.IntID.Companion.ID
 import love.forte.simbot.message.Message
 import love.forte.simbot.message.MessageReceipt
 
 object ConsoleCommandSource : CommandSource<Nothing?> {
     override val origin = null
-    override val uid = 0.ID
+    override val uid: Long = 0
     override val id = "console"
     override val platform = "console"
     override val globalSubject = null

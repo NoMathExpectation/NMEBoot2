@@ -1,7 +1,6 @@
 package NoMathExpectation.NMEBoot.command.source
 
 import NoMathExpectation.NMEBoot.user.idToUid
-import love.forte.simbot.common.id.ID
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotFriend
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotGroup
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotMember
@@ -11,7 +10,6 @@ import love.forte.simbot.component.onebot.v11.core.event.message.OneBotNormalGro
 import love.forte.simbot.definition.Actor
 import love.forte.simbot.definition.User
 import love.forte.simbot.message.Message
-import love.forte.simbot.message.MessageReceipt
 
 interface OneBotCommandSource<out T> : CommandSource<T> {
     override val subject: Actor
@@ -31,8 +29,8 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
 
     class NormalEvent private constructor(override val origin: OneBotNormalGroupMessageEvent) :
         OneBotGroupMemberCommandSource<OneBotNormalGroupMessageEvent> {
-        private var _uid: ID? = null
-        override val uid: ID
+        private var _uid: Long? = null
+        override val uid: Long
             get() = _uid ?: error("uid not initialized!")
 
         private var _subject: OneBotGroup? = null
@@ -76,8 +74,8 @@ interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>,
         override val subject: OneBotMember
             get() = _subject ?: error("subject not initialized!")
 
-        private var _uid: ID? = null
-        override val uid: ID
+        private var _uid: Long? = null
+        override val uid: Long
             get() = _uid ?: error("uid not initialized!")
 
         override suspend fun sendRaw(message: Message) = subject.send(message)
@@ -105,8 +103,8 @@ interface OneBotFriendCommandSource<out T> : OneBotCommandSource<T>, ContactComm
 
     class Event private constructor(override val origin: OneBotFriendMessageEvent) :
         OneBotFriendCommandSource<OneBotFriendMessageEvent> {
-        private var _uid: ID? = null
-        override val uid: ID
+        private var _uid: Long? = null
+        override val uid: Long
             get() = _uid ?: error("uid not initialized!")
 
         private var _executor: OneBotFriend? = null

@@ -1,9 +1,7 @@
 package NoMathExpectation.NMEBoot.command.source
 
 import NoMathExpectation.NMEBoot.command.util.PermissionAware
-import NoMathExpectation.NMEBoot.command.util.PermissionService
 import io.github.oshai.kotlinlogging.KotlinLogging
-import love.forte.simbot.common.id.ID
 import love.forte.simbot.definition.*
 import love.forte.simbot.message.Message
 import love.forte.simbot.message.MessageContent
@@ -15,7 +13,7 @@ import kotlin.reflect.full.superclasses
 interface CommandSource<out T> : PermissionAware {
     val origin: T
 
-    val uid: ID
+    val uid: Long
 
     val id: String
 
