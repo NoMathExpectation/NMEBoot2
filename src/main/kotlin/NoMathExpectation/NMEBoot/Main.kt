@@ -15,13 +15,10 @@ import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.terminal.system.SystemTerminal
 import com.varabyte.kotter.terminal.virtual.VirtualTerminal
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 import kotlin.io.path.Path
 import kotlin.io.path.createDirectories
-import kotlin.io.path.createDirectory
 
 private val logger = KotlinLogging.logger { }
 
@@ -37,6 +34,8 @@ suspend fun main() {
 
     runCatching {
         consoleRoutine()
+    }.onFailure {
+        logger.error(it) { "终端异常： " }
     }
 
     stopSimbot()
