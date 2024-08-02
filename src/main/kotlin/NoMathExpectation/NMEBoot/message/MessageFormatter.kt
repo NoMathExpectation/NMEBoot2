@@ -1,4 +1,4 @@
-package NoMathExpectation.NMEBoot.util
+package NoMathExpectation.NMEBoot.message
 
 import love.forte.simbot.message.*
 
