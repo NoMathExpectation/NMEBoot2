@@ -29,33 +29,19 @@ interface CommandSource<out T> : PermissionAware {
 
     val executor: User?
 
-    suspend fun sendRaw(text: String): MessageReceipt? = sendRaw(text.toText())
-
     suspend fun sendRaw(message: Message): MessageReceipt?
 
-    suspend fun sendRaw(messageContent: MessageContent): MessageReceipt? = sendRaw(messageContent.messages)
-
-    suspend fun send(text: String): MessageReceipt? = send(text.toText())
-
     suspend fun send(message: Message): MessageReceipt? {
+        // val finalMessage = with(MessageProcessor) { processMessage(message) }
         return sendRaw(message)
     }
 
-    suspend fun send(messageContent: MessageContent): MessageReceipt? = send(messageContent.messages)
-
-    suspend fun replyRaw(text: String): MessageReceipt? = replyRaw(text.toText())
-
     suspend fun replyRaw(message: Message): MessageReceipt?
 
-    suspend fun replyRaw(messageContent: MessageContent): MessageReceipt? = replyRaw(messageContent.messages)
-
-    suspend fun reply(text: String): MessageReceipt? = reply(text.toText())
-
     suspend fun reply(message: Message): MessageReceipt? {
+        // val finalMessage = with(MessageProcessor) { processMessage(message) }
         return replyRaw(message)
     }
-
-    suspend fun reply(messageContent: MessageContent): MessageReceipt? = reply(messageContent.messages)
 
     override suspend fun setPermission(permission: String, value: Boolean?) {
         PermissionService.setPermission(permission, uidToPermissionId, value)
@@ -113,6 +99,23 @@ interface CommandSource<out T> : PermissionAware {
         }
     }
 }
+
+suspend fun CommandSource<*>.sendRaw(text: String): MessageReceipt? = sendRaw(text.toText())
+
+suspend fun CommandSource<*>.sendRaw(messageContent: MessageContent): MessageReceipt? = sendRaw(messageContent.messages)
+
+suspend fun CommandSource<*>.send(text: String): MessageReceipt? = send(text.toText())
+
+suspend fun CommandSource<*>.send(messageContent: MessageContent): MessageReceipt? = send(messageContent.messages)
+
+suspend fun CommandSource<*>.replyRaw(text: String): MessageReceipt? = replyRaw(text.toText())
+
+suspend fun CommandSource<*>.replyRaw(messageContent: MessageContent): MessageReceipt? =
+    replyRaw(messageContent.messages)
+
+suspend fun CommandSource<*>.reply(text: String): MessageReceipt? = reply(text.toText())
+
+suspend fun CommandSource<*>.reply(messageContent: MessageContent): MessageReceipt? = reply(messageContent.messages)
 
 val CommandSource<*>.uidToPermissionId get() = "uid-$uid"
 

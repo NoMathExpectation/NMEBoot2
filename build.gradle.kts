@@ -54,7 +54,7 @@ dependencies {
     val simbotVersion = "4.4.0"
     implementation("love.forte.simbot:simbot-core:$simbotVersion")
     compileOnly("love.forte.simbot.common:simbot-common-annotations:$simbotVersion")
-    implementation("love.forte.simbot.component:simbot-component-onebot-v11-core:1.0.0")
+    implementation("love.forte.simbot.component:simbot-component-onebot-v11-core:1.1.0")
     implementation("love.forte.simbot.component:simbot-component-kook-core:4.0.0-beta4")
 
     // kotter

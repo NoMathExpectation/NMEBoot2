@@ -6,6 +6,7 @@ import NoMathExpectation.NMEBoot.command.impl.command.commandStop
 import NoMathExpectation.NMEBoot.command.impl.command.commandWhoAmI
 import NoMathExpectation.NMEBoot.command.parser.CommandDispatcher
 import NoMathExpectation.NMEBoot.command.source.CommandSource
+import NoMathExpectation.NMEBoot.command.source.reply
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger { }
