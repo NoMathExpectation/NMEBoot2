@@ -34,7 +34,7 @@ internal object OneBotFolding {
     @OptIn(InternalOneBotAPI::class, ExperimentalOneBotAPI::class)
     internal suspend fun processFold(bot: OneBotBot, msg: Message, nick: String? = null): Message {
         var messages = msg.asMessages()
-        if (messages.any { it is FoldIgnore || (it is OneBotMessageSegmentElement && (it.segment is OneBotForward || it.segment is OneBotForwardNode)) }) {
+        if (messages.any { it is FoldIgnore || it.containsOneBotForward() }) {
             return postProcess(msg)
         }
 
@@ -53,3 +53,6 @@ internal object OneBotFolding {
         return postProcess(messages)
     }
 }
+
+fun Message.containsOneBotForward() =
+    asMessages().any { it is OneBotMessageSegmentElement && (it.segment is OneBotForward || it.segment is OneBotForwardNode) }

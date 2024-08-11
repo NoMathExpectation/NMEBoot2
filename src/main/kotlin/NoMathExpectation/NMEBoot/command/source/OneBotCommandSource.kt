@@ -1,6 +1,7 @@
 package NoMathExpectation.NMEBoot.command.source
 
 import NoMathExpectation.NMEBoot.message.OneBotFolding
+import NoMathExpectation.NMEBoot.message.containsOneBotForward
 import NoMathExpectation.NMEBoot.user.idToUid
 import NoMathExpectation.NMEBoot.util.nickOrName
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotFriend
@@ -59,6 +60,11 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
 
         override suspend fun replyRaw(message: Message): OneBotMessageReceipt {
             val finalMessage = OneBotFolding.processFold(bot, message, subject.botAsMember().nickOrName)
+
+            if (finalMessage.containsOneBotForward()) {
+                return subject.send(finalMessage)
+            }
+
             return origin.reply(finalMessage)
         }
 
