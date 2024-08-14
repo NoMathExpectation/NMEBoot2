@@ -103,6 +103,7 @@ suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandChart() =
                 //todo: 下载谱面并上传
 
                 literal("pending", "pd")
+                    .requiresPermission("command.chart.pending")
                     .executes {
                         kotlin.runCatching {
                             val count = RhythmCafeSearchEngine.getPendingLevelCount()

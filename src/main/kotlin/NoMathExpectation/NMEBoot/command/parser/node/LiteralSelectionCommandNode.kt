@@ -33,7 +33,7 @@ fun <S> LiteralSelectionCommandNode<S>.literal(vararg names: String): ForwardCom
     return node
 }
 
-fun <S> InsertableCommandNode<S>.literals(init: LiteralSelectionCommandNode<S>.() -> Unit): LiteralSelectionCommandNode<S> {
+inline fun <S> InsertableCommandNode<S>.literals(init: LiteralSelectionCommandNode<S>.() -> Unit): LiteralSelectionCommandNode<S> {
     val node = LiteralSelectionCommandNode<S>()
     node.init()
     insert(node)
