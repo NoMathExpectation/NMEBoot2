@@ -25,6 +25,7 @@ class OptionalBooleanArgumentCollector<in S> : ArgumentCollector<S, Boolean?> {
         return when (str.lowercase()) {
             "0", "false", "假", "否", "不" -> false
             "1", "true", "真", "是", "是的" -> true
+            "null", "nil", "undefined" -> null
             else -> error("无效的布尔值 $str.")
         }
     }

@@ -20,10 +20,15 @@ suspend fun initDispatcher() {
         commandLuck()
         commandWhoAmI()
         commandChart()
+        commandPermission()
     }
 }
 
 suspend fun CommandSource<*>.executeCommand(command: String) {
+    if (!hasPermission("command")) {
+        return
+    }
+
     val result = commandDispatcher.dispatch(this, command)
 
     if (result.executeExceptions.isNotEmpty()) {
