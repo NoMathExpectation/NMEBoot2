@@ -5,11 +5,11 @@ import NoMathExpectation.NMEBoot.command.parser.node.executes
 import NoMathExpectation.NMEBoot.command.parser.node.literal
 import NoMathExpectation.NMEBoot.command.source.CommandSource
 import NoMathExpectation.NMEBoot.command.source.reply
-import NoMathExpectation.NMEBoot.command.util.requirePermission
+import NoMathExpectation.NMEBoot.command.util.requiresPermission
 
 suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandRepeat() =
     literal("repeat")
-        .requirePermission("command.repeat", true)
+        .requiresPermission("command.repeat", true)
         .executes {
             reader.alignNextWord()
             val str = reader.readRemain() ?: " "

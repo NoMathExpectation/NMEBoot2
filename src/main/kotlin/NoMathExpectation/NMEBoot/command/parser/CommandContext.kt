@@ -41,3 +41,4 @@ inline operator fun <reified T : Any> CommandContext<*>.get(name: String): T? {
 }
 
 inline fun <reified T : Any> CommandContext<*>.argument() = argument(T::class)
+

@@ -42,7 +42,7 @@ bin/
 .DS_Store
 
 ### config & data ###
-lagrange/
-data/
-config/
-compose/
+./lagrange/
+./data/
+./config/
+./compose/

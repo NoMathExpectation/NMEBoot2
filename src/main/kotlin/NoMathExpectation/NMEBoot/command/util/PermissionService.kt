@@ -93,7 +93,7 @@ interface PermissionAware {
     suspend fun setPermission(permission: String, value: Boolean?)
 }
 
-suspend fun <S : PermissionAware> InsertableCommandNode<S>.requirePermission(
+suspend fun <S : PermissionAware> InsertableCommandNode<S>.requiresPermission(
     permission: String,
     defaultPermission: Boolean = false
 ) =

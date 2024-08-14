@@ -4,7 +4,7 @@ import NoMathExpectation.NMEBoot.command.parser.node.LiteralSelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.executes
 import NoMathExpectation.NMEBoot.command.parser.node.literal
 import NoMathExpectation.NMEBoot.command.source.CommandSource
-import NoMathExpectation.NMEBoot.command.util.requirePermission
+import NoMathExpectation.NMEBoot.command.util.requiresPermission
 import NoMathExpectation.NMEBoot.util.FixedRateUseCounter
 import NoMathExpectation.NMEBoot.util.UseCounter
 import NoMathExpectation.NMEBoot.util.mutableMapStorageOf
@@ -52,7 +52,7 @@ class Luck(var counter: UseCounter = FixedRateUseCounter.ofDay(1)) : Comparable<
 
 suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandLuck() =
     literal("luck")
-        .requirePermission("command.luck", true)
+        .requiresPermission("command.luck", true)
         .executes {
             val luck = Luck.get(it.uid)
             val message = buildMessages {
