@@ -53,11 +53,11 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
     // simbot
-    val simbotVersion = "4.4.0"
+    val simbotVersion = "4.6.0"
     implementation("love.forte.simbot:simbot-core:$simbotVersion")
     compileOnly("love.forte.simbot.common:simbot-common-annotations:$simbotVersion")
-    implementation("love.forte.simbot.component:simbot-component-onebot-v11-core:1.1.0")
-    implementation("love.forte.simbot.component:simbot-component-kook-core:4.0.0-beta4")
+    implementation("love.forte.simbot.component:simbot-component-onebot-v11-core:1.3.0")
+    implementation("love.forte.simbot.component:simbot-component-kook-core:4.0.0")
 
     // kotter
     val kotterVersion = "1.1.2"
