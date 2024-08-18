@@ -21,6 +21,7 @@ suspend fun initDispatcher() {
         commandWhoAmI()
         commandChart()
         commandPermission()
+        commandTransfer()
     }
 }
 
