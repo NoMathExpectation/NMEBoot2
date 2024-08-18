@@ -52,7 +52,7 @@ class Luck(var counter: UseCounter = FixedRateUseCounter.ofDay(1)) : Comparable<
 
 suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandLuck() =
     literal("luck")
-        .requiresPermission("command.luck", true)
+        .requiresPermission("command.common.luck")
         .executes {
             val luck = Luck.get(it.uid)
             val message = buildMessages {

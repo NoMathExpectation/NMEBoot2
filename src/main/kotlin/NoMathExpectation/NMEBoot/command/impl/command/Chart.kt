@@ -13,7 +13,7 @@ private val logger = KotlinLogging.logger { }
 
 suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandChart() =
     literal("chart", "rdlevel")
-        .requiresPermission("command.chart")
+        .requiresPermission("command.rd.fanmade.chart")
         .select {
             literals {
                 literal("help", "h")
@@ -103,7 +103,7 @@ suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandChart() =
                 //todo: 下载谱面并上传
 
                 literal("pending", "pd")
-                    .requiresPermission("command.chart.pending")
+                    .requiresPermission("command.rd")
                     .executes {
                         kotlin.runCatching {
                             val count = RhythmCafeSearchEngine.getPendingLevelCount()

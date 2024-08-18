@@ -10,7 +10,7 @@ import NoMathExpectation.NMEBoot.stopProgram
 
 suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandStop() =
     literal("stop")
-        .requiresPermission("command.stop")
+        .requiresPermission("command.admin.stop")
         .executes {
             it.reply("Stopping!")
             stopProgram()

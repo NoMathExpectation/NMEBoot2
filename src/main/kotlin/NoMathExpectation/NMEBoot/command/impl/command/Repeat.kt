@@ -9,7 +9,7 @@ import NoMathExpectation.NMEBoot.command.util.requiresPermission
 
 suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandRepeat() =
     literal("repeat")
-        .requiresPermission("command.repeat", true)
+        .requiresPermission("command.common.repeat")
         .executes {
             reader.alignNextWord()
             val str = reader.readRemain() ?: " "

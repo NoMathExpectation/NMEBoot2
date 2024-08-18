@@ -9,7 +9,7 @@ import NoMathExpectation.NMEBoot.command.util.requiresPermission
 
 suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandWhoAmI() =
     literal("whoami")
-        .requiresPermission("command.whoami", true)
+        .requiresPermission("command.common.whoami")
         .executes {
             it.reply(it.permissionIds.joinToString())
         }

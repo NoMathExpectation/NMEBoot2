@@ -41,9 +41,8 @@ object PermissionService {
     }
 
     private suspend fun makeNodes(path: String): List<PermissionNode> {
-        val nodes = mutableListOf<PermissionNode>()
         val root = rootStore.get()
-        nodes += root
+        val nodes = mutableListOf(root)
         var current = root
         for (name in path.split(".")) {
             if (name == "*") {
@@ -81,6 +80,39 @@ object PermissionService {
             }
         }
     }
+
+    suspend fun copyPermission(fromPath: String, toPath: String, deep: Boolean = false) {
+        rootStore.referenceUpdate {
+            val from = getNodes(fromPath).first()
+            val to = makeNodes(toPath).first()
+
+            to.allow.clear()
+            to.allow.putAll(from.allow)
+            if (deep) {
+                to.children.clear()
+                to.children.putAll(from.children)
+            }
+        }
+    }
+
+    suspend fun movePermission(fromPath: String, toPath: String, deep: Boolean = false) {
+        rootStore.referenceUpdate {
+            val from = getNodes(fromPath).first()
+            val to = makeNodes(toPath).first()
+
+            to.allow.clear()
+            to.allow.putAll(from.allow)
+            if (deep) {
+                to.children.clear()
+                to.children.putAll(from.children)
+            }
+
+            from.allow.clear()
+            if (deep) {
+                from.children.clear()
+            }
+        }
+    }
 }
 
 interface PermissionAware {
@@ -95,7 +127,7 @@ interface PermissionAware {
 
 suspend fun <S : PermissionAware> InsertableCommandNode<S>.requiresPermission(
     permission: String,
-    defaultPermission: Boolean = false
+    defaultPermission: Boolean? = null
 ) =
     on {
         PermissionService.hasPermission(permission, *it.permissionIds.toTypedArray())
