@@ -22,6 +22,7 @@ suspend fun initDispatcher() {
         commandChart()
         commandPermission()
         commandTransfer()
+        commandHelp()
     }
 }
 
