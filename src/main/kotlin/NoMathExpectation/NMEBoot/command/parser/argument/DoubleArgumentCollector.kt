@@ -18,6 +18,9 @@ fun <S> InsertableCommandNode<S>.collectDouble(name: String) =
 class OptionalDoubleArgumentCollector<in S> : ArgumentCollector<S, Double?> {
     override suspend fun collect(context: CommandContext<S>): Double? {
         val str = context.reader.readWord() ?: return null
+        if (str.lowercase() == "null") {
+            return null
+        }
         return str.toDoubleOrNull() ?: error("无效的double值 $str.")
     }
 }

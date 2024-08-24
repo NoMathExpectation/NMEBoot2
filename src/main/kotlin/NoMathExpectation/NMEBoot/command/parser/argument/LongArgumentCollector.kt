@@ -23,6 +23,9 @@ fun <S> InsertableCommandNode<S>.collectLong(name: String) =
 class OptionalLongArgumentCollector<in S> : ArgumentCollector<S, Long?> {
     override suspend fun collect(context: CommandContext<S>): Long? {
         val str = context.reader.readWord() ?: return null
+        if (str.lowercase() == "null") {
+            return null
+        }
         return when (str.take(2)) {
             "0x" -> str.drop(2).toLongOrNull(16) ?: error("无效的16进制long值 $str.")
             "0o" -> str.drop(2).toLongOrNull(8) ?: error("无效的8进制long值 $str.")

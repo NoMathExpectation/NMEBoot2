@@ -23,6 +23,9 @@ fun <S> InsertableCommandNode<S>.collectInt(name: String) =
 class OptionalIntArgumentCollector<in S> : ArgumentCollector<S, Int?> {
     override suspend fun collect(context: CommandContext<S>): Int? {
         val str = context.reader.readWord() ?: return null
+        if (str.lowercase() == "null") {
+            return null
+        }
         return when (str.take(2)) {
             "0x" -> str.drop(2).toIntOrNull(16) ?: error("无效的16进制int值 $str.")
             "0o" -> str.drop(2).toIntOrNull(8) ?: error("无效的8进制int值 $str.")

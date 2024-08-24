@@ -18,6 +18,9 @@ fun <S> InsertableCommandNode<S>.collectFloat(name: String) =
 class OptionalFloatArgumentCollector<in S> : ArgumentCollector<S, Float?> {
     override suspend fun collect(context: CommandContext<S>): Float? {
         val str = context.reader.readWord() ?: return null
+        if (str.lowercase() == "null") {
+            return null
+        }
         return str.toFloatOrNull() ?: error("无效的float值 $str.")
     }
 }

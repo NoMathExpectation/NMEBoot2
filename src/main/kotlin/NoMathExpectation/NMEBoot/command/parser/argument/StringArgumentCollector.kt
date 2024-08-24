@@ -58,7 +58,7 @@ class OptionalStringArgumentCollector<in S> : ArgumentCollector<S, String?> {
 
         val quoteChar = reader.peekChar() ?: return null
         if (quoteChar !in quoteChars) {
-            return reader.readWord() ?: return null
+            return reader.readWord()
         }
 
         reader.readChar()
@@ -94,7 +94,29 @@ class OptionalStringArgumentCollector<in S> : ArgumentCollector<S, String?> {
     }
 }
 
-fun <S> InsertableCommandNode<S>.optionalCollectString(name: String) =
+fun <S> InsertableCommandNode<S>.optionallyCollectString(name: String) =
     collect(name, OptionalStringArgumentCollector())
+
+class GreedyStringArgumentCollector<in S> : ArgumentCollector<S, String> {
+    override suspend fun collect(context: CommandContext<S>): String {
+        context.reader.alignNextWord()
+        val str = context.reader.readRemain() ?: error("期望一个字符串，但是什么都没有得到。")
+        return str
+    }
+}
+
+fun <S> InsertableCommandNode<S>.collectGreedyString(name: String) =
+    collect(name, GreedyStringArgumentCollector())
+
+class OptionalGreedyStringArgumentCollector<in S> : ArgumentCollector<S, String?> {
+    override suspend fun collect(context: CommandContext<S>): String? {
+        context.reader.alignNextWord()
+        val str = context.reader.readRemain()
+        return str
+    }
+}
+
+fun <S> InsertableCommandNode<S>.optionallyCollectGreedyString(name: String) =
+    collect(name, OptionalGreedyStringArgumentCollector())
 
 fun CommandContext<*>.getString(name: String) = get<String>(name)
