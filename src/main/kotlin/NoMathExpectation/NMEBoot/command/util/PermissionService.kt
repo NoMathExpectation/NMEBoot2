@@ -130,7 +130,7 @@ suspend fun <S : PermissionAware> InsertableCommandNode<S>.requiresPermission(
     defaultPermission: Boolean? = null
 ) =
     on {
-        PermissionService.hasPermission(permission, *it.permissionIds.toTypedArray())
+        it.hasPermission(permission)
     }.also {
         PermissionService.setPermission(permission, PermissionService.anyonePermissionId, defaultPermission)
     }

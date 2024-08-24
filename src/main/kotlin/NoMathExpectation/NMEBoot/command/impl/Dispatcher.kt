@@ -26,7 +26,7 @@ suspend fun initDispatcher() {
 }
 
 suspend fun CommandSource<*>.executeCommand(command: String) {
-    if (!hasPermission("command")) {
+    if (!hasPermission("use.command")) {
         return
     }
 
