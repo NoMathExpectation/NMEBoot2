@@ -9,11 +9,14 @@ import NoMathExpectation.NMEBoot.command.source.CommandSource
 import NoMathExpectation.NMEBoot.command.source.reply
 import NoMathExpectation.NMEBoot.command.util.requiresPermission
 import NoMathExpectation.NMEBoot.util.TransferSh
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.util.*
+
+private val logger = KotlinLogging.logger { }
 
 suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandTransfer() =
     literal("transfer")
-        .requiresPermission("command.common.transfer")
+        .requiresPermission("command.experimental.transfer")
         .collectGreedyString("text")
         .executes {
             val str = getString("text") ?: " "
@@ -27,4 +30,11 @@ suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandTransfer() =
             }
 
             it.reply(link)
+        }
+
+suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandRef() =
+    literal("ref")
+        .requiresPermission("command.experimental.ref")
+        .executes {
+            logger.info { }
         }
