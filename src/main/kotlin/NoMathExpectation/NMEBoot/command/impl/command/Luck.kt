@@ -1,10 +1,10 @@
 package NoMathExpectation.NMEBoot.command.impl.command
 
+import NoMathExpectation.NMEBoot.command.impl.requiresPermission
+import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.parser.node.LiteralSelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.executes
 import NoMathExpectation.NMEBoot.command.parser.node.literal
-import NoMathExpectation.NMEBoot.command.source.CommandSource
-import NoMathExpectation.NMEBoot.command.util.requiresPermission
 import NoMathExpectation.NMEBoot.util.FixedRateUseCounter
 import NoMathExpectation.NMEBoot.util.UseCounter
 import NoMathExpectation.NMEBoot.util.mutableMapStorageOf

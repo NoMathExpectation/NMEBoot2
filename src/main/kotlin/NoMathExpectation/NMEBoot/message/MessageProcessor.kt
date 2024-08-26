@@ -1,6 +1,6 @@
 package NoMathExpectation.NMEBoot.message
 
-import NoMathExpectation.NMEBoot.command.source.CommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import love.forte.simbot.message.Message
 
 fun interface MessageProcessor {

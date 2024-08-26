@@ -1,6 +1,6 @@
 package NoMathExpectation.NMEBoot.testing.command.util
 
-import NoMathExpectation.NMEBoot.command.util.PermissionService
+import NoMathExpectation.NMEBoot.command.impl.PermissionService
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertTrue

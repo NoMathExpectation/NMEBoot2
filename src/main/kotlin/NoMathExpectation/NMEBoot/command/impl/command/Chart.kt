@@ -1,10 +1,10 @@
 package NoMathExpectation.NMEBoot.command.impl.command
 
+import NoMathExpectation.NMEBoot.command.impl.requiresPermission
+import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.send
 import NoMathExpectation.NMEBoot.command.parser.argument.*
 import NoMathExpectation.NMEBoot.command.parser.node.*
-import NoMathExpectation.NMEBoot.command.source.CommandSource
-import NoMathExpectation.NMEBoot.command.source.send
-import NoMathExpectation.NMEBoot.command.util.requiresPermission
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.RhythmCafeSearchEngine
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.Request
 import io.github.oshai.kotlinlogging.KotlinLogging

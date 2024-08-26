@@ -1,6 +1,6 @@
 package NoMathExpectation.NMEBoot.testing.command.source
 
-import NoMathExpectation.NMEBoot.command.source.CommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.message.toReadableString
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.message.Message

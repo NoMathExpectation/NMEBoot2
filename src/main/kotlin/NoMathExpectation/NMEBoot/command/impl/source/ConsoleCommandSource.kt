@@ -1,4 +1,4 @@
-package NoMathExpectation.NMEBoot.command.source
+package NoMathExpectation.NMEBoot.command.impl.source
 
 import NoMathExpectation.NMEBoot.message.toReadableString
 import io.github.oshai.kotlinlogging.KotlinLogging

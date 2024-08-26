@@ -1,9 +1,9 @@
 package NoMathExpectation.NMEBoot.command.impl
 
 import NoMathExpectation.NMEBoot.command.impl.command.*
+import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.reply
 import NoMathExpectation.NMEBoot.command.parser.CommandDispatcher
-import NoMathExpectation.NMEBoot.command.source.CommandSource
-import NoMathExpectation.NMEBoot.command.source.reply
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger { }

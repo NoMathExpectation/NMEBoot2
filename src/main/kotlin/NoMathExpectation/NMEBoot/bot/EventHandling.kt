@@ -2,7 +2,7 @@ package NoMathExpectation.NMEBoot.bot
 
 import NoMathExpectation.NMEBoot.command.impl.commandConfig
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
-import NoMathExpectation.NMEBoot.command.source.CommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.message.toReadableString
 import NoMathExpectation.NMEBoot.util.nickOrName
 import io.github.oshai.kotlinlogging.KotlinLogging

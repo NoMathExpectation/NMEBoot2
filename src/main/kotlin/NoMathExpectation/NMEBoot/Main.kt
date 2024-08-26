@@ -4,7 +4,7 @@ import NoMathExpectation.NMEBoot.bot.startSimbot
 import NoMathExpectation.NMEBoot.bot.stopSimbot
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.initDispatcher
-import NoMathExpectation.NMEBoot.command.source.ConsoleCommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.ConsoleCommandSource
 import com.varabyte.kotter.foundation.firstSuccess
 import com.varabyte.kotter.foundation.input.input
 import com.varabyte.kotter.foundation.input.onInputEntered

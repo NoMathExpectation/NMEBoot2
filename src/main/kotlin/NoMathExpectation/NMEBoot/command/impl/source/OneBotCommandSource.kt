@@ -1,4 +1,4 @@
-package NoMathExpectation.NMEBoot.command.source
+package NoMathExpectation.NMEBoot.command.impl.source
 
 import NoMathExpectation.NMEBoot.message.OneBotFolding
 import NoMathExpectation.NMEBoot.message.containsOneBotForward

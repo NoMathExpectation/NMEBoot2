@@ -1,11 +1,11 @@
 package NoMathExpectation.NMEBoot.command.parser.argument.ext
 
+import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.uidToPermissionId
 import NoMathExpectation.NMEBoot.command.parser.CommandContext
 import NoMathExpectation.NMEBoot.command.parser.argument.ArgumentCollector
 import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.collect
-import NoMathExpectation.NMEBoot.command.source.CommandSource
-import NoMathExpectation.NMEBoot.command.source.uidToPermissionId
 
 class PermissionIdArgumentCollector : ArgumentCollector<CommandSource<*>, String> {
     override suspend fun collect(context: CommandContext<CommandSource<*>>): String {

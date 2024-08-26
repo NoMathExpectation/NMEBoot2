@@ -1,4 +1,4 @@
-package NoMathExpectation.NMEBoot.command.util
+package NoMathExpectation.NMEBoot.command.impl
 
 import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.on

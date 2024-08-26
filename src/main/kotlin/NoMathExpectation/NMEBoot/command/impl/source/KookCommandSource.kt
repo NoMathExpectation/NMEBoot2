@@ -1,4 +1,4 @@
-package NoMathExpectation.NMEBoot.command.source
+package NoMathExpectation.NMEBoot.command.impl.source
 
 import NoMathExpectation.NMEBoot.user.idToUid
 import love.forte.simbot.annotations.ExperimentalSimbotAPI

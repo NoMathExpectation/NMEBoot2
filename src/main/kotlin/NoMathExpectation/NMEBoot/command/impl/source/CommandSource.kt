@@ -1,7 +1,7 @@
-package NoMathExpectation.NMEBoot.command.source
+package NoMathExpectation.NMEBoot.command.impl.source
 
-import NoMathExpectation.NMEBoot.command.util.PermissionAware
-import NoMathExpectation.NMEBoot.command.util.PermissionService
+import NoMathExpectation.NMEBoot.command.impl.PermissionAware
+import NoMathExpectation.NMEBoot.command.impl.PermissionService
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.definition.*
 import love.forte.simbot.message.Message
@@ -89,13 +89,13 @@ interface CommandSource<out T> : PermissionAware {
 
         init {
             // onebot
-            register(OneBotGroupMemberCommandSource.NormalEvent::invoke)
-            register(OneBotGroupMemberPrivateCommandSource.Event::invoke)
-            register(OneBotFriendCommandSource.Event::invoke)
+            register(OneBotGroupMemberCommandSource.NormalEvent.Companion::invoke)
+            register(OneBotGroupMemberPrivateCommandSource.Event.Companion::invoke)
+            register(OneBotFriendCommandSource.Event.Companion::invoke)
 
             // kook
-            register(KookChannelCommandSource.Event::invoke)
-            register(KookPrivateCommandSource.Event::invoke)
+            register(KookChannelCommandSource.Event.Companion::invoke)
+            register(KookPrivateCommandSource.Event.Companion::invoke)
         }
     }
 }

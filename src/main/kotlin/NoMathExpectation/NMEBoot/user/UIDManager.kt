@@ -1,7 +1,7 @@
 package NoMathExpectation.NMEBoot.user
 
-import NoMathExpectation.NMEBoot.command.source.CommandSource
-import NoMathExpectation.NMEBoot.command.source.ConsoleCommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.ConsoleCommandSource
 import NoMathExpectation.NMEBoot.util.storageOf
 import kotlinx.serialization.Serializable
 
