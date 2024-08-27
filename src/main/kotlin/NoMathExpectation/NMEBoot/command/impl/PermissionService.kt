@@ -116,13 +116,24 @@ object PermissionService {
 }
 
 interface PermissionAware {
-    val permissionIds: List<String>
+    suspend fun hasPermission(permission: String): Boolean
 
-    suspend fun hasPermission(permission: String): Boolean {
+    suspend fun setPermission(permission: String, value: Boolean?)
+}
+
+interface PermissionServiceAware : PermissionAware {
+    val primaryPermissionId: String
+
+    val permissionIds: List<String>
+        get() = listOf(primaryPermissionId)
+
+    override suspend fun hasPermission(permission: String): Boolean {
         return PermissionService.hasPermission(permission, *permissionIds.toTypedArray())
     }
 
-    suspend fun setPermission(permission: String, value: Boolean?)
+    override suspend fun setPermission(permission: String, value: Boolean?) {
+        PermissionService.setPermission(permission, primaryPermissionId, value)
+    }
 }
 
 suspend fun <S : PermissionAware> InsertableCommandNode<S>.requiresPermission(
@@ -131,16 +142,6 @@ suspend fun <S : PermissionAware> InsertableCommandNode<S>.requiresPermission(
 ) =
     on {
         it.hasPermission(permission)
-    }.also {
-        PermissionService.setPermission(permission, PermissionService.anyonePermissionId, defaultPermission)
-    }
-
-suspend fun <S : ExecuteContext<*, *, *>> InsertableCommandNode<S>.requiresPermission(
-    permission: String,
-    defaultPermission: Boolean? = null
-) =
-    on {
-        it.executor.hasPermission(permission)
     }.also {
         PermissionService.setPermission(permission, PermissionService.anyonePermissionId, defaultPermission)
     }

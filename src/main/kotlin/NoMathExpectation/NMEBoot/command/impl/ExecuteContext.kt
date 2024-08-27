@@ -8,7 +8,11 @@ data class ExecuteContext<E, T, R>(
     val target: CommandSource<T>,
     val recipient: CommandSource<R>,
     val originalMessage: MessageContent? = null,
-) {
+) : PermissionAware {
+    override suspend fun hasPermission(permission: String) = executor.hasPermission(permission)
+
+    override suspend fun setPermission(permission: String, value: Boolean?) = target.setPermission(permission, value)
+
     class Builder<E, T, R>(
         val executor: CommandSource<E>,
         val target: CommandSource<T>,

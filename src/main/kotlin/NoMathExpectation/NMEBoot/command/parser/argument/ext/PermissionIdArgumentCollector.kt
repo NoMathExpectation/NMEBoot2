@@ -1,7 +1,6 @@
 package NoMathExpectation.NMEBoot.command.parser.argument.ext
 
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
-import NoMathExpectation.NMEBoot.command.impl.source.uidToPermissionId
 import NoMathExpectation.NMEBoot.command.parser.CommandContext
 import NoMathExpectation.NMEBoot.command.parser.argument.ArgumentCollector
 import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
@@ -12,7 +11,7 @@ class PermissionIdArgumentCollector : ArgumentCollector<CommandSource<*>, String
         val str = context.reader.readWord() ?: error("期望一个权限id，但是什么都没有得到。")
 
         if (str.lowercase() == "@s") {
-            return context.source.uidToPermissionId
+            return context.source.primaryPermissionId
         }
 
         //todo: implement @c: channel, @g: group/organization, @[id]/mention: someone

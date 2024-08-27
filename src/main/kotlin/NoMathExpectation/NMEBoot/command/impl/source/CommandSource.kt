@@ -1,7 +1,6 @@
 package NoMathExpectation.NMEBoot.command.impl.source
 
-import NoMathExpectation.NMEBoot.command.impl.PermissionAware
-import NoMathExpectation.NMEBoot.command.impl.PermissionService
+import NoMathExpectation.NMEBoot.command.impl.PermissionServiceAware
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.definition.*
 import love.forte.simbot.message.Message
@@ -11,15 +10,18 @@ import love.forte.simbot.message.toText
 import kotlin.reflect.KClass
 import kotlin.reflect.full.superclasses
 
-interface CommandSource<out T> : PermissionAware {
+interface CommandSource<out T> : PermissionServiceAware {
     val origin: T
 
     val uid: Long
 
     val id: String
 
-    override val permissionIds: List<String>
-        get() = listOf(uidToPermissionId, id, platform)
+    override val primaryPermissionId
+        get() = "uid-$uid"
+
+    override val permissionIds
+        get() = listOf(primaryPermissionId, id, platform)
 
     val platform: String
 
@@ -41,10 +43,6 @@ interface CommandSource<out T> : PermissionAware {
     suspend fun reply(message: Message): MessageReceipt? {
         // val finalMessage = with(MessageProcessor) { processMessage(message) }
         return replyRaw(message)
-    }
-
-    override suspend fun setPermission(permission: String, value: Boolean?) {
-        PermissionService.setPermission(permission, uidToPermissionId, value)
     }
 
     companion object {
@@ -117,8 +115,6 @@ suspend fun CommandSource<*>.reply(text: String): MessageReceipt? = reply(text.t
 
 suspend fun CommandSource<*>.reply(messageContent: MessageContent): MessageReceipt? = reply(messageContent.messages)
 
-val CommandSource<*>.uidToPermissionId get() = "uid-$uid"
-
 interface UserCommandSource<out T> : CommandSource<T> {
     override val subject: Actor
     override val executor: User
@@ -137,7 +133,7 @@ interface GuildMemberCommandSource<out T> : MemberCommandSource<T> {
 
     override val permissionIds: List<String>
         get() = listOf(
-            uidToPermissionId,
+            primaryPermissionId,
             id,
             *rolesToPermissionIds.toTypedArray(),
             "$platform-guild-${globalSubject.id}-${subject.id}",
@@ -155,7 +151,7 @@ interface ChatGroupMemberCommandSource<out T> : MemberCommandSource<T> {
     override val subject: ChatGroup
 
     override val permissionIds: List<String>
-        get() = listOf(uidToPermissionId, id, "$platform-group-${subject.id}", platform)
+        get() = listOf(primaryPermissionId, id, "$platform-group-${subject.id}", platform)
 }
 
 interface MemberPrivateCommandSource<out T> : MemberCommandSource<T> {
@@ -168,5 +164,5 @@ interface ContactCommandSource<out T> : UserCommandSource<T> {
     override val executor: Contact
 
     override val permissionIds: List<String>
-        get() = listOf(uidToPermissionId, id, "$platform-contact-${subject.id}", platform)
+        get() = listOf(primaryPermissionId, id, "$platform-contact-${subject.id}", platform)
 }

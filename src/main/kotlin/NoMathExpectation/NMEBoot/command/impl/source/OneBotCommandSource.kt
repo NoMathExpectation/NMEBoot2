@@ -80,7 +80,7 @@ interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>,
     override val executor: OneBotMember get() = subject
 
     override val permissionIds: List<String>
-        get() = listOf(uidToPermissionId, id, "$platform-group-${subject.id}-private", platform)
+        get() = listOf(primaryPermissionId, id, "$platform-group-${subject.id}-private", platform)
 
     class Event private constructor(override val origin: OneBotGroupPrivateMessageEvent) :
         OneBotGroupMemberPrivateCommandSource<OneBotGroupPrivateMessageEvent> {
@@ -125,7 +125,7 @@ interface OneBotFriendCommandSource<out T> : OneBotCommandSource<T>, ContactComm
     override val executor: OneBotFriend
 
     override val permissionIds: List<String>
-        get() = listOf(uidToPermissionId, id, "$platform-friend-${subject.id}", platform)
+        get() = listOf(primaryPermissionId, id, "$platform-friend-${subject.id}", platform)
 
     class Event private constructor(override val origin: OneBotFriendMessageEvent) :
         OneBotFriendCommandSource<OneBotFriendMessageEvent> {
