@@ -19,14 +19,14 @@ class FakeCommandSource : CommandSource<Nothing?> {
     private val logger = KotlinLogging.logger { }
 
     val receivedSendMessage: MutableList<Message> = mutableListOf()
-    override suspend fun sendRaw(message: Message): MessageReceipt? {
+    override suspend fun send(message: Message): MessageReceipt? {
         receivedSendMessage.add(message)
         logger.info { "sendRaw: ${message.toReadableString()}" }
         return null
     }
 
     val receivedReplyMessage: MutableList<Message> = mutableListOf()
-    override suspend fun replyRaw(message: Message): MessageReceipt? {
+    override suspend fun reply(message: Message): MessageReceipt? {
         receivedReplyMessage.add(message)
         logger.info { "replyRaw: ${message.toReadableString()}" }
         return null

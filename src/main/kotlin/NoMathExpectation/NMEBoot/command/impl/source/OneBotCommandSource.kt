@@ -53,12 +53,12 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
             _uid = idToUid()
         }
 
-        override suspend fun sendRaw(message: Message): OneBotMessageReceipt {
+        override suspend fun send(message: Message): OneBotMessageReceipt {
             val finalMessage = OneBotFolding.processFold(bot, message, subject.botAsMember().nickOrName)
             return subject.send(finalMessage)
         }
 
-        override suspend fun replyRaw(message: Message): OneBotMessageReceipt {
+        override suspend fun reply(message: Message): OneBotMessageReceipt {
             val finalMessage = OneBotFolding.processFold(bot, message, subject.botAsMember().nickOrName)
 
             if (finalMessage.containsOneBotForward()) {
@@ -98,12 +98,12 @@ interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>,
         override val uid: Long
             get() = _uid ?: error("uid not initialized!")
 
-        override suspend fun sendRaw(message: Message): OneBotMessageReceipt {
+        override suspend fun send(message: Message): OneBotMessageReceipt {
             val finalMessage = OneBotFolding.processFold(bot, message)
             return subject.send(finalMessage)
         }
 
-        override suspend fun replyRaw(message: Message): OneBotMessageReceipt {
+        override suspend fun reply(message: Message): OneBotMessageReceipt {
             val finalMessage = OneBotFolding.processFold(bot, message)
             return origin.reply(finalMessage)
         }
@@ -144,12 +144,12 @@ interface OneBotFriendCommandSource<out T> : OneBotCommandSource<T>, ContactComm
             _uid = idToUid()
         }
 
-        override suspend fun sendRaw(message: Message): OneBotMessageReceipt {
+        override suspend fun send(message: Message): OneBotMessageReceipt {
             val finalMessage = OneBotFolding.processFold(bot, message)
             return subject.send(finalMessage)
         }
 
-        override suspend fun replyRaw(message: Message): OneBotMessageReceipt {
+        override suspend fun reply(message: Message): OneBotMessageReceipt {
             val finalMessage = OneBotFolding.processFold(bot, message)
             return origin.reply(finalMessage)
         }

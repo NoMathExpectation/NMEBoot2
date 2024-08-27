@@ -56,9 +56,9 @@ interface KookChannelCommandSource<out T> : KookCommandSource<T>, GuildMemberCom
             _uid = idToUid()
         }
 
-        override suspend fun sendRaw(message: Message) = subject.send(message)
+        override suspend fun send(message: Message) = subject.send(message)
 
-        override suspend fun replyRaw(message: Message) = origin.reply(message)
+        override suspend fun reply(message: Message) = origin.reply(message)
 
         companion object {
             suspend operator fun invoke(event: KookChannelMessageEvent): Event {
@@ -88,9 +88,9 @@ interface KookPrivateCommandSource<out T> : KookCommandSource<T>, ContactCommand
             _uid = idToUid()
         }
 
-        override suspend fun sendRaw(message: Message) = executor.send(message)
+        override suspend fun send(message: Message) = executor.send(message)
 
-        override suspend fun replyRaw(message: Message) = origin.reply(message)
+        override suspend fun reply(message: Message) = origin.reply(message)
 
         companion object {
             suspend operator fun invoke(event: KookContactMessageEvent): Event {

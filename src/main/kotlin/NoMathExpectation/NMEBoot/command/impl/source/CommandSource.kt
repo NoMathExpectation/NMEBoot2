@@ -31,19 +31,9 @@ interface CommandSource<out T> : PermissionServiceAware {
 
     val executor: User?
 
-    suspend fun sendRaw(message: Message): MessageReceipt?
+    suspend fun send(message: Message): MessageReceipt?
 
-    suspend fun send(message: Message): MessageReceipt? {
-        // val finalMessage = with(MessageProcessor) { processMessage(message) }
-        return sendRaw(message)
-    }
-
-    suspend fun replyRaw(message: Message): MessageReceipt?
-
-    suspend fun reply(message: Message): MessageReceipt? {
-        // val finalMessage = with(MessageProcessor) { processMessage(message) }
-        return replyRaw(message)
-    }
+    suspend fun reply(message: Message): MessageReceipt?
 
     companion object {
         fun interface CommandSourceBuilder<T : Any, R> {
@@ -98,18 +88,9 @@ interface CommandSource<out T> : PermissionServiceAware {
     }
 }
 
-suspend fun CommandSource<*>.sendRaw(text: String): MessageReceipt? = sendRaw(text.toText())
-
-suspend fun CommandSource<*>.sendRaw(messageContent: MessageContent): MessageReceipt? = sendRaw(messageContent.messages)
-
 suspend fun CommandSource<*>.send(text: String): MessageReceipt? = send(text.toText())
 
 suspend fun CommandSource<*>.send(messageContent: MessageContent): MessageReceipt? = send(messageContent.messages)
-
-suspend fun CommandSource<*>.replyRaw(text: String): MessageReceipt? = replyRaw(text.toText())
-
-suspend fun CommandSource<*>.replyRaw(messageContent: MessageContent): MessageReceipt? =
-    replyRaw(messageContent.messages)
 
 suspend fun CommandSource<*>.reply(text: String): MessageReceipt? = reply(text.toText())
 
