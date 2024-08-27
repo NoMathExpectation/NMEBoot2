@@ -16,9 +16,9 @@ object ConsoleCommandSource : CommandSource<Nothing?> {
 
     private val logger = KotlinLogging.logger("Console")
 
-    override suspend fun send(message: Message): MessageReceipt? {
+    override suspend fun send(message: Message): MessageReceipt {
         logger.info { message.toReadableString() }
-        return null
+        return PlaceholderMessageReceipt
     }
 
     override suspend fun reply(message: Message) = send(message)

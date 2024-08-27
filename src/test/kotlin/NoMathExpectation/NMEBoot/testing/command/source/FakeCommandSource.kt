@@ -1,6 +1,7 @@
 package NoMathExpectation.NMEBoot.testing.command.source
 
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.PlaceholderMessageReceipt
 import NoMathExpectation.NMEBoot.message.toReadableString
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.message.Message
@@ -19,16 +20,16 @@ class FakeCommandSource : CommandSource<Nothing?> {
     private val logger = KotlinLogging.logger { }
 
     val receivedSendMessage: MutableList<Message> = mutableListOf()
-    override suspend fun send(message: Message): MessageReceipt? {
+    override suspend fun send(message: Message): MessageReceipt {
         receivedSendMessage.add(message)
         logger.info { "sendRaw: ${message.toReadableString()}" }
-        return null
+        return PlaceholderMessageReceipt
     }
 
     val receivedReplyMessage: MutableList<Message> = mutableListOf()
-    override suspend fun reply(message: Message): MessageReceipt? {
+    override suspend fun reply(message: Message): MessageReceipt {
         receivedReplyMessage.add(message)
         logger.info { "replyRaw: ${message.toReadableString()}" }
-        return null
+        return PlaceholderMessageReceipt
     }
 }

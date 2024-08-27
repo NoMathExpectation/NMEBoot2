@@ -10,6 +10,7 @@ import love.forte.simbot.component.kook.role.KookMemberRole
 import love.forte.simbot.definition.Actor
 import love.forte.simbot.definition.User
 import love.forte.simbot.message.Message
+import love.forte.simbot.message.MessageContent
 
 interface KookCommandSource<out T> : CommandSource<T> {
     override val subject: Actor
@@ -58,7 +59,15 @@ interface KookChannelCommandSource<out T> : KookCommandSource<T>, GuildMemberCom
 
         override suspend fun send(message: Message) = subject.send(message)
 
+        override suspend fun send(text: String) = subject.send(text)
+
+        override suspend fun send(messageContent: MessageContent) = subject.send(messageContent)
+
         override suspend fun reply(message: Message) = origin.reply(message)
+
+        override suspend fun reply(text: String) = origin.reply(text)
+
+        override suspend fun reply(messageContent: MessageContent) = origin.reply(messageContent)
 
         companion object {
             suspend operator fun invoke(event: KookChannelMessageEvent): Event {
@@ -90,7 +99,15 @@ interface KookPrivateCommandSource<out T> : KookCommandSource<T>, ContactCommand
 
         override suspend fun send(message: Message) = executor.send(message)
 
+        override suspend fun send(text: String) = executor.send(text)
+
+        override suspend fun send(messageContent: MessageContent) = executor.send(messageContent)
+
         override suspend fun reply(message: Message) = origin.reply(message)
+
+        override suspend fun reply(text: String) = origin.reply(text)
+
+        override suspend fun reply(messageContent: MessageContent) = origin.reply(messageContent)
 
         companion object {
             suspend operator fun invoke(event: KookContactMessageEvent): Event {

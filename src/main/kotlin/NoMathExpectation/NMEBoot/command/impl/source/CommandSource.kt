@@ -2,15 +2,17 @@ package NoMathExpectation.NMEBoot.command.impl.source
 
 import NoMathExpectation.NMEBoot.command.impl.PermissionServiceAware
 import io.github.oshai.kotlinlogging.KotlinLogging
+import love.forte.simbot.ability.DeleteOption
+import love.forte.simbot.ability.ReplySupport
+import love.forte.simbot.ability.SendSupport
+import love.forte.simbot.ability.StandardDeleteOption
+import love.forte.simbot.common.id.IntID.Companion.ID
 import love.forte.simbot.definition.*
-import love.forte.simbot.message.Message
-import love.forte.simbot.message.MessageContent
-import love.forte.simbot.message.MessageReceipt
-import love.forte.simbot.message.toText
+import love.forte.simbot.message.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.superclasses
 
-interface CommandSource<out T> : PermissionServiceAware {
+interface CommandSource<out T> : PermissionServiceAware, SendSupport, ReplySupport {
     val origin: T
 
     val uid: Long
@@ -31,9 +33,17 @@ interface CommandSource<out T> : PermissionServiceAware {
 
     val executor: User?
 
-    suspend fun send(message: Message): MessageReceipt?
+    override suspend fun send(message: Message): MessageReceipt
 
-    suspend fun reply(message: Message): MessageReceipt?
+    override suspend fun send(text: String) = send(text.toText())
+
+    override suspend fun send(messageContent: MessageContent) = send(messageContent.messages)
+
+    override suspend fun reply(message: Message): MessageReceipt
+
+    override suspend fun reply(text: String) = reply(text.toText())
+
+    override suspend fun reply(messageContent: MessageContent) = reply(messageContent.messages)
 
     companion object {
         fun interface CommandSourceBuilder<T : Any, R> {
@@ -88,14 +98,6 @@ interface CommandSource<out T> : PermissionServiceAware {
     }
 }
 
-suspend fun CommandSource<*>.send(text: String): MessageReceipt? = send(text.toText())
-
-suspend fun CommandSource<*>.send(messageContent: MessageContent): MessageReceipt? = send(messageContent.messages)
-
-suspend fun CommandSource<*>.reply(text: String): MessageReceipt? = reply(text.toText())
-
-suspend fun CommandSource<*>.reply(messageContent: MessageContent): MessageReceipt? = reply(messageContent.messages)
-
 interface UserCommandSource<out T> : CommandSource<T> {
     override val subject: Actor
     override val executor: User
@@ -146,4 +148,14 @@ interface ContactCommandSource<out T> : UserCommandSource<T> {
 
     override val permissionIds: List<String>
         get() = listOf(primaryPermissionId, id, "$platform-contact-${subject.id}", platform)
+}
+
+object PlaceholderMessageReceipt : SingleMessageReceipt() {
+    override val id = 0.ID
+
+    override suspend fun delete(vararg options: DeleteOption) {
+        if (StandardDeleteOption.IGNORE_ON_UNSUPPORTED !in options) {
+            throw UnsupportedOperationException("Deletion is not supported for PlaceholderMessageReceipt.")
+        }
+    }
 }
