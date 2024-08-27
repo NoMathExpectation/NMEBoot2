@@ -134,3 +134,13 @@ suspend fun <S : PermissionAware> InsertableCommandNode<S>.requiresPermission(
     }.also {
         PermissionService.setPermission(permission, PermissionService.anyonePermissionId, defaultPermission)
     }
+
+suspend fun <S : ExecuteContext<*, *, *>> InsertableCommandNode<S>.requiresPermission(
+    permission: String,
+    defaultPermission: Boolean? = null
+) =
+    on {
+        it.executor.hasPermission(permission)
+    }.also {
+        PermissionService.setPermission(permission, PermissionService.anyonePermissionId, defaultPermission)
+    }
