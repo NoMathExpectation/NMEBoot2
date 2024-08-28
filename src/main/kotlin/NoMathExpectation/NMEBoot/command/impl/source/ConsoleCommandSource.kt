@@ -10,6 +10,7 @@ object ConsoleCommandSource : CommandSource<Nothing?> {
     override val uid: Long = 0
     override val id = "console"
     override val platform = "console"
+    override val bot = null
     override val globalSubject = null
     override val subject = null
     override val executor = null

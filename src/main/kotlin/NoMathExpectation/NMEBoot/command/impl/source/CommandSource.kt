@@ -6,6 +6,7 @@ import love.forte.simbot.ability.DeleteOption
 import love.forte.simbot.ability.ReplySupport
 import love.forte.simbot.ability.SendSupport
 import love.forte.simbot.ability.StandardDeleteOption
+import love.forte.simbot.bot.Bot
 import love.forte.simbot.common.id.IntID.Companion.ID
 import love.forte.simbot.definition.*
 import love.forte.simbot.message.*
@@ -26,6 +27,8 @@ interface CommandSource<out T> : PermissionServiceAware, SendSupport, ReplySuppo
         get() = listOf(primaryPermissionId, id, platform)
 
     val platform: String
+
+    val bot: Bot?
 
     val globalSubject: Organization?
 
@@ -98,12 +101,16 @@ interface CommandSource<out T> : PermissionServiceAware, SendSupport, ReplySuppo
     }
 }
 
-interface UserCommandSource<out T> : CommandSource<T> {
+interface BotAwareCommandSource<out T> : CommandSource<T> {
+    override val bot: Bot
+}
+
+interface UserCommandSource<out T> : CommandSource<T>, BotAwareCommandSource<T> {
     override val subject: Actor
     override val executor: User
 }
 
-interface MemberCommandSource<out T> : UserCommandSource<T> {
+interface MemberCommandSource<out T> : UserCommandSource<T>, BotAwareCommandSource<T> {
     override val globalSubject: Organization
     override val executor: Member
 }

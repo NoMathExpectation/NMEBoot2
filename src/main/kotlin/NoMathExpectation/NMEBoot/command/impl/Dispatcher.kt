@@ -22,6 +22,9 @@ suspend fun initDispatcher() {
         commandPermission()
         commandTransfer()
         commandHelp()
+
+        //experimental
+        commandExport()
     }
 }
 

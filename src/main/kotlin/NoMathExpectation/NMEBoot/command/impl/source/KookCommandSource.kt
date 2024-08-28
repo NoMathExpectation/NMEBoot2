@@ -4,6 +4,7 @@ import NoMathExpectation.NMEBoot.user.idToUid
 import love.forte.simbot.annotations.ExperimentalSimbotAPI
 import love.forte.simbot.common.collectable.toList
 import love.forte.simbot.component.kook.*
+import love.forte.simbot.component.kook.bot.KookBot
 import love.forte.simbot.component.kook.event.KookChannelMessageEvent
 import love.forte.simbot.component.kook.event.KookContactMessageEvent
 import love.forte.simbot.component.kook.role.KookMemberRole
@@ -12,7 +13,8 @@ import love.forte.simbot.definition.User
 import love.forte.simbot.message.Message
 import love.forte.simbot.message.MessageContent
 
-interface KookCommandSource<out T> : CommandSource<T> {
+interface KookCommandSource<out T> : CommandSource<T>, BotAwareCommandSource<T> {
+    override val bot: KookBot
     override val subject: Actor
     override val executor: User
 
@@ -37,6 +39,8 @@ interface KookChannelCommandSource<out T> : KookCommandSource<T>, GuildMemberCom
         private var _uid: Long? = null
         override val uid: Long
             get() = _uid ?: error("uid not initialized!")
+
+        override val bot = origin.bot
 
         private var _globalSubject: KookGuild? = null
         override val globalSubject: KookGuild
@@ -87,6 +91,8 @@ interface KookPrivateCommandSource<out T> : KookCommandSource<T>, ContactCommand
         private var _uid: Long? = null
         override val uid: Long
             get() = _uid ?: error("uid not initialized!")
+
+        override val bot = origin.bot
 
         private var _executor: KookUserChat? = null
         override val executor: KookUserChat

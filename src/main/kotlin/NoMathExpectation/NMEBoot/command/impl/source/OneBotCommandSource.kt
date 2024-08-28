@@ -7,6 +7,7 @@ import NoMathExpectation.NMEBoot.util.nickOrName
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotFriend
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotGroup
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotMember
+import love.forte.simbot.component.onebot.v11.core.bot.OneBotBot
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotFriendMessageEvent
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotGroupPrivateMessageEvent
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotNormalGroupMessageEvent
@@ -15,7 +16,8 @@ import love.forte.simbot.definition.Actor
 import love.forte.simbot.definition.User
 import love.forte.simbot.message.Message
 
-interface OneBotCommandSource<out T> : CommandSource<T> {
+interface OneBotCommandSource<out T> : CommandSource<T>, BotAwareCommandSource<T> {
+    override val bot: OneBotBot
     override val subject: Actor
     override val executor: User
 
@@ -33,11 +35,11 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
 
     class NormalEvent private constructor(override val origin: OneBotNormalGroupMessageEvent) :
         OneBotGroupMemberCommandSource<OneBotNormalGroupMessageEvent> {
-        private val bot = origin.bot
-
         private var _uid: Long? = null
         override val uid: Long
             get() = _uid ?: error("uid not initialized!")
+
+        override val bot = origin.bot
 
         private var _subject: OneBotGroup? = null
         override val subject: OneBotGroup
@@ -84,11 +86,11 @@ interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>,
 
     class Event private constructor(override val origin: OneBotGroupPrivateMessageEvent) :
         OneBotGroupMemberPrivateCommandSource<OneBotGroupPrivateMessageEvent> {
-        private val bot = origin.bot
-
         private var _globalSubject: OneBotGroup? = null
         override val globalSubject: OneBotGroup
             get() = _globalSubject ?: error("globalSubject not initialized!")
+
+        override val bot = origin.bot
 
         private var _subject: OneBotMember? = null
         override val subject: OneBotMember
@@ -129,11 +131,11 @@ interface OneBotFriendCommandSource<out T> : OneBotCommandSource<T>, ContactComm
 
     class Event private constructor(override val origin: OneBotFriendMessageEvent) :
         OneBotFriendCommandSource<OneBotFriendMessageEvent> {
-        private val bot = origin.bot
-
         private var _uid: Long? = null
         override val uid: Long
             get() = _uid ?: error("uid not initialized!")
+
+        override val bot = origin.bot
 
         private var _executor: OneBotFriend? = null
         override val executor: OneBotFriend

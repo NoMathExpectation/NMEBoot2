@@ -28,6 +28,7 @@ class LiteralSelectionCommandNode<S>(
 }
 
 fun <S> LiteralSelectionCommandNode<S>.literal(vararg names: String): ForwardCommandNode<S> {
+    check(names.isNotEmpty()) { "Literal names not provided." }
     val node = ForwardCommandNode<S>()
     set(*names, node = node)
     return node
