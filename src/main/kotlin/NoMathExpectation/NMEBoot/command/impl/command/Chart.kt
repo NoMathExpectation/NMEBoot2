@@ -1,16 +1,19 @@
 package NoMathExpectation.NMEBoot.command.impl.command
 
+import NoMathExpectation.NMEBoot.command.impl.PermissionAware
 import NoMathExpectation.NMEBoot.command.impl.requiresPermission
-import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.parser.argument.*
 import NoMathExpectation.NMEBoot.command.parser.node.*
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.RhythmCafeSearchEngine
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.Request
 import io.github.oshai.kotlinlogging.KotlinLogging
+import love.forte.simbot.ability.SendSupport
 
 private val logger = KotlinLogging.logger { }
 
-suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandChart() =
+suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
+        where T : SendSupport,
+              T : PermissionAware =
     literal("chart", "rdlevel")
         .requiresPermission("command.rd.fanmade.chart")
         .select {

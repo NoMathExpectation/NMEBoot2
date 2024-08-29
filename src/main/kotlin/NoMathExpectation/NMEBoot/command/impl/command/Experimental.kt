@@ -1,7 +1,8 @@
 package NoMathExpectation.NMEBoot.command.impl.command
 
+import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
+import NoMathExpectation.NMEBoot.command.impl.PermissionAware
 import NoMathExpectation.NMEBoot.command.impl.requiresPermission
-import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.parser.argument.collectGreedyString
 import NoMathExpectation.NMEBoot.command.parser.argument.collectLong
 import NoMathExpectation.NMEBoot.command.parser.argument.getLong
@@ -18,6 +19,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToStream
+import love.forte.simbot.ability.ReplySupport
 import love.forte.simbot.annotations.ExperimentalSimbotAPI
 import love.forte.simbot.common.id.LongID.Companion.ID
 import love.forte.simbot.component.kook.KookMember
@@ -29,7 +31,9 @@ import kotlin.io.path.outputStream
 
 private val logger = KotlinLogging.logger { }
 
-suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandTransfer() =
+suspend fun <T> LiteralSelectionCommandNode<T>.commandTransfer()
+        where T : ReplySupport,
+              T : PermissionAware =
     literal("transfer")
         .requiresPermission("command.experimental.transfer")
         .collectGreedyString("text")
@@ -47,7 +51,7 @@ suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandTransfer() =
             it.reply(link)
         }
 
-suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandRef() =
+suspend fun <T : PermissionAware> LiteralSelectionCommandNode<T>.commandRef() =
     literal("ref")
         .requiresPermission("command.experimental.ref")
         .executes {
@@ -67,14 +71,14 @@ private val outputJson = Json {
 }
 
 @OptIn(ExperimentalSimbotAPI::class, ExperimentalSerializationApi::class)
-suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandExport() =
+suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandExport() =
     literal("export")
         .requiresPermission("command.experimental.export")
         .literals {
             literal("group")
                 .collectLong("group")
                 .executes {
-                    val relation = it.bot?.groupRelation ?: run {
+                    val relation = it.target.bot?.groupRelation ?: run {
                         it.reply("此平台不支持获取群")
                         return@executes
                     }

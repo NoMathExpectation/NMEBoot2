@@ -1,7 +1,7 @@
 package NoMathExpectation.NMEBoot.command.impl.command
 
+import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
 import NoMathExpectation.NMEBoot.command.impl.requiresPermission
-import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.parser.node.LiteralSelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.executes
 import NoMathExpectation.NMEBoot.command.parser.node.literal
@@ -50,11 +50,11 @@ class Luck(var counter: UseCounter = FixedRateUseCounter.ofDay(1)) : Comparable<
     }
 }
 
-suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandLuck() =
+suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandLuck() =
     literal("luck")
         .requiresPermission("command.common.luck")
         .executes {
-            val luck = Luck.get(it.uid)
+            val luck = Luck.get(it.target.uid)
             val message = buildMessages {
                 +"你今天的运气是: $luck"
                 if (luck >= 100) {

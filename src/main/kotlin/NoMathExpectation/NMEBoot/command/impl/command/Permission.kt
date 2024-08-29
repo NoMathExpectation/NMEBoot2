@@ -1,8 +1,8 @@
 package NoMathExpectation.NMEBoot.command.impl.command
 
+import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
 import NoMathExpectation.NMEBoot.command.impl.PermissionService
 import NoMathExpectation.NMEBoot.command.impl.requiresPermission
-import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.parser.argument.collectString
 import NoMathExpectation.NMEBoot.command.parser.argument.ext.collectPermissionId
 import NoMathExpectation.NMEBoot.command.parser.argument.getBoolean
@@ -10,7 +10,7 @@ import NoMathExpectation.NMEBoot.command.parser.argument.getString
 import NoMathExpectation.NMEBoot.command.parser.argument.optionallyCollectBoolean
 import NoMathExpectation.NMEBoot.command.parser.node.*
 
-suspend fun LiteralSelectionCommandNode<CommandSource<*>>.commandPermission() =
+suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandPermission() =
     literal("permission", "perm")
         .requiresPermission("command.admin.permission")
         .literals {

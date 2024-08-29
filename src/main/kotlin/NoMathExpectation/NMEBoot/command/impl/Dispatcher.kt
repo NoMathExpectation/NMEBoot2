@@ -7,7 +7,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger { }
 
-lateinit var commandDispatcher: CommandDispatcher<CommandSource<*>>
+lateinit var commandDispatcher: CommandDispatcher<AnyExecuteContext>
     private set
 
 suspend fun initDispatcher() {
@@ -28,12 +28,16 @@ suspend fun initDispatcher() {
     }
 }
 
-suspend fun CommandSource<*>.executeCommand(command: String) {
+suspend fun <T> CommandSource<T>.executeCommand(
+    command: String,
+    contextBlock: ExecuteContext.Builder<T, T, T>.() -> Unit = {},
+) {
     if (!hasPermission("use.command")) {
         return
     }
 
-    val result = commandDispatcher.dispatch(this, command)
+    val executeContext = ExecuteContext(this, contextBlock)
+    val result = commandDispatcher.dispatch(executeContext, command)
 
     if (result.executeExceptions.isNotEmpty()) {
         val e = result.executeExceptions.first()

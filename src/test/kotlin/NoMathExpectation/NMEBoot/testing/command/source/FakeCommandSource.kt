@@ -13,6 +13,7 @@ class FakeCommandSource : CommandSource<Nothing?> {
     override val uid = Random.nextLong()
     override val id = "fake"
     override val platform = "fake"
+    override val bot = null
     override val globalSubject = null
     override val subject = null
     override val executor = null

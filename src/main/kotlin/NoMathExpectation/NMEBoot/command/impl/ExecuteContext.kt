@@ -31,6 +31,8 @@ data class ExecuteContext<E, T, R>(
     }
 }
 
+typealias AnyExecuteContext = ExecuteContext<*, *, *>
+
 inline fun <E, T, R> ExecuteContext(
     executor: CommandSource<E>,
     target: CommandSource<T>,

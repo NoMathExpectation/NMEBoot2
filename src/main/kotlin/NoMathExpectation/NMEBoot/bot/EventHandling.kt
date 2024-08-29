@@ -63,5 +63,7 @@ internal suspend fun tryHandleCommand(event: Event) {
         return
     }
 
-    source.executeCommand(text.removePrefix(prefix))
+    source.executeCommand(text.removePrefix(prefix)) {
+        originalMessage = event.messageContent
+    }
 }
