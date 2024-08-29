@@ -41,19 +41,29 @@ suspend fun <T> CommandSource<T>.executeCommand(
     val result = commandDispatcher.dispatch(executeContext, command)
 
     if (result.executeExceptions.isNotEmpty()) {
-        val e = result.executeExceptions.first()
-        val msg = e.localizedMessage ?: e.message ?: "未知错误"
-
-        if (result.executeExceptions.size == 1) {
-            logger.error(e) { "Error while executing $command from $this: " }
-            reply(msg)
-            return
-        }
-
         result.executeExceptions.forEach {
             logger.error(it) { "Error while executing $command from $this: " }
         }
-        reply("运行指令时产生了${result.executeExceptions.size}个错误，第一个错误为 $msg")
+
+        val debug = hasPermission("use.debug")
+        val e = result.executeExceptions.first()
+        val firstErrorMsg = if (debug) {
+            e.message ?: "未知错误"
+        } else {
+            "工口发生。"
+        }
+
+        val errors = result.executeExceptions.size
+        if (errors == 1) {
+            reply(firstErrorMsg)
+            return
+        }
+        val msg = if (debug) {
+            "运行指令时产生了${errors}个错误，第一个错误为 $firstErrorMsg"
+        } else {
+            "${errors}次工口发生。"
+        }
+        reply(msg)
 
         return
     }
