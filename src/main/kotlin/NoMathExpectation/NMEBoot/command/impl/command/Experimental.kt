@@ -11,6 +11,7 @@ import NoMathExpectation.NMEBoot.command.parser.node.LiteralSelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.executes
 import NoMathExpectation.NMEBoot.command.parser.node.literal
 import NoMathExpectation.NMEBoot.command.parser.node.literals
+import NoMathExpectation.NMEBoot.message.toReadableString
 import NoMathExpectation.NMEBoot.util.TransferSh
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.map
@@ -51,11 +52,11 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandTransfer()
             it.reply(link)
         }
 
-suspend fun <T : PermissionAware> LiteralSelectionCommandNode<T>.commandRef() =
+suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandRef() =
     literal("ref")
         .requiresPermission("command.experimental.ref")
         .executes {
-            logger.info { }
+            logger.info { it.originalMessage?.referenceMessage?.messages?.toReadableString() }
         }
 
 @Serializable
