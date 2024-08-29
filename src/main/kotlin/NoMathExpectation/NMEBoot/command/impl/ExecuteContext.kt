@@ -1,6 +1,8 @@
 package NoMathExpectation.NMEBoot.command.impl
 
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
+import love.forte.simbot.ability.ReplySupport
+import love.forte.simbot.ability.SendSupport
 import love.forte.simbot.message.MessageContent
 
 data class ExecuteContext<E, T, R>(
@@ -8,7 +10,7 @@ data class ExecuteContext<E, T, R>(
     val target: CommandSource<T>,
     val recipient: CommandSource<R>,
     val originalMessage: MessageContent? = null,
-) : PermissionAware {
+) : PermissionAware, SendSupport by recipient, ReplySupport by recipient {
     override suspend fun hasPermission(permission: String) = executor.hasPermission(permission)
 
     override suspend fun setPermission(permission: String, value: Boolean?) = target.setPermission(permission, value)
