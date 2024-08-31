@@ -56,7 +56,8 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandRef() =
     literal("ref")
         .requiresPermission("command.experimental.ref")
         .executes {
-            logger.info { it.originalMessage?.referenceMessage?.messages?.toReadableString() }
+            val refString = it.originalMessage?.referenceMessage()?.messages?.toReadableString()
+            logger.info { refString }
         }
 
 @Serializable

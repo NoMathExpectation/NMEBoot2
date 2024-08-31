@@ -1,10 +1,12 @@
 package NoMathExpectation.NMEBoot.message
 
+import love.forte.simbot.component.onebot.v11.message.segment.OneBotMessageSegmentElement
+import love.forte.simbot.component.onebot.v11.message.segment.OneBotReply
 import love.forte.simbot.message.*
 
 object MessageFormatter {
     private fun messageElementToReadableString(element: Message.Element): String {
-        return when(element) {
+        return when (element) {
             is PlainText -> element.text
             is At -> element.originContent
             is MentionMessage -> "@$element"
@@ -29,3 +31,14 @@ object MessageFormatter {
 }
 
 fun Message.toReadableString() = MessageFormatter.messageToReadableString(this)
+
+fun Messages.removeReferencePrefix() = dropWhile {
+    it is MessageReference ||
+            (it is OneBotMessageSegmentElement && it.segment is OneBotReply) ||
+            it is MentionMessage
+}.mapIndexed { index, element ->
+    if (index > 0 || element !is PlainText) {
+        return@mapIndexed element
+    }
+    element.text.trimStart().toText()
+}.toMessages()

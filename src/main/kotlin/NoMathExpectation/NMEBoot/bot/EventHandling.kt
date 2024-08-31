@@ -3,6 +3,7 @@ package NoMathExpectation.NMEBoot.bot
 import NoMathExpectation.NMEBoot.command.impl.commandConfig
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
+import NoMathExpectation.NMEBoot.message.removeReferencePrefix
 import NoMathExpectation.NMEBoot.message.toReadableString
 import NoMathExpectation.NMEBoot.util.nickOrName
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -55,7 +56,7 @@ internal suspend fun tryHandleCommand(event: Event) {
     }
 
     val source = CommandSource.get(event) ?: return
-    val text = event.messageContent.messages.toReadableString()
+    val text = event.messageContent.messages.removeReferencePrefix().toReadableString()
 
 
     val prefix = commandConfig.get().commandPrefix
