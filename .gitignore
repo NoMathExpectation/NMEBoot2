@@ -45,4 +45,5 @@ bin/
 ./lagrange/
 ./data/
 ./config/
+./logs/
 ./compose/

@@ -17,35 +17,56 @@ internal suspend fun handleEvent(event: Event) {
     tryHandleCommand(event)
 }
 
-internal fun logEvent(event: Event) {
+internal suspend fun logEvent(event: Event) {
     if (event !is MessageEvent) {
         logger.debug { event }
         return
     }
 
+    val msgString = event.messageContent.messages.toReadableString()
+
     when (event) {
-        is ChatChannelMessageEvent -> messageLogger.info {
-            "Bot.${event.bot.id}.rx [${event.source.name}(${event.source.id})][${event.content.name}(${event.content.id})] ${event.author.nickOrName}(${event.authorId}) -> ${event.messageContent.messages.toReadableString()}"
+        is ChatChannelMessageEvent -> {
+            val source = event.source()
+            val content = event.content()
+            val author = event.author()
+            messageLogger.info {
+                "Bot.${event.bot.id}.rx [${source.name}(${source.id})][${content.name}(${content.id})] ${author.nickOrName}(${event.authorId}) -> $msgString"
+            }
         }
 
-        is ChatGroupMessageEvent -> messageLogger.info {
-            "Bot.${event.bot.id}.rx [${event.content.name}(${event.content.id})] ${event.author.name}(${event.authorId}) -> ${event.messageContent.messages.toReadableString()}"
+        is ChatGroupMessageEvent -> {
+            val content = event.content()
+            val author = event.author()
+            messageLogger.info {
+                "Bot.${event.bot.id}.rx [${content.name}(${content.id})] ${author.name}(${event.authorId}) -> $msgString"
+            }
         }
 
-        is ChatRoomMessageEvent -> messageLogger.info {
-            "Bot.${event.bot.id}.rx [${event.content.name}(${event.content.id})] <unknown>(${event.authorId}) -> ${event.messageContent.messages.toReadableString()}"
+        is ChatRoomMessageEvent -> {
+            val content = event.content()
+            messageLogger.info {
+                "Bot.${event.bot.id}.rx [${content.name}(${content.id})] <unknown>(${event.authorId}) -> $msgString"
+            }
         }
 
-        is MemberMessageEvent -> messageLogger.info {
-            "Bot.${event.bot.id}.rx [${event.source.name}(${event.source.id})][private] ${event.content.name}(${event.content.id}) -> ${event.messageContent.messages.toReadableString()}"
+        is MemberMessageEvent -> {
+            val source = event.source()
+            val content = event.content()
+            messageLogger.info {
+                "Bot.${event.bot.id}.rx [${source.name}(${source.id})][private] ${content.name}(${content.id}) -> $msgString"
+            }
         }
 
-        is ContactMessageEvent -> messageLogger.info {
-            "Bot.${event.bot.id}.rx [contact] ${event.content.name}(${event.content.id}) -> ${event.messageContent.messages.toReadableString()}"
+        is ContactMessageEvent -> {
+            val content = event.content()
+            messageLogger.info {
+                "Bot.${event.bot.id}.rx [contact] ${content.name}(${content.id}) -> $msgString"
+            }
         }
 
         else -> messageLogger.info {
-            "Bot.${event.bot.id}.rx [unknown] <unknown>(${event.authorId}) -> ${event.messageContent.messages.toReadableString()}"
+            "Bot.${event.bot.id}.rx [unknown] <unknown>(${event.authorId}) -> $msgString"
         }
     }
 }
