@@ -1,5 +1,6 @@
-package NoMathExpectation.NMEBoot.message
+package NoMathExpectation.NMEBoot.message.onebot
 
+import NoMathExpectation.NMEBoot.message.toReadableString
 import NoMathExpectation.NMEBoot.util.asMessages
 import NoMathExpectation.NMEBoot.util.storageOf
 import kotlinx.serialization.Serializable

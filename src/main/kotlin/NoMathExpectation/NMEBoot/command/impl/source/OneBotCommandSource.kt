@@ -1,7 +1,7 @@
 package NoMathExpectation.NMEBoot.command.impl.source
 
-import NoMathExpectation.NMEBoot.message.OneBotFolding
-import NoMathExpectation.NMEBoot.message.containsOneBotForward
+import NoMathExpectation.NMEBoot.message.onebot.OneBotFolding
+import NoMathExpectation.NMEBoot.message.onebot.containsOneBotForward
 import NoMathExpectation.NMEBoot.user.idToUid
 import NoMathExpectation.NMEBoot.util.nickOrName
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotFriend
