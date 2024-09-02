@@ -26,7 +26,7 @@ class LagrangeGetGroupFileUrl(
         @SerialName("file_id")
         val fileId: StringID,
         @SerialName("busid")
-        val busId: Int,
+        val busId: Long,
     )
 
     @Serializable
