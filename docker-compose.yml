@@ -3,12 +3,14 @@ networks:
 volumes:
   lagrange:
   nmeboot:
+  swap:
 services:
   lagrange:
     image: ghcr.io/lagrangedev/lagrange.onebot:edge
     container_name: Lagrange.OneBot
     volumes:
       - lagrange:/app/data
+      - swap:/swap
     networks:
       - nmenet
     restart: always
@@ -20,6 +22,7 @@ services:
     container_name: NMEBoot2
     volumes:
       - nmeboot:/app
+      - swap:/swap
     networks:
       - nmenet
     restart: unless-stopped
