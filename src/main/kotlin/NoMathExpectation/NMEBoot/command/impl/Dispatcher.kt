@@ -26,6 +26,7 @@ suspend fun initDispatcher() {
         //experimental
         commandExport()
         commandRef()
+        commandFiles()
     }
 }
 

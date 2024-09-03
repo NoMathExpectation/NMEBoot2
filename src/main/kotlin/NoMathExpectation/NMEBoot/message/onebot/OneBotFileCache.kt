@@ -1,19 +1,24 @@
 package NoMathExpectation.NMEBoot.message.onebot
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.component.onebot.v11.core.event.notice.OneBotGroupUploadEvent
 import love.forte.simbot.component.onebot.v11.event.notice.RawGroupUploadEvent
 
 object OneBotFileCache {
-    val cache = mutableMapOf<Pair<Long, Long>, MutableList<RawGroupUploadEvent.FileInfo>>()
+    private val cache = mutableMapOf<Pair<Long, Long>, MutableList<RawGroupUploadEvent.FileInfo>>()
+
+    private val logger = KotlinLogging.logger { }
 
     const val MAX_CACHE = 10
 
     fun record(groupId: Long, uploaderId: Long, info: RawGroupUploadEvent.FileInfo) {
         val list = cache.getOrPut(groupId to uploaderId) { mutableListOf() }
         if (list.size >= MAX_CACHE) {
-            list.removeAt(0)
+            val removed = list.removeAt(0)
+            logger.debug { "Removing expired cache $removed" }
         }
         list.add(info)
+        logger.debug { "Adding new cache $info" }
     }
 
     fun record(event: RawGroupUploadEvent) {

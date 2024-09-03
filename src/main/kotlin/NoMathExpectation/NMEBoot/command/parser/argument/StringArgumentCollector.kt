@@ -58,7 +58,11 @@ class OptionalStringArgumentCollector<in S> : ArgumentCollector<S, String?> {
 
         val quoteChar = reader.peekChar() ?: return null
         if (quoteChar !in quoteChars) {
-            return reader.readWord()
+            val word = reader.readWord()
+            if (word == "null") {
+                return null
+            }
+            return word
         }
 
         reader.readChar()

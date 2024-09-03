@@ -5,6 +5,8 @@ import NoMathExpectation.NMEBoot.command.impl.PermissionAware
 import NoMathExpectation.NMEBoot.command.impl.requiresPermission
 import NoMathExpectation.NMEBoot.command.parser.argument.collectGreedyString
 import NoMathExpectation.NMEBoot.command.parser.argument.collectLong
+import NoMathExpectation.NMEBoot.command.parser.argument.ext.collectAttachment
+import NoMathExpectation.NMEBoot.command.parser.argument.ext.getAttachments
 import NoMathExpectation.NMEBoot.command.parser.argument.getLong
 import NoMathExpectation.NMEBoot.command.parser.argument.getString
 import NoMathExpectation.NMEBoot.command.parser.node.LiteralSelectionCommandNode
@@ -58,6 +60,15 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandRef() =
         .executes {
             val refString = it.originalMessage?.referenceMessage()?.messages?.toReadableString()
             logger.info { refString }
+        }
+
+suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandFiles() =
+    literal("files")
+        .requiresPermission("command.experimental.files")
+        .collectAttachment("files")
+        .executes {
+            val files = getAttachments("files") ?: listOf()
+            it.reply(files.joinToString { it.name })
         }
 
 @Serializable
