@@ -19,7 +19,7 @@ object ConsoleCommandSource : CommandSource<Nothing?> {
 
     override suspend fun send(message: Message): MessageReceipt {
         logger.info { message.toReadableString() }
-        return PlaceholderMessageReceipt
+        return UnsupportedDeleteOpMessageReceipt
     }
 
     override suspend fun reply(message: Message) = send(message)

@@ -1,9 +1,13 @@
 package NoMathExpectation.NMEBoot.command.impl.source
 
+import NoMathExpectation.NMEBoot.message.element.Attachment
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFolding
+import NoMathExpectation.NMEBoot.message.onebot.apiExt.toOneBotUploadApi
 import NoMathExpectation.NMEBoot.message.onebot.containsOneBotForward
 import NoMathExpectation.NMEBoot.user.idToUid
+import NoMathExpectation.NMEBoot.util.asMessages
 import NoMathExpectation.NMEBoot.util.nickOrName
+import love.forte.simbot.common.id.toLongID
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotFriend
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotGroup
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotMember
@@ -15,6 +19,8 @@ import love.forte.simbot.component.onebot.v11.message.OneBotMessageReceipt
 import love.forte.simbot.definition.Actor
 import love.forte.simbot.definition.User
 import love.forte.simbot.message.Message
+import love.forte.simbot.message.MessageReceipt
+import love.forte.simbot.message.toMessages
 
 interface OneBotCommandSource<out T> : CommandSource<T>, BotAwareCommandSource<T> {
     override val bot: OneBotBot
@@ -55,13 +61,44 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
             _uid = idToUid()
         }
 
-        override suspend fun send(message: Message): OneBotMessageReceipt {
-            val finalMessage = OneBotFolding.processFold(bot, message, subject.botAsMember().nickOrName)
+        private suspend fun processMessage(message: Message): Message? {
+            var finalMessage = message
+
+            finalMessage
+                .asMessages()
+                .filterIsInstance<Attachment>()
+                .forEach {
+                    val api = it.toOneBotUploadApi(globalSubject.id.toLongID())
+                    val result = bot.executeResult(api)
+                    if (!result.isSuccess) {
+                        throw RuntimeException("上传文件 ${it.name} 失败")
+                    }
+                }
+            finalMessage = finalMessage.asMessages().filter { it !is Attachment }.toMessages()
+
+            if (finalMessage.isEmpty()) {
+                return null
+            }
+
+            finalMessage = OneBotFolding.processFold(bot, message, subject.botAsMember().nickOrName)
+
+            return finalMessage
+        }
+
+        override suspend fun send(message: Message): MessageReceipt {
+            var finalMessage = processMessage(message)
+            if (finalMessage == null) {
+                return NoDeleteOpMessageReceipt
+            }
             return subject.send(finalMessage)
         }
 
-        override suspend fun reply(message: Message): OneBotMessageReceipt {
-            val finalMessage = OneBotFolding.processFold(bot, message, subject.botAsMember().nickOrName)
+        override suspend fun reply(message: Message): MessageReceipt {
+            var finalMessage = processMessage(message)
+
+            if (finalMessage == null) {
+                return NoDeleteOpMessageReceipt
+            }
 
             if (finalMessage.containsOneBotForward()) {
                 return subject.send(finalMessage)

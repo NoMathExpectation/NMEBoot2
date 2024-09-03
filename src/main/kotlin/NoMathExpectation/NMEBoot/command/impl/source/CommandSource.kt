@@ -157,12 +157,18 @@ interface ContactCommandSource<out T> : UserCommandSource<T> {
         get() = listOf(primaryPermissionId, id, "$platform-contact-${subject.id}", platform)
 }
 
-object PlaceholderMessageReceipt : SingleMessageReceipt() {
+object UnsupportedDeleteOpMessageReceipt : SingleMessageReceipt() {
     override val id = 0.ID
 
     override suspend fun delete(vararg options: DeleteOption) {
         if (StandardDeleteOption.IGNORE_ON_UNSUPPORTED !in options) {
-            throw UnsupportedOperationException("Deletion is not supported for PlaceholderMessageReceipt.")
+            throw UnsupportedOperationException("Deletion is not supported for UnsupportedDeleteOpMessageReceipt.")
         }
     }
+}
+
+object NoDeleteOpMessageReceipt : SingleMessageReceipt() {
+    override val id = 0.ID
+
+    override suspend fun delete(vararg options: DeleteOption) {}
 }

@@ -27,6 +27,7 @@ import love.forte.simbot.annotations.ExperimentalSimbotAPI
 import love.forte.simbot.common.id.LongID.Companion.ID
 import love.forte.simbot.component.kook.KookMember
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotMember
+import love.forte.simbot.message.buildMessages
 import java.nio.file.StandardOpenOption
 import java.util.*
 import kotlin.io.path.Path
@@ -69,6 +70,19 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandFiles() =
         .executes {
             val files = getAttachments("files") ?: listOf()
             it.reply(files.joinToString { it.name })
+        }
+
+suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandCopy() =
+    literal("copy")
+        .requiresPermission("command.experimental.copy")
+        .collectAttachment("files")
+        .executes {
+            val files = getAttachments("files") ?: listOf()
+            it.reply(buildMessages {
+                files.forEach {
+                    +it
+                }
+            })
         }
 
 @Serializable

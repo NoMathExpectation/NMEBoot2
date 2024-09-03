@@ -1,7 +1,7 @@
 package NoMathExpectation.NMEBoot.testing.command.source
 
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
-import NoMathExpectation.NMEBoot.command.impl.source.PlaceholderMessageReceipt
+import NoMathExpectation.NMEBoot.command.impl.source.UnsupportedDeleteOpMessageReceipt
 import NoMathExpectation.NMEBoot.message.toReadableString
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.message.Message
@@ -24,13 +24,13 @@ class FakeCommandSource : CommandSource<Nothing?> {
     override suspend fun send(message: Message): MessageReceipt {
         receivedSendMessage.add(message)
         logger.info { "sendRaw: ${message.toReadableString()}" }
-        return PlaceholderMessageReceipt
+        return UnsupportedDeleteOpMessageReceipt
     }
 
     val receivedReplyMessage: MutableList<Message> = mutableListOf()
     override suspend fun reply(message: Message): MessageReceipt {
         receivedReplyMessage.add(message)
         logger.info { "replyRaw: ${message.toReadableString()}" }
-        return PlaceholderMessageReceipt
+        return UnsupportedDeleteOpMessageReceipt
     }
 }
