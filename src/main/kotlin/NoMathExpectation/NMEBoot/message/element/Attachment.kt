@@ -161,11 +161,13 @@ class InputStreamAttachment(
     override fun toString() = "InputStreamAttachment(name=$name)"
 }
 
+fun InputStream.toAttachment(name: String) = InputStreamAttachment(name, this)
+
 class FileAttachment(
-    val file: File
+    val file: File,
+    override val name: String = file.name,
 ) : Attachment {
     override val id = 0.ID
-    override val name = file.name
 
     override suspend fun inputStream() = withContext(Dispatchers.IO) {
         file.inputStream()
@@ -179,3 +181,5 @@ class FileAttachment(
 
     override fun toString() = "FileAttachment(name=$name)"
 }
+
+fun File.toAttachment(name: String? = null) = FileAttachment(this, name ?: this.name)

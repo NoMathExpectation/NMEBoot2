@@ -24,6 +24,7 @@ suspend fun initDispatcher() {
 
         //rd
         commandChart()
+        commandConvert()
         commandOffset()
 
         //experimental
