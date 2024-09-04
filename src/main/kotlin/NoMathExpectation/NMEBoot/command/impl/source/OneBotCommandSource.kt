@@ -6,7 +6,6 @@ import NoMathExpectation.NMEBoot.message.onebot.apiExt.toOneBotUploadApi
 import NoMathExpectation.NMEBoot.message.onebot.containsOneBotForward
 import NoMathExpectation.NMEBoot.user.idToUid
 import NoMathExpectation.NMEBoot.util.asMessages
-import NoMathExpectation.NMEBoot.util.nickOrName
 import love.forte.simbot.common.id.toLongID
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotFriend
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotGroup
@@ -15,12 +14,12 @@ import love.forte.simbot.component.onebot.v11.core.bot.OneBotBot
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotFriendMessageEvent
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotGroupPrivateMessageEvent
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotNormalGroupMessageEvent
-import love.forte.simbot.component.onebot.v11.message.OneBotMessageReceipt
 import love.forte.simbot.definition.Actor
 import love.forte.simbot.definition.User
 import love.forte.simbot.message.Message
 import love.forte.simbot.message.MessageReceipt
 import love.forte.simbot.message.toMessages
+import love.forte.simbot.message.toText
 
 interface OneBotCommandSource<out T> : CommandSource<T>, BotAwareCommandSource<T> {
     override val bot: OneBotBot
@@ -32,6 +31,55 @@ interface OneBotCommandSource<out T> : CommandSource<T>, BotAwareCommandSource<T
 
     override val platform: String
         get() = "onebot"
+}
+
+private suspend inline fun Message.sendByOneBot(
+    bot: OneBotBot,
+    subject: Actor,
+    sendBlock: (Message) -> MessageReceipt,
+): MessageReceipt {
+    require(subject is OneBotGroup || subject is OneBotFriend || subject is OneBotMember) {
+        "subject must be OneBotGroup, OneBotFriend or OneBotMember"
+    }
+
+    var finalMessage = this
+
+    if (subject is OneBotGroup) {
+        finalMessage
+            .asMessages()
+            .filterIsInstance<Attachment>()
+            .forEach {
+                val api = it.toOneBotUploadApi(subject.id.toLongID())
+                val result = bot.executeResult(api)
+                if (!result.isSuccess) {
+                    throw RuntimeException("上传文件 ${it.name} 失败")
+                }
+            }
+        finalMessage = finalMessage.asMessages().filter { it !is Attachment }.toMessages()
+    } else {
+        finalMessage = finalMessage
+            .asMessages()
+            .map {
+                if (it is Attachment) {
+                    "文件 ${it.name}".toText()
+                } else {
+                    it
+                }
+            }.toMessages()
+    }
+
+    if (finalMessage.isEmpty()) {
+        return NoDeleteOpMessageReceipt
+    }
+
+    if (subject is OneBotGroup) {
+        val foldResult = OneBotFolding.processGroupFold(bot, finalMessage, subject)
+        finalMessage = foldResult.first ?: finalMessage
+
+        foldResult.second?.let { return it }
+    }
+
+    return sendBlock(finalMessage)
 }
 
 interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGroupMemberCommandSource<T> {
@@ -61,50 +109,18 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
             _uid = idToUid()
         }
 
-        private suspend fun processMessage(message: Message): Message? {
-            var finalMessage = message
-
-            finalMessage
-                .asMessages()
-                .filterIsInstance<Attachment>()
-                .forEach {
-                    val api = it.toOneBotUploadApi(globalSubject.id.toLongID())
-                    val result = bot.executeResult(api)
-                    if (!result.isSuccess) {
-                        throw RuntimeException("上传文件 ${it.name} 失败")
-                    }
-                }
-            finalMessage = finalMessage.asMessages().filter { it !is Attachment }.toMessages()
-
-            if (finalMessage.isEmpty()) {
-                return null
-            }
-
-            finalMessage = OneBotFolding.processFold(bot, message, subject.botAsMember().nickOrName)
-
-            return finalMessage
-        }
-
         override suspend fun send(message: Message): MessageReceipt {
-            var finalMessage = processMessage(message)
-            if (finalMessage == null) {
-                return NoDeleteOpMessageReceipt
-            }
-            return subject.send(finalMessage)
+            return message.sendByOneBot(bot, globalSubject) { subject.send(it) }
         }
 
         override suspend fun reply(message: Message): MessageReceipt {
-            var finalMessage = processMessage(message)
+            return message.sendByOneBot(bot, globalSubject) {
+                if (it.containsOneBotForward()) {
+                    return subject.send(it)
+                }
 
-            if (finalMessage == null) {
-                return NoDeleteOpMessageReceipt
+                return origin.reply(it)
             }
-
-            if (finalMessage.containsOneBotForward()) {
-                return subject.send(finalMessage)
-            }
-
-            return origin.reply(finalMessage)
         }
 
         companion object {
@@ -137,14 +153,18 @@ interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>,
         override val uid: Long
             get() = _uid ?: error("uid not initialized!")
 
-        override suspend fun send(message: Message): OneBotMessageReceipt {
-            val finalMessage = OneBotFolding.processFold(bot, message)
-            return subject.send(finalMessage)
+        override suspend fun send(message: Message): MessageReceipt {
+            return message.sendByOneBot(bot, globalSubject) { subject.send(it) }
         }
 
-        override suspend fun reply(message: Message): OneBotMessageReceipt {
-            val finalMessage = OneBotFolding.processFold(bot, message)
-            return origin.reply(finalMessage)
+        override suspend fun reply(message: Message): MessageReceipt {
+            return message.sendByOneBot(bot, globalSubject) {
+                if (it.containsOneBotForward()) {
+                    return subject.send(it)
+                }
+
+                return origin.reply(it)
+            }
         }
 
         suspend fun init() {
@@ -183,14 +203,18 @@ interface OneBotFriendCommandSource<out T> : OneBotCommandSource<T>, ContactComm
             _uid = idToUid()
         }
 
-        override suspend fun send(message: Message): OneBotMessageReceipt {
-            val finalMessage = OneBotFolding.processFold(bot, message)
-            return subject.send(finalMessage)
+        override suspend fun send(message: Message): MessageReceipt {
+            return message.sendByOneBot(bot, subject) { subject.send(it) }
         }
 
-        override suspend fun reply(message: Message): OneBotMessageReceipt {
-            val finalMessage = OneBotFolding.processFold(bot, message)
-            return origin.reply(finalMessage)
+        override suspend fun reply(message: Message): MessageReceipt {
+            return message.sendByOneBot(bot, subject) {
+                if (it.containsOneBotForward()) {
+                    return subject.send(it)
+                }
+
+                return origin.reply(it)
+            }
         }
 
         companion object {

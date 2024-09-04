@@ -1,19 +1,24 @@
 package NoMathExpectation.NMEBoot.message.onebot
 
+import NoMathExpectation.NMEBoot.message.onebot.OneBotFolding.FoldIgnore
+import NoMathExpectation.NMEBoot.message.onebot.apiExt.LagrangeSendGroupForwardMsg
 import NoMathExpectation.NMEBoot.message.toReadableString
 import NoMathExpectation.NMEBoot.util.asMessages
+import NoMathExpectation.NMEBoot.util.nickOrName
 import NoMathExpectation.NMEBoot.util.storageOf
 import kotlinx.serialization.Serializable
+import love.forte.simbot.common.id.StringID.Companion.ID
+import love.forte.simbot.common.id.toLongID
 import love.forte.simbot.component.onebot.common.annotations.ExperimentalOneBotAPI
 import love.forte.simbot.component.onebot.common.annotations.InternalOneBotAPI
+import love.forte.simbot.component.onebot.v11.core.actor.OneBotGroup
 import love.forte.simbot.component.onebot.v11.core.bot.OneBotBot
 import love.forte.simbot.component.onebot.v11.message.resolveToOneBotSegmentList
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotForward
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotForwardNode
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotMessageSegmentElement
-import love.forte.simbot.component.onebot.v11.message.segment.toElement
 import love.forte.simbot.message.Message
-import love.forte.simbot.message.messagesOf
+import love.forte.simbot.message.MessageReceipt
 import love.forte.simbot.message.toMessages
 
 internal object OneBotFolding {
@@ -30,30 +35,43 @@ internal object OneBotFolding {
 
     private val configStore = storageOf("config/folding.json", Config())
 
-    private fun postProcess(msg: Message) = msg.asMessages().filter { it !is FoldIgnore }.toMessages()
+    private fun postProcess(msg: Message) = msg.removeFoldIgnore()
 
     @OptIn(InternalOneBotAPI::class, ExperimentalOneBotAPI::class)
-    internal suspend fun processFold(bot: OneBotBot, msg: Message, nick: String? = null): Message {
+    internal suspend fun processGroupFold(
+        bot: OneBotBot,
+        msg: Message,
+        subject: OneBotGroup
+    ): Pair<Message?, MessageReceipt?> {
         var messages = msg.asMessages()
         if (messages.any { it is FoldIgnore || it.containsOneBotForward() }) {
-            return postProcess(msg)
+            return postProcess(msg) to null
         }
 
         val content = messages.toReadableString()
         val config = configStore.get()
-        if (content.length >= config.minLength || content.count { it == '\n' } + 1 >= config.minLines) {
-            messages = messagesOf(
-                OneBotForwardNode.create(
-                    bot.userId,
-                    nick ?: bot.name,
-                    messages.resolveToOneBotSegmentList(bot.configuration.defaultImageAdditionalParamsProvider)
-                ).toElement()
-            )
+        if (content.length < config.minLength && content.count { it == '\n' } + 1 < config.minLines) {
+            return postProcess(messages) to null
         }
 
-        return postProcess(messages)
+        val api = LagrangeSendGroupForwardMsg.create(
+            subject.id.toLongID(),
+            listOf(
+                LagrangeForwardNode(
+                    subject.botAsMember().nickOrName,
+                    bot.userId.toString().ID,
+                    messages.resolveToOneBotSegmentList(bot.configuration.defaultImageAdditionalParamsProvider)
+                )
+            )
+        )
+        val result = bot.executeResult(api)
+        require(result.isSuccess) { "Failed to send folded message." }
+
+        return null to CopiedOneBotMessageReceipt(result.dataOrThrow.messageId, bot)
     }
 }
 
 fun Message.containsOneBotForward() =
     asMessages().any { it is OneBotMessageSegmentElement && (it.segment is OneBotForward || it.segment is OneBotForwardNode) }
+
+fun Message.removeFoldIgnore() = asMessages().filter { it !is FoldIgnore }.toMessages()
