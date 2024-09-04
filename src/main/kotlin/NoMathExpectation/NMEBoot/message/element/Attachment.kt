@@ -18,16 +18,20 @@ import love.forte.simbot.ability.DeleteOption
 import love.forte.simbot.ability.DeleteSupport
 import love.forte.simbot.ability.StandardDeleteOption
 import love.forte.simbot.annotations.ExperimentalSimbotAPI
+import love.forte.simbot.common.id.ID
+import love.forte.simbot.common.id.IntID.Companion.ID
 import love.forte.simbot.common.id.LongID
 import love.forte.simbot.component.kook.message.KookCardMessage
 import love.forte.simbot.component.onebot.v11.core.bot.OneBotBot
 import love.forte.simbot.component.onebot.v11.event.notice.RawGroupUploadEvent
 import love.forte.simbot.kook.objects.card.CardModule
 import love.forte.simbot.message.Message
+import love.forte.simbot.message.SingleMessageReceipt
 import java.io.File
 import java.io.InputStream
 
 interface Attachment : Message.Element, DeleteSupport {
+    val id: ID
     val name: String
 
     suspend fun inputStream(): InputStream
@@ -46,6 +50,14 @@ suspend fun Attachment.deleteAfterDelay(delay: Long) = coroutineScope {
     }
 }
 
+class AttachmentMessageReceipt(val attachment: Attachment) : SingleMessageReceipt() {
+    override val id get() = attachment.id
+
+    override suspend fun delete(vararg options: DeleteOption) = attachment.delete(*options)
+}
+
+fun Attachment.asMessageReceipt() = AttachmentMessageReceipt(this)
+
 private val downloadClient = HttpClient {
 
 }
@@ -55,6 +67,7 @@ class OneBotIncomingAttachment(
     val groupId: LongID,
     val fileInfo: RawGroupUploadEvent.FileInfo,
 ) : Attachment {
+    override val id = fileInfo.id
     override val name = fileInfo.name
 
     override suspend fun inputStream() = withContext(Dispatchers.IO) {
@@ -86,6 +99,7 @@ class OneBotIncomingAttachment(
 class KookIncomingAttachment(
     val card: CardModule.Files
 ) : Attachment {
+    override val id = 0.ID
     override val name = card.title
 
     override suspend fun inputStream() = withContext(Dispatchers.IO) {
@@ -120,6 +134,8 @@ class InputStreamAttachment(
     override val name: String,
     private val stream: InputStream,
 ) : Attachment {
+    override val id = 0.ID
+
     override suspend fun inputStream() = stream
 
     override suspend fun delete(vararg options: DeleteOption) {
@@ -134,6 +150,7 @@ class InputStreamAttachment(
 class FileAttachment(
     val file: File
 ) : Attachment {
+    override val id = 0.ID
     override val name = file.name
 
     override suspend fun inputStream() = withContext(Dispatchers.IO) {
@@ -142,7 +159,7 @@ class FileAttachment(
 
     override suspend fun delete(vararg options: DeleteOption) {
         if (StandardDeleteOption.IGNORE_ON_UNSUPPORTED !in options) {
-            throw UnsupportedOperationException("InputStreamAttachment不支持删除")
+            throw UnsupportedOperationException("FileAttachment不支持删除")
         }
     }
 

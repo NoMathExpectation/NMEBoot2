@@ -1,7 +1,9 @@
 package NoMathExpectation.NMEBoot.command.impl.source
 
+import NoMathExpectation.NMEBoot.message.aggregateAll
 import NoMathExpectation.NMEBoot.message.element.Attachment
 import NoMathExpectation.NMEBoot.message.element.OneBotIncomingAttachment
+import NoMathExpectation.NMEBoot.message.element.asMessageReceipt
 import NoMathExpectation.NMEBoot.message.element.deleteAfterDelay
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFolding
@@ -50,6 +52,7 @@ private suspend inline fun Message.sendByOneBot(
     }
 
     var finalMessage = this
+    val receipts = mutableListOf<MessageReceipt>()
 
     if (subject is OneBotGroup) {
         finalMessage
@@ -63,7 +66,9 @@ private suspend inline fun Message.sendByOneBot(
                 }
 
                 OneBotFileCache[subject.id.toLong(), bot.id.toLong(), it.name]?.let {
-                    OneBotIncomingAttachment(bot, subject.id.toLongID(), it).deleteAfterDelay(1000 * 60 * 10)
+                    val attachment = OneBotIncomingAttachment(bot, subject.id.toLongID(), it)
+                    attachment.deleteAfterDelay(1000 * 60 * 10)
+                    receipts += attachment.asMessageReceipt()
                 } ?: logger.warn { "Unable to find file uploaded by bot in cache with name ${it.name}." }
             }
         finalMessage = finalMessage.asMessages().filter { it !is Attachment }.toMessages()
@@ -72,7 +77,7 @@ private suspend inline fun Message.sendByOneBot(
             .asMessages()
             .map {
                 if (it is Attachment) {
-                    "文件 ${it.name}".toText()
+                    "文件 ${it.name}\n".toText()
                 } else {
                     it
                 }
@@ -80,17 +85,22 @@ private suspend inline fun Message.sendByOneBot(
     }
 
     if (finalMessage.isEmpty()) {
-        return NoDeleteOpMessageReceipt
+        return receipts.aggregateAll()
     }
 
     if (subject is OneBotGroup) {
         val foldResult = OneBotFolding.processGroupFold(bot, finalMessage, subject)
         finalMessage = foldResult.first ?: finalMessage
 
-        foldResult.second?.let { return it }
+        foldResult.second?.let {
+            receipts += it
+            return receipts.aggregateAll()
+        }
     }
 
-    return sendBlock(finalMessage)
+    receipts += sendBlock(finalMessage)
+
+    return receipts.aggregateAll()
 }
 
 interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGroupMemberCommandSource<T> {
