@@ -1,11 +1,16 @@
 package NoMathExpectation.NMEBoot.command.impl.source
 
 import NoMathExpectation.NMEBoot.message.element.Attachment
+import NoMathExpectation.NMEBoot.message.element.OneBotIncomingAttachment
+import NoMathExpectation.NMEBoot.message.element.deleteAfterDelay
+import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFolding
 import NoMathExpectation.NMEBoot.message.onebot.apiExt.toOneBotUploadApi
 import NoMathExpectation.NMEBoot.message.onebot.containsOneBotForward
 import NoMathExpectation.NMEBoot.user.idToUid
 import NoMathExpectation.NMEBoot.util.asMessages
+import io.github.oshai.kotlinlogging.KotlinLogging
+import love.forte.simbot.common.id.toLong
 import love.forte.simbot.common.id.toLongID
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotFriend
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotGroup
@@ -33,6 +38,8 @@ interface OneBotCommandSource<out T> : CommandSource<T>, BotAwareCommandSource<T
         get() = "onebot"
 }
 
+private val logger = KotlinLogging.logger { }
+
 private suspend inline fun Message.sendByOneBot(
     bot: OneBotBot,
     subject: Actor,
@@ -54,6 +61,10 @@ private suspend inline fun Message.sendByOneBot(
                 if (!result.isSuccess) {
                     throw RuntimeException("上传文件 ${it.name} 失败")
                 }
+
+                OneBotFileCache[subject.id.toLong(), bot.id.toLong(), it.name]?.let {
+                    OneBotIncomingAttachment(bot, subject.id.toLongID(), it).deleteAfterDelay(1000 * 60 * 10)
+                } ?: logger.warn { "Unable to find file uploaded by bot in cache with name ${it.name}." }
             }
         finalMessage = finalMessage.asMessages().filter { it !is Attachment }.toMessages()
     } else {
