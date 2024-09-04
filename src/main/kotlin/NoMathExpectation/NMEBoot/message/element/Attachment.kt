@@ -21,6 +21,7 @@ import love.forte.simbot.annotations.ExperimentalSimbotAPI
 import love.forte.simbot.common.id.ID
 import love.forte.simbot.common.id.IntID.Companion.ID
 import love.forte.simbot.common.id.LongID
+import love.forte.simbot.common.id.UUID
 import love.forte.simbot.component.kook.message.KookCardMessage
 import love.forte.simbot.component.onebot.v11.core.bot.OneBotBot
 import love.forte.simbot.component.onebot.v11.event.notice.RawGroupUploadEvent
@@ -29,12 +30,25 @@ import love.forte.simbot.message.Message
 import love.forte.simbot.message.SingleMessageReceipt
 import java.io.File
 import java.io.InputStream
+import kotlin.io.path.Path
 
 interface Attachment : Message.Element, DeleteSupport {
     val id: ID
     val name: String
 
     suspend fun inputStream(): InputStream
+}
+
+suspend fun Attachment.saveAsTempFile(): File = withContext(Dispatchers.IO) {
+    File("data/temp").mkdirs()
+    val file = Path("data", "temp", UUID.random().toString()).toFile()
+    file.deleteOnExit()
+    file.outputStream().use { out ->
+        inputStream().use {
+            it.copyTo(out)
+        }
+    }
+    return@withContext file
 }
 
 suspend fun Attachment.deleteAfterDelay(delay: Long) = coroutineScope {

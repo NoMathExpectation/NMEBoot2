@@ -18,10 +18,13 @@ suspend fun initDispatcher() {
         commandRepeat()
         commandLuck()
         commandWhoAmI()
-        commandChart()
         commandPermission()
         commandTransfer()
         commandHelp()
+
+        //rd
+        commandChart()
+        commandOffset()
 
         //experimental
         commandExport()
