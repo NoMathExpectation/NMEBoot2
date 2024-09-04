@@ -24,13 +24,13 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                     }
 
                 literal("search", "s")
-                    .collectString("keyword")
+                    .optionallyCollectString("keyword")
                     .optionallyCollectInt("itemPerPage")
                     .optionallyCollectBoolean("peerReview")
                     .executes {
                         val keyword = getString("keyword")
                         val itemPerPage = getInt("itemPerPage") ?: 10
-                        val peerReview = getBoolean("peerReview") ?: false
+                        val peerReview = getBoolean("peerReview") == true
                         it.send(RhythmCafeSearchEngine.search(keyword, itemPerPage, peerReview))
                     }
 
