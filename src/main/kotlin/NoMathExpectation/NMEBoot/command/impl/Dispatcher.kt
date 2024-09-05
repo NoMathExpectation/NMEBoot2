@@ -3,6 +3,7 @@ package NoMathExpectation.NMEBoot.command.impl
 import NoMathExpectation.NMEBoot.command.impl.command.*
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.parser.CommandDispatcher
+import NoMathExpectation.NMEBoot.util.TimeRefreshable
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger { }
@@ -21,6 +22,7 @@ suspend fun initDispatcher() {
         commandPermission()
         commandTransfer()
         commandHelp()
+        commandCooldown()
 
         //rd
         commandChart()
@@ -41,6 +43,29 @@ suspend fun <T> CommandSource<T>.executeCommand(
 ) {
     if (!hasPermission("use.command")) {
         return
+    }
+
+    if (!hasPermission("bypass.cooldown")) {
+        val msg = CooldownConfig.storage.referenceUpdate {
+            val timer = globalSubjectPermissionId?.let { id ->
+                it.getGroupUser(id, uid)
+            } ?: it.getPrivateUser(uid)
+
+            if (timer.use()) {
+                return@referenceUpdate null
+            }
+
+            if (timer is TimeRefreshable) {
+                "请等待${timer.timeUntilRefresh.inWholeSeconds}s后使用指令"
+            } else {
+                "指令使用次数已用完"
+            }
+        }
+
+        msg?.let {
+            reply(it)
+            return
+        }
     }
 
     val executeContext = ExecuteContext(this, contextBlock)
