@@ -28,7 +28,7 @@ internal object OneBotFolding {
     }
 
     @Serializable
-    data class Config(
+    private data class Config(
         val minLines: Int = 10,
         val minLength: Int = 150,
     )
