@@ -31,8 +31,10 @@ interface CommandSource<out T> : PermissionServiceAware, SendSupport, ReplySuppo
     val bot: Bot?
 
     val globalSubject: Organization?
+    val globalSubjectPermissionId: String?
 
     val subject: Actor?
+    val subjectPermissionId: String?
 
     val executor: User?
 
@@ -107,17 +109,21 @@ interface BotAwareCommandSource<out T> : CommandSource<T> {
 
 interface UserCommandSource<out T> : CommandSource<T>, BotAwareCommandSource<T> {
     override val subject: Actor
+    override val subjectPermissionId: String
     override val executor: User
 }
 
 interface MemberCommandSource<out T> : UserCommandSource<T>, BotAwareCommandSource<T> {
     override val globalSubject: Organization
+    override val globalSubjectPermissionId: String
     override val executor: Member
 }
 
 interface GuildMemberCommandSource<out T> : MemberCommandSource<T> {
     override val globalSubject: Guild
+    override val globalSubjectPermissionId get() = "$platform-guild-${globalSubject.id}"
     override val subject: Channel
+    override val subjectPermissionId get() = "$platform-guild-${globalSubject.id}-${subject.id}"
 
     val roles: List<Role>
 
@@ -126,7 +132,8 @@ interface GuildMemberCommandSource<out T> : MemberCommandSource<T> {
             primaryPermissionId,
             id,
             *rolesToPermissionIds.toTypedArray(),
-            "$platform-guild-${globalSubject.id}-${subject.id}",
+            subjectPermissionId,
+            globalSubjectPermissionId,
             platform
         )
 }
@@ -137,24 +144,29 @@ val GuildMemberCommandSource<*>.rolesToPermissionIds
     }
 
 interface ChatGroupMemberCommandSource<out T> : MemberCommandSource<T> {
-    override val globalSubject get() = subject
-    override val subject: ChatGroup
+    override val globalSubject: ChatGroup
+    override val globalSubjectPermissionId get() = "$platform-group-${globalSubject.id}"
+    override val subject get() = globalSubject
+    override val subjectPermissionId get() = globalSubjectPermissionId
 
     override val permissionIds: List<String>
-        get() = listOf(primaryPermissionId, id, "$platform-group-${subject.id}", platform)
+        get() = listOf(primaryPermissionId, id, globalSubjectPermissionId, platform)
 }
 
 interface MemberPrivateCommandSource<out T> : MemberCommandSource<T> {
     override val subject get() = executor
+    override val subjectPermissionId get() = "$globalSubjectPermissionId-private"
 }
 
 interface ContactCommandSource<out T> : UserCommandSource<T> {
     override val globalSubject get() = null
+    override val globalSubjectPermissionId get() = null
     override val subject get() = executor
+    override val subjectPermissionId get() = "$platform-contact-${subject.id}"
     override val executor: Contact
 
     override val permissionIds: List<String>
-        get() = listOf(primaryPermissionId, id, "$platform-contact-${subject.id}", platform)
+        get() = listOf(primaryPermissionId, id, subjectPermissionId, platform)
 }
 
 object UnsupportedDeleteOpMessageReceipt : SingleMessageReceipt() {

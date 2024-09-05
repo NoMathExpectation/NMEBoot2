@@ -12,7 +12,9 @@ object ConsoleCommandSource : CommandSource<Nothing?> {
     override val platform = "console"
     override val bot = null
     override val globalSubject = null
+    override val globalSubjectPermissionId = null
     override val subject = null
+    override val subjectPermissionId = null
     override val executor = null
 
     private val logger = KotlinLogging.logger("Console")
