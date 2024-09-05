@@ -46,7 +46,7 @@ class Luck(var counter: UseCounter = FixedRateUseCounter.ofDay(1)) : Comparable<
     companion object {
         private val lucks = mutableMapStorageOf<Long, Luck>("data/luck.json") { Luck() }
 
-        suspend fun get(id: Long) = lucks.referenceUpdate(id) { }.luck
+        suspend fun get(id: Long) = lucks.referenceUpdate(id) { it.luck }
     }
 }
 

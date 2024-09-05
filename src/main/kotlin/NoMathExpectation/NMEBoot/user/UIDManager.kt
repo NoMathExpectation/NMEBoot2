@@ -17,11 +17,9 @@ object UIDManager {
     private val data = storageOf("data/uid.json", Data())
 
     suspend fun fromId(id: String): Long {
-        var result = -1L
-        data.referenceUpdate {
-            result = it.mappings.getOrPut(id) { it.nextAllocate++ }
+        return data.referenceUpdate {
+            it.mappings.getOrPut(id) { it.nextAllocate++ }
         }
-        return result
     }
 }
 

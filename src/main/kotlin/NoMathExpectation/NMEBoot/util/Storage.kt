@@ -41,18 +41,13 @@ interface Storage<out T> {
 
     suspend fun reload() {}
     suspend fun get(): T
-    suspend fun referenceUpdate(block: suspend (T) -> Unit): T
+    suspend fun <R> referenceUpdate(block: suspend (T) -> R): R
 }
 
 interface MutableStorage<T> : Storage<T> {
     suspend fun set(value: T)
     suspend fun update(block: suspend (T) -> T): T
     suspend fun reset()
-
-    override suspend fun referenceUpdate(block: suspend (T) -> Unit) = update {
-        block(it)
-        it
-    }
 }
 
 open class NullableKStoreStorage<T : @Serializable Any> @InternalStorageApi constructor(
@@ -65,12 +60,17 @@ open class NullableKStoreStorage<T : @Serializable Any> @InternalStorageApi cons
 
     protected val mutex = Mutex()
 
-    override suspend fun update(block: suspend (T?) -> T?): T? {
-        mutex.withLock {
-            val value = block(get())
-            set(value)
-            return value
-        }
+    override suspend fun update(block: suspend (T?) -> T?): T? = mutex.withLock {
+        val value = block(get())
+        set(value)
+        return value
+    }
+
+    override suspend fun <R> referenceUpdate(block: suspend (T?) -> R): R = mutex.withLock {
+        val value = get()
+        val result = block(value)
+        set(value)
+        return result
     }
 
     override suspend fun reset() = store.reset()
@@ -93,12 +93,17 @@ open class NotNullKStoreStorage<T : @Serializable Any> @InternalStorageApi const
 
     protected val mutex = Mutex()
 
-    override suspend fun update(block: suspend (T) -> T): T {
-        mutex.withLock {
-            val value = block(get())
-            set(value)
-            return value
-        }
+    override suspend fun update(block: suspend (T) -> T): T = mutex.withLock {
+        val value = block(get())
+        set(value)
+        return value
+    }
+
+    override suspend fun <R> referenceUpdate(block: suspend (T) -> R): R = mutex.withLock {
+        val value = get()
+        val result = block(value)
+        set(value)
+        return result
     }
 
     override suspend fun reset() = store.reset()
@@ -162,11 +167,9 @@ class MapKStoreStorage<K : @Serializable Any?, V : @Serializable Any?> @Internal
     }
 }
 
-suspend inline fun <K, V> MutableMapStorage<K, V>.referenceUpdate(
+suspend inline fun <K, V, R> MutableMapStorage<K, V>.referenceUpdate(
     key: K,
-    crossinline block: suspend (V) -> Unit
-) = update(key) {
-    val value = it
-    block(value)
-    value
+    crossinline block: suspend (V) -> R
+): R = referenceUpdate {
+    block(get(key))
 }
