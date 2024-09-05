@@ -28,7 +28,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                 literal("search", "s")
                     .optionallyCollectString("keyword")
                     .optionallyCollectInt("itemPerPage")
-                    .checkInRangeNull(1, Request.MAX_PER_PAGE)
+                    .checkInRange(1, Request.MAX_PER_PAGE)
                     .optionallyCollectBoolean("peerReview")
                     .executes {
                         val keyword = getString("keyword")
