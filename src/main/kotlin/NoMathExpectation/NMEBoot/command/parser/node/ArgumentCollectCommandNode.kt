@@ -1,13 +1,13 @@
 package NoMathExpectation.NMEBoot.command.parser.node
 
-import NoMathExpectation.NMEBoot.command.parser.argument.ArgumentCollector
 import NoMathExpectation.NMEBoot.command.parser.CommandContext
 import NoMathExpectation.NMEBoot.command.parser.ExecuteResult
+import NoMathExpectation.NMEBoot.command.parser.argument.ArgumentCollector
 
 class ArgumentCollectCommandNode<S, T>(
     val name: String,
     override var next: CommandNode<S> = commandNodeTodo(),
-    private val collector: ArgumentCollector<S, T>
+    var collector: ArgumentCollector<S, T>
 ) : SingleNextCommandNode<S> {
     override suspend fun execute(context: CommandContext<S>): ExecuteResult<S> {
         val collected = kotlin.runCatching {

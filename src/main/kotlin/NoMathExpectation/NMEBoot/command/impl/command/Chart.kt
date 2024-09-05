@@ -7,12 +7,14 @@ import NoMathExpectation.NMEBoot.command.parser.node.*
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.RhythmCafeSearchEngine
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.Request
 import io.github.oshai.kotlinlogging.KotlinLogging
+import love.forte.simbot.ability.ReplySupport
 import love.forte.simbot.ability.SendSupport
 
 private val logger = KotlinLogging.logger { }
 
 suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
         where T : SendSupport,
+              T : ReplySupport,
               T : PermissionAware =
     literal("chart", "rdlevel")
         .requiresPermission("command.rd.fanmade.chart")
@@ -26,12 +28,19 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                 literal("search", "s")
                     .optionallyCollectString("keyword")
                     .optionallyCollectInt("itemPerPage")
+                    .checkInRangeNull(1, Request.MAX_PER_PAGE)
                     .optionallyCollectBoolean("peerReview")
                     .executes {
                         val keyword = getString("keyword")
                         val itemPerPage = getInt("itemPerPage") ?: 10
                         val peerReview = getBoolean("peerReview") == true
-                        it.send(RhythmCafeSearchEngine.search(keyword, itemPerPage, peerReview))
+
+                        runCatching {
+                            it.send(RhythmCafeSearchEngine.search(keyword, itemPerPage, peerReview))
+                        }.onFailure { ex ->
+                            logger.error(ex) { "请求失败" }
+                            it.reply("请求失败")
+                        }
                     }
 
                 literal("page", "p")
@@ -48,7 +57,12 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                             return@executes
                         }
 
-                        it.send(RhythmCafeSearchEngine.pageTo(page))
+                        runCatching {
+                            it.send(RhythmCafeSearchEngine.pageTo(page))
+                        }.onFailure { ex ->
+                            logger.error(ex) { "请求失败" }
+                            it.reply("请求失败")
+                        }
                     }
 
                 literal("info", "i")
@@ -105,7 +119,6 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                 //todo: 下载谱面并上传
 
                 literal("pending", "pd")
-                    .requiresPermission("command.rd")
                     .executes {
                         kotlin.runCatching {
                             val count = RhythmCafeSearchEngine.getPendingLevelCount()
@@ -118,7 +131,8 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                     }
             }
 
-            executes {
-                it.send(RhythmCafeSearchEngine.sendHelp())
-            }
+            onEndOfArguments()
+                .executes {
+                    it.send(RhythmCafeSearchEngine.sendHelp())
+                }
         }
