@@ -35,7 +35,8 @@ fun Message.toReadableString() = MessageFormatter.messageToReadableString(this)
 fun Messages.removeReferencePrefix() = dropWhile {
     it is MessageReference ||
             (it is OneBotMessageSegmentElement && it.segment is OneBotReply) ||
-            it is MentionMessage
+            it is MentionMessage ||
+            (it is PlainText && it.text.isBlank())
 }.mapIndexed { index, element ->
     if (index > 0 || element !is PlainText) {
         return@mapIndexed element
