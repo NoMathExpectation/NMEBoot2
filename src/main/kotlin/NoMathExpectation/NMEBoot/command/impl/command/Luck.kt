@@ -8,7 +8,6 @@ import NoMathExpectation.NMEBoot.command.parser.node.literal
 import NoMathExpectation.NMEBoot.util.FixedRateUseCounter
 import NoMathExpectation.NMEBoot.util.UseCounter
 import NoMathExpectation.NMEBoot.util.mutableMapStorageOf
-import NoMathExpectation.NMEBoot.util.referenceUpdate
 import kotlinx.serialization.Serializable
 import love.forte.simbot.message.buildMessages
 import kotlin.random.Random

@@ -123,8 +123,11 @@ interface MutableMapStorage<K, V> : Storage<MutableMap<K, V>> {
         referenceUpdate { it[key] = value }
     }
 
+    suspend fun clear() = referenceUpdate { it.clear() }
+
     suspend fun getOrPut(key: K, compute: suspend (K) -> V): V
     suspend fun update(key: K, block: suspend (V) -> V): V
+    suspend fun <R> referenceUpdate(key: K, block: suspend (V) -> R): R
 }
 
 @OptIn(InternalStorageApi::class)
@@ -153,9 +156,17 @@ class MapKStoreStorage<K : @Serializable Any?, V : @Serializable Any?> @Internal
     override suspend fun update(key: K, block: suspend (V) -> V) = mutex.withLock {
         val map = get()
         val value = map.getOrPut(key) { defaultCompute(key) }
-        map[key] = value
+        map[key] = block(value)
         set(map)
         value
+    }
+
+    override suspend fun <R> referenceUpdate(key: K, block: suspend (V) -> R): R = mutex.withLock {
+        val map = get()
+        val value = map.getOrPut(key) { defaultCompute(key) }
+        val result = block(value)
+        set(map)
+        result
     }
 
     companion object {
@@ -165,11 +176,4 @@ class MapKStoreStorage<K : @Serializable Any?, V : @Serializable Any?> @Internal
         ) =
             MapKStoreStorage(path, storeOf(path.toPath(), mutableMapOf(), json = storageJson), defaultCompute)
     }
-}
-
-suspend inline fun <K, V, R> MutableMapStorage<K, V>.referenceUpdate(
-    key: K,
-    crossinline block: suspend (V) -> R
-): R = referenceUpdate {
-    block(get(key))
 }
