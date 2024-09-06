@@ -91,6 +91,8 @@ object RhythmCafeSearchEngine {
 
     val itemPerPage get() = currentSearch.request_params.per_page
 
+    val currentPageItemCount get() = currentSearch.hits.size
+
     override fun toString() = buildString {
         append("搜索结果:\n")
         append("找到${currentSearch.found}个谱面，第${currentSearch.page}页，共${(currentSearch.found - 1) / currentSearch.request_params.per_page + 1}页\n")

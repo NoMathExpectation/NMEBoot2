@@ -74,7 +74,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                         }
 
                         val index = getInt("index") ?: 1
-                        if (index !in 1..RhythmCafeSearchEngine.itemPerPage) {
+                        if (index !in 1..RhythmCafeSearchEngine.currentPageItemCount) {
                             it.send("索引超出范围。")
                             return@executes
                         }
@@ -91,7 +91,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                         }
 
                         val index = getInt("index") ?: 1
-                        if (index !in 1..RhythmCafeSearchEngine.itemPerPage) {
+                        if (index !in 1..RhythmCafeSearchEngine.currentPageItemCount) {
                             it.send("索引超出范围。")
                             return@executes
                         }
@@ -108,7 +108,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                         }
 
                         val index = getInt("index") ?: 1
-                        if (index !in 1..RhythmCafeSearchEngine.itemPerPage) {
+                        if (index !in 1..RhythmCafeSearchEngine.currentPageItemCount) {
                             it.send("索引超出范围。")
                             return@executes
                         }
