@@ -1,4 +1,4 @@
-package NoMathExpectation.NMEBoot.command.impl.command
+package NoMathExpectation.NMEBoot.command.impl.command.rd
 
 import NoMathExpectation.NMEBoot.command.impl.PermissionAware
 import NoMathExpectation.NMEBoot.command.impl.requiresPermission
@@ -120,7 +120,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
 
                 literal("pending", "pd")
                     .executes {
-                        kotlin.runCatching {
+                        runCatching {
                             val count = RhythmCafeSearchEngine.getPendingLevelCount()
                             val countStr = if (count >= Request.MAX_PER_PAGE) "${count - 1}+" else count
                             it.send("待定谱面数：$countStr")

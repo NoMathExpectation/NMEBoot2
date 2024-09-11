@@ -1,4 +1,4 @@
-package NoMathExpectation.NMEBoot.command.impl.command
+package NoMathExpectation.NMEBoot.command.impl.command.common
 
 import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
 import NoMathExpectation.NMEBoot.command.impl.requiresPermission

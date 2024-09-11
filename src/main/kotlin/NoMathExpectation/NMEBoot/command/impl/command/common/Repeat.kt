@@ -1,17 +1,21 @@
-package NoMathExpectation.NMEBoot.command.impl.command
+package NoMathExpectation.NMEBoot.command.impl.command.common
 
 import NoMathExpectation.NMEBoot.command.impl.PermissionAware
 import NoMathExpectation.NMEBoot.command.impl.requiresPermission
+import NoMathExpectation.NMEBoot.command.parser.argument.collectGreedyString
+import NoMathExpectation.NMEBoot.command.parser.argument.getString
 import NoMathExpectation.NMEBoot.command.parser.node.LiteralSelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.executes
 import NoMathExpectation.NMEBoot.command.parser.node.literal
 import love.forte.simbot.ability.ReplySupport
 
-suspend fun <T> LiteralSelectionCommandNode<T>.commandHelp()
+suspend fun <T> LiteralSelectionCommandNode<T>.commandRepeat()
         where T : ReplySupport,
               T : PermissionAware =
-    literal("help")
-        .requiresPermission("command.common.help")
+    literal("repeat")
+        .requiresPermission("command.common.repeat")
+        .collectGreedyString("text")
         .executes {
-            it.reply("没做。")
+            val str = getString("text") ?: " "
+            it.reply(str)
         }

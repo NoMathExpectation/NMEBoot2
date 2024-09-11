@@ -1,6 +1,17 @@
 package NoMathExpectation.NMEBoot.command.impl
 
 import NoMathExpectation.NMEBoot.command.impl.command.*
+import NoMathExpectation.NMEBoot.command.impl.command.admin.CooldownConfig
+import NoMathExpectation.NMEBoot.command.impl.command.admin.commandCooldown
+import NoMathExpectation.NMEBoot.command.impl.command.admin.commandPermission
+import NoMathExpectation.NMEBoot.command.impl.command.admin.commandStop
+import NoMathExpectation.NMEBoot.command.impl.command.common.commandHelp
+import NoMathExpectation.NMEBoot.command.impl.command.common.commandLuck
+import NoMathExpectation.NMEBoot.command.impl.command.common.commandRepeat
+import NoMathExpectation.NMEBoot.command.impl.command.common.commandWhoAmI
+import NoMathExpectation.NMEBoot.command.impl.command.rd.commandChart
+import NoMathExpectation.NMEBoot.command.impl.command.rd.commandConvert
+import NoMathExpectation.NMEBoot.command.impl.command.rd.commandOffset
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.parser.CommandDispatcher
 import NoMathExpectation.NMEBoot.util.TimeRefreshable
@@ -46,7 +57,7 @@ suspend fun <T> CommandSource<T>.executeCommand(
     }
 
     if (!hasPermission("bypass.cooldown")) {
-        val msg = CooldownConfig.storage.referenceUpdate {
+        val msg = CooldownConfig.Companion.storage.referenceUpdate {
             val timer = globalSubjectPermissionId?.let { id ->
                 it.getGroupUser(id, uid)
             } ?: it.getPrivateUser(uid)

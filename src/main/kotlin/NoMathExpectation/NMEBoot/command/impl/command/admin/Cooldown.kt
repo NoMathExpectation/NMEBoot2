@@ -1,7 +1,6 @@
-package NoMathExpectation.NMEBoot.command.impl.command
+package NoMathExpectation.NMEBoot.command.impl.command.admin
 
 import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
-import NoMathExpectation.NMEBoot.command.impl.command.CooldownConfig.Companion.storage
 import NoMathExpectation.NMEBoot.command.impl.requiresPermission
 import NoMathExpectation.NMEBoot.command.parser.argument.collectLong
 import NoMathExpectation.NMEBoot.command.parser.argument.getLong
@@ -53,7 +52,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandCooldown() =
                 return@executes
             }
 
-            storage.referenceUpdate {
+            CooldownConfig.Companion.storage.referenceUpdate {
                 val groupConfig = it.getGroup(globalSubjectPermissionId)
                 groupConfig.cooldown = seconds
                 groupConfig.timers.clear()
