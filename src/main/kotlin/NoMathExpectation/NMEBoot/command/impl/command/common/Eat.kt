@@ -40,6 +40,9 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandEat() =
                         val dish = getString("dish") ?: error("未提供菜品")
                         val actualDish = storage.referenceUpdate(globalSubjectId) { dishes ->
                             dish.toIntOrNull()?.let { idx ->
+                                if (idx !in 1..dishes.size) {
+                                    return@referenceUpdate null
+                                }
                                 return@referenceUpdate dishes.removeAt(idx)
                             }
                             return@referenceUpdate dishes.indexOfFirst { it.contains(dish) }
