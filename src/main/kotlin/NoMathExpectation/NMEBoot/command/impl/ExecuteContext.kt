@@ -1,6 +1,9 @@
 package NoMathExpectation.NMEBoot.command.impl
 
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
+import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
+import NoMathExpectation.NMEBoot.command.parser.node.on
+import NoMathExpectation.NMEBoot.command.parser.node.reportOnFail
 import love.forte.simbot.ability.ReplySupport
 import love.forte.simbot.ability.SendSupport
 import love.forte.simbot.message.MessageContent
@@ -48,3 +51,7 @@ inline fun <E, T, R> ExecuteContext(
 
 inline fun <S> ExecuteContext(from: CommandSource<S>, buildBlock: ExecuteContext.Builder<S, S, S>.() -> Unit) =
     ExecuteContext(from, from, from, buildBlock)
+
+fun InsertableCommandNode<AnyExecuteContext>.requiresGlobalSubjectId() = on("只能在群内使用此指令") {
+    it.target.globalSubjectPermissionId != null
+}.reportOnFail()

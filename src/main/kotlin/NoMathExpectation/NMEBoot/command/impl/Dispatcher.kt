@@ -4,17 +4,14 @@ import NoMathExpectation.NMEBoot.command.impl.command.*
 import NoMathExpectation.NMEBoot.command.impl.command.admin.commandCooldown
 import NoMathExpectation.NMEBoot.command.impl.command.admin.commandPermission
 import NoMathExpectation.NMEBoot.command.impl.command.admin.commandStop
-import NoMathExpectation.NMEBoot.command.impl.command.common.commandHelp
-import NoMathExpectation.NMEBoot.command.impl.command.common.commandLuck
-import NoMathExpectation.NMEBoot.command.impl.command.common.commandRepeat
-import NoMathExpectation.NMEBoot.command.impl.command.common.commandWhoAmI
+import NoMathExpectation.NMEBoot.command.impl.command.common.*
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandChart
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandConvert
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandOffset
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.parser.CommandDispatcher
-import NoMathExpectation.NMEBoot.command.parser.node.ForwardCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
+import NoMathExpectation.NMEBoot.command.parser.node.SelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.literals
 import NoMathExpectation.NMEBoot.command.parser.node.on
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -32,7 +29,7 @@ private fun InsertableCommandNode<AnyExecuteContext>.onCommandPrefix() = on { ct
 suspend fun initDispatcher() {
     logger.info { "构建指令树......" }
 
-    commandDispatcher = CommandDispatcher(ForwardCommandNode()) {
+    commandDispatcher = CommandDispatcher(SelectionCommandNode()) {
         onCommandPrefix()
             .consumeCooldown()
             .literals {
@@ -44,6 +41,7 @@ suspend fun initDispatcher() {
                 commandTransfer()
                 commandHelp()
                 commandCooldown()
+                commandEat()
 
                 //rd
                 commandChart()
@@ -56,6 +54,8 @@ suspend fun initDispatcher() {
                 commandFiles()
                 commandCopy()
             }
+
+        commandEatShortcut()
     }
 }
 
