@@ -67,7 +67,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandEat() =
                         it.reply(buildMessages {
                             val prefix = commandConfig.get().commandPrefix
                             +"${prefix}eat...\n"
-                            +"add <dish>: 显示此帮助\n"
+                            +"help: 显示此帮助\n"
                             +"add <dish>: 添加菜品\n"
                             +"remove <index|dish>: 删除菜品\n"
                             +"show: 显示菜单\n"
