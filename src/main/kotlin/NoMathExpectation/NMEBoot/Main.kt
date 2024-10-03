@@ -94,7 +94,10 @@ fun consoleRoutine() {
                     }
                 }
 
-                ConsoleCommandSource.executeCommand(command)
+                ConsoleCommandSource.executeCommand(command) {
+                    requiresCommandPrefix = false
+                    bypassCooldown = true
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 package NoMathExpectation.NMEBoot.command.parser.node
 
 import NoMathExpectation.NMEBoot.command.parser.CommandContext
+import NoMathExpectation.NMEBoot.command.parser.CommandParseException
 import NoMathExpectation.NMEBoot.command.parser.ExecuteResult
 
 class NotImplementedCommandNode<S> : CommandNode<S> {
@@ -9,7 +10,7 @@ class NotImplementedCommandNode<S> : CommandNode<S> {
             context.source,
             0,
             1,
-            parseExceptions = listOf(NotImplementedError("此指令尚未实现。"))
+            exceptions = listOf(CommandParseException("此指令尚未实现。"))
         )
     }
 }

@@ -33,6 +33,15 @@ class StringReader(
         return string[next++]
     }
 
+    fun peekString(length: Int): String? {
+        if (isEnd) {
+            return null
+        }
+        val start = next
+        val end = min(next + length, string.length)
+        return string.substring(start, end)
+    }
+
     fun readString(length: Int): String? {
         if (isEnd) {
             return null

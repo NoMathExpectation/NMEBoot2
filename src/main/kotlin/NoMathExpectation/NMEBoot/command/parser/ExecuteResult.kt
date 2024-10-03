@@ -4,8 +4,7 @@ data class ExecuteResult<out S>(
     val source: S,
     val accepted: Int,
     val forks: Int,
-    val parseExceptions: List<Throwable> = listOf(),
-    val executeExceptions: List<Throwable> = listOf(),
+    val exceptions: List<CommandException> = listOf(),
 ) {
     init {
         require(accepted >= 0) { "Accepted count cannot be negative." }

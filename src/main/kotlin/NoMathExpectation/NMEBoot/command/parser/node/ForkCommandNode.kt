@@ -1,6 +1,7 @@
 package NoMathExpectation.NMEBoot.command.parser.node
 
 import NoMathExpectation.NMEBoot.command.parser.CommandContext
+import NoMathExpectation.NMEBoot.command.parser.CommandException
 import NoMathExpectation.NMEBoot.command.parser.ExecuteResult
 
 typealias TransformClause<S> = suspend CommandContext<S>.(S) -> List<CommandContext<S>>
@@ -26,22 +27,19 @@ class ForkCommandNode<S>(
     override suspend fun execute(context: CommandContext<S>): ExecuteResult<S> {
         val forks = transform(context, context.source)
         var accepted = 0
-        val parseExceptions = mutableListOf<Throwable>()
-        val executeExceptions = mutableListOf<Throwable>()
+        val exceptions = mutableListOf<CommandException>()
 
         forks.forEach {
             val forkResult = next.execute(it)
             accepted += forkResult.accepted
-            parseExceptions += forkResult.parseExceptions
-            executeExceptions += forkResult.executeExceptions
+            exceptions += forkResult.exceptions
         }
 
         return ExecuteResult(
             context.source,
             accepted,
             forks.size,
-            parseExceptions,
-            executeExceptions
+            exceptions = exceptions,
         )
     }
 }

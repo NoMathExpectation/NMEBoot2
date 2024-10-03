@@ -6,4 +6,6 @@ interface SingleNextCommandNode<S> : InsertableCommandNode<S> {
     override fun insert(commandNode: CommandNode<S>) {
         next = commandNode
     }
+
+    val nextImplemented get() = next !is NotImplementedCommandNode
 }

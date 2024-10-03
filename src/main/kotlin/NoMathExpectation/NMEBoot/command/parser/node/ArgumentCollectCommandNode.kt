@@ -1,8 +1,12 @@
 package NoMathExpectation.NMEBoot.command.parser.node
 
 import NoMathExpectation.NMEBoot.command.parser.CommandContext
+import NoMathExpectation.NMEBoot.command.parser.CommandParseException
 import NoMathExpectation.NMEBoot.command.parser.ExecuteResult
 import NoMathExpectation.NMEBoot.command.parser.argument.ArgumentCollector
+
+class ArgumentCollectException(throwable: Throwable) :
+    CommandParseException(throwable.message ?: "无效的参数", throwable)
 
 class ArgumentCollectCommandNode<S, T>(
     val name: String,
@@ -17,7 +21,7 @@ class ArgumentCollectCommandNode<S, T>(
                 context.source,
                 0,
                 1,
-                parseExceptions = listOf(it)
+                exceptions = listOf(ArgumentCollectException(it))
             )
         }
 

@@ -1,6 +1,7 @@
 package NoMathExpectation.NMEBoot.command.parser.node
 
 import NoMathExpectation.NMEBoot.command.parser.CommandContext
+import NoMathExpectation.NMEBoot.command.parser.CommandParseException
 import NoMathExpectation.NMEBoot.command.parser.ExecuteResult
 
 class LiteralSelectionCommandNode<S>(
@@ -11,13 +12,13 @@ class LiteralSelectionCommandNode<S>(
             context.source,
             0,
             1,
-            parseExceptions = listOf(IllegalArgumentException("缺失子指令。"))
+            exceptions = listOf(CommandParseException("缺失子指令。"))
         )
         val node = subCommand.let { options[it] } ?: return ExecuteResult(
             context.source,
             0,
             1,
-            parseExceptions = listOf(IllegalArgumentException("未知的子指令 $subCommand。"))
+            exceptions = listOf(CommandParseException("未知的子指令 $subCommand。"))
         )
         return node.execute(context)
     }

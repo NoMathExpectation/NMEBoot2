@@ -1,6 +1,5 @@
 package NoMathExpectation.NMEBoot.bot
 
-import NoMathExpectation.NMEBoot.command.impl.commandConfig
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
@@ -86,13 +85,7 @@ internal suspend fun tryHandleCommand(event: Event) {
     val source = CommandSource.get(event) ?: return
     val text = event.messageContent.messages.removeReferencePrefix().toReadableString()
 
-
-    val prefix = commandConfig.get().commandPrefix
-    if (!text.startsWith(prefix)) {
-        return
-    }
-
-    source.executeCommand(text.removePrefix(prefix)) {
+    source.executeCommand(text) {
         originalMessage = event.messageContent
     }
 }

@@ -1,22 +1,34 @@
 package NoMathExpectation.NMEBoot.command.parser.node
 
 import NoMathExpectation.NMEBoot.command.parser.CommandContext
+import NoMathExpectation.NMEBoot.command.parser.CommandExecuteException
+import NoMathExpectation.NMEBoot.command.parser.CommandParseException
 import NoMathExpectation.NMEBoot.command.parser.ExecuteResult
 
 typealias ExecuteClause<S> = suspend CommandContext<S>.(S) -> Unit
 
 class ExecuteCommandNode<S>(
     private val executes: ExecuteClause<S>,
-) : CommandNode<S> {
+    override var next: CommandNode<S> = commandNodeTodo(),
+) : SingleNextCommandNode<S> {
     override suspend fun execute(context: CommandContext<S>): ExecuteResult<S> {
         val exception = kotlin.runCatching {
             executes(context, context.source)
         }.exceptionOrNull()
-        return ExecuteResult(
+        return if (nextImplemented) {
+            exception?.let {
+                ExecuteResult(
+                    context.source,
+                    0,
+                    1,
+                    exceptions = listOf(CommandParseException(it)),
+                )
+            } ?: next.execute(context)
+        } else ExecuteResult(
             context.source,
             1,
             1,
-            executeExceptions = if (exception != null) listOf(exception) else listOf(),
+            exceptions = if (exception != null) listOf(CommandExecuteException(exception)) else listOf(),
         )
     }
 }

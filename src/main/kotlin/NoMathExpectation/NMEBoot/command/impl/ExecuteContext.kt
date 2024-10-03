@@ -10,6 +10,8 @@ data class ExecuteContext<E, T, R>(
     val target: CommandSource<T>,
     val recipient: CommandSource<R>,
     val originalMessage: MessageContent? = null,
+    val requiresCommandPrefix: Boolean = true,
+    val bypassCooldown: Boolean = false,
 ) : PermissionAware, SendSupport by recipient, ReplySupport by recipient {
     override suspend fun hasPermission(permission: String) = executor.hasPermission(permission)
 
@@ -21,12 +23,16 @@ data class ExecuteContext<E, T, R>(
         val recipient: CommandSource<R>,
     ) {
         var originalMessage: MessageContent? = null
+        var requiresCommandPrefix: Boolean = true
+        var bypassCooldown: Boolean = false
 
         fun build(): ExecuteContext<E, T, R> = ExecuteContext(
             executor,
             target,
             recipient,
             originalMessage,
+            requiresCommandPrefix,
+            bypassCooldown,
         )
     }
 }

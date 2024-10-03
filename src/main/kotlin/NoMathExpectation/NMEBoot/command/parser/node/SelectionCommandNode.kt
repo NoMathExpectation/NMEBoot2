@@ -1,13 +1,14 @@
 package NoMathExpectation.NMEBoot.command.parser.node
 
 import NoMathExpectation.NMEBoot.command.parser.CommandContext
+import NoMathExpectation.NMEBoot.command.parser.CommandException
 import NoMathExpectation.NMEBoot.command.parser.ExecuteResult
 
 class SelectionCommandNode<S>(
     val options: MutableList<CommandNode<S>> = mutableListOf()
 ) : InsertableCommandNode<S> {
     override suspend fun execute(context: CommandContext<S>): ExecuteResult<S> {
-        val parseExceptions = mutableListOf<Throwable>()
+        val exceptions = mutableListOf<CommandException>()
         options.forEach {
             val copied = context.copy()
             val result = it.execute(copied)
@@ -15,13 +16,13 @@ class SelectionCommandNode<S>(
                 return result
             }
 
-            parseExceptions += result.parseExceptions
+            exceptions += result.exceptions
         }
         return ExecuteResult(
             context.source,
             0,
             1,
-            parseExceptions = parseExceptions,
+            exceptions = exceptions,
         )
     }
 

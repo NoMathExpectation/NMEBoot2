@@ -17,3 +17,6 @@ class CommandDispatcher<S>(
 
 inline fun <S> CommandDispatcher(block: LiteralSelectionCommandNode<S>.() -> Unit) =
     CommandDispatcher(LiteralSelectionCommandNode<S>().apply(block))
+
+inline fun <S, N : CommandNode<S>> CommandDispatcher(root: N, block: N.() -> Unit) =
+    CommandDispatcher(root.apply(block))
