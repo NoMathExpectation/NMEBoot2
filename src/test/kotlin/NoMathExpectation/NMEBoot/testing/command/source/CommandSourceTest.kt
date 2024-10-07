@@ -20,7 +20,7 @@ class CommandSourceTest {
         source.setPermission("use.command", true)
         source.setPermission("command.common", true)
 
-        source.executeCommand("luck")
+        source.executeCommand("//luck")
 
         assertEquals(1, source.receivedReplyMessage.size)
 
