@@ -105,10 +105,10 @@ val shortcutRegex = "^(.*)吃什么[?？]?$".toRegex()
 
 suspend fun InsertableCommandNode<AnyExecuteContext>.commandEatShortcut() =
     requiresPermission("command.common.eat")
-        .requiresGlobalSubjectId()
         .on {
             shortcutRegex.find(reader.string)?.groupValues?.get(1)?.ifEmpty { "我" }?.let {
                 set("pronoun", it)
                 true
             } ?: false
-        }.forward(executeNode)
+        }.requiresGlobalSubjectId()
+        .forward(executeNode)
