@@ -1,6 +1,9 @@
 package NoMathExpectation.NMEBoot.command.impl.source
 
+import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
 import NoMathExpectation.NMEBoot.command.impl.PermissionServiceAware
+import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
+import NoMathExpectation.NMEBoot.command.parser.node.on
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.ability.DeleteOption
 import love.forte.simbot.ability.ReplySupport
@@ -117,6 +120,8 @@ interface MemberCommandSource<out T> : UserCommandSource<T>, BotAwareCommandSour
     override val globalSubject: Organization
     override val globalSubjectPermissionId: String
     override val executor: Member
+
+    suspend fun isBotModerator(): Boolean
 }
 
 interface GuildMemberCommandSource<out T> : MemberCommandSource<T> {
@@ -183,4 +188,10 @@ object NoDeleteOpMessageReceipt : SingleMessageReceipt() {
     override val id = 0.ID
 
     override suspend fun delete(vararg options: DeleteOption) {}
+}
+
+const val adminPermission = "command.admin"
+
+fun <S : AnyExecuteContext> InsertableCommandNode<S>.requiresBotModerator() = on {
+    it.hasPermission(adminPermission) || (it.executor is MemberCommandSource<*> && it.executor.isBotModerator())
 }

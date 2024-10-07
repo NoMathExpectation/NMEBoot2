@@ -3,8 +3,8 @@ package NoMathExpectation.NMEBoot.command.impl.source
 import NoMathExpectation.NMEBoot.message.element.Attachment
 import NoMathExpectation.NMEBoot.user.idToUid
 import NoMathExpectation.NMEBoot.util.asMessages
-import io.ktor.client.request.forms.ChannelProvider
-import io.ktor.utils.io.jvm.javaio.toByteReadChannel
+import io.ktor.client.request.forms.*
+import io.ktor.utils.io.jvm.javaio.*
 import love.forte.simbot.annotations.ExperimentalSimbotAPI
 import love.forte.simbot.common.collectable.toList
 import love.forte.simbot.component.kook.*
@@ -16,11 +16,7 @@ import love.forte.simbot.definition.Actor
 import love.forte.simbot.definition.User
 import love.forte.simbot.kook.api.asset.CreateAssetApi
 import love.forte.simbot.kook.messages.MessageType
-import love.forte.simbot.message.Message
-import love.forte.simbot.message.MessageContent
-import love.forte.simbot.message.MessageReceipt
-import love.forte.simbot.message.buildMessages
-import love.forte.simbot.message.toMessages
+import love.forte.simbot.message.*
 
 interface KookCommandSource<out T> : CommandSource<T>, BotAwareCommandSource<T> {
     override val bot: KookBot
@@ -42,6 +38,8 @@ interface KookChannelCommandSource<out T> : KookCommandSource<T>, GuildMemberCom
     @OptIn(ExperimentalSimbotAPI::class)
     override val roles: List<KookMemberRole>
         get() = executor.roles.toList()
+
+    override suspend fun isBotModerator() = hasPermission(adminPermission) || globalSubject.owner().id == executor.id
 
     class Event private constructor(override val origin: KookChannelMessageEvent) :
         KookChannelCommandSource<KookChannelMessageEvent> {
@@ -85,14 +83,13 @@ interface KookChannelCommandSource<out T> : KookCommandSource<T>, GuildMemberCom
             if (assets.isNotEmpty()) {
                 finalMessage = buildMessages {
                     assets.forEach { +it }
-                    +finalMessage
+                    +finalMessage.asMessages()
                 }
             }
 
             return finalMessage
         }
 
-        @OptIn(ExperimentalSimbotAPI::class)
         override suspend fun send(message: Message): MessageReceipt {
             val finalMessage = processMessage(message)
             return subject.send(finalMessage)

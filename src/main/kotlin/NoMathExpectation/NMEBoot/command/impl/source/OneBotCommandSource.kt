@@ -108,6 +108,8 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
     override val subject: OneBotGroup
     override val executor: OneBotMember
 
+    override suspend fun isBotModerator() = hasPermission(adminPermission) || executor.role?.isAdmin == true
+
     class NormalEvent private constructor(override val origin: OneBotNormalGroupMessageEvent) :
         OneBotGroupMemberCommandSource<OneBotNormalGroupMessageEvent> {
         private var _uid: Long? = null
@@ -158,6 +160,8 @@ interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>,
 
     override val permissionIds: List<String>
         get() = listOf(primaryPermissionId, id, subjectPermissionId, globalSubjectPermissionId, platform)
+
+    override suspend fun isBotModerator() = hasPermission(adminPermission) || executor.role?.isAdmin == true
 
     class Event private constructor(override val origin: OneBotGroupPrivateMessageEvent) :
         OneBotGroupMemberPrivateCommandSource<OneBotGroupPrivateMessageEvent> {
