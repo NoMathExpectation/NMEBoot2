@@ -1,7 +1,7 @@
 package NoMathExpectation.NMEBoot.command.impl.command.admin
 
 import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
-import NoMathExpectation.NMEBoot.command.impl.requiresPermission
+import NoMathExpectation.NMEBoot.command.impl.source.requiresBotModerator
 import NoMathExpectation.NMEBoot.command.parser.argument.collectLong
 import NoMathExpectation.NMEBoot.command.parser.argument.getLong
 import NoMathExpectation.NMEBoot.command.parser.node.LiteralSelectionCommandNode
@@ -11,7 +11,6 @@ import NoMathExpectation.NMEBoot.util.FixedDelayUseCounter
 import NoMathExpectation.NMEBoot.util.UseCounter
 import NoMathExpectation.NMEBoot.util.storageOf
 import kotlinx.serialization.Serializable
-import kotlin.collections.getOrPut
 import kotlin.time.Duration.Companion.seconds
 
 @Serializable
@@ -41,9 +40,9 @@ data class CooldownConfig(
     }
 }
 
-suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandCooldown() =
+fun LiteralSelectionCommandNode<AnyExecuteContext>.commandCooldown() =
     literal("cooldown", "cd")
-        .requiresPermission("command.admin.cooldown")
+        .requiresBotModerator()
         .collectLong("seconds")
         .executes {
             val seconds = getLong("seconds") ?: error("Argument \"seconds\" is required.")
@@ -52,7 +51,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandCooldown() =
                 return@executes
             }
 
-            CooldownConfig.Companion.storage.referenceUpdate {
+            CooldownConfig.storage.referenceUpdate {
                 val groupConfig = it.getGroup(globalSubjectPermissionId)
                 groupConfig.cooldown = seconds
                 groupConfig.timers.clear()
