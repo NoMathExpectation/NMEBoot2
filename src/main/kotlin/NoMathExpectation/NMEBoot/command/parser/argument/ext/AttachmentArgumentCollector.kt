@@ -43,6 +43,8 @@ class AttachmentArgumentCollector : ArgumentCollector<AnyExecuteContext, List<At
             else -> error("此平台不支持获取文件")
         }
     }
+
+    override fun buildHelp(name: String) = "[$name:file]"
 }
 
 fun InsertableCommandNode<AnyExecuteContext>.collectAttachment(name: String) =

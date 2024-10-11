@@ -18,6 +18,8 @@ class PermissionIdArgumentCollector : ArgumentCollector<AnyExecuteContext, Strin
 
         return str
     }
+
+    override fun buildHelp(name: String) = "[$name:permRef]"
 }
 
 fun InsertableCommandNode<AnyExecuteContext>.collectPermissionId(name: String) =
