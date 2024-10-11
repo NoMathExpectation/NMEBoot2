@@ -1,7 +1,12 @@
 package NoMathExpectation.NMEBoot.command.impl
 
+import NoMathExpectation.NMEBoot.command.parser.CommandContext
+import NoMathExpectation.NMEBoot.command.parser.CommandParseException
+import NoMathExpectation.NMEBoot.command.parser.ExecuteResult
+import NoMathExpectation.NMEBoot.command.parser.node.CommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
-import NoMathExpectation.NMEBoot.command.parser.node.on
+import NoMathExpectation.NMEBoot.command.parser.node.SingleNextCommandNode
+import NoMathExpectation.NMEBoot.command.parser.node.commandNodeTodo
 import NoMathExpectation.NMEBoot.util.storageOf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.serialization.Serializable
@@ -136,12 +141,68 @@ interface PermissionServiceAware : PermissionAware {
     }
 }
 
+class CommandPermissionDeniedException(val source: PermissionAware, val permission: String) :
+    CommandParseException("${(source as? PermissionServiceAware)?.permissionIds} 没有 $permission 权限") {
+    override val showToUser = false
+}
+
+class PermissionCheckCommandNode<S : PermissionAware> private constructor(
+    val permission: String,
+    val defaultPermissions: Map<String, Boolean?> = mapOf(),
+    override var next: CommandNode<S> = commandNodeTodo(),
+) : SingleNextCommandNode<S> {
+    private suspend fun init() {
+        defaultPermissions.forEach { (id, value) ->
+            PermissionService.setPermission(permission, id, value)
+        }
+    }
+
+    override suspend fun execute(context: CommandContext<S>) = if (context.source.hasPermission(permission)) {
+        next.execute(context)
+    } else {
+        ExecuteResult(
+            context.source,
+            0,
+            1,
+            exceptions = listOf(CommandPermissionDeniedException(context.source, permission))
+        )
+    }
+
+    override suspend fun completion(context: CommandContext<S>) =
+        context.source
+            .hasPermission(permission)
+            .takeIf { it }
+            ?.let { next.completion(context) }
+
+    override suspend fun help(context: CommandContext<S>) =
+        context.source
+            .hasPermission(permission)
+            .takeIf { it }
+            ?.let { next.help(context) }
+
+    companion object {
+        suspend operator fun <S : PermissionAware> invoke(
+            permission: String,
+            defaultPermissions: Map<String, Boolean?> = mapOf()
+        ) =
+            PermissionCheckCommandNode<S>(permission, defaultPermissions).also {
+                it.init()
+            }
+    }
+}
+
 suspend fun <S : PermissionAware> InsertableCommandNode<S>.requiresPermission(
     permission: String,
-    defaultPermission: Boolean? = null
+    defaultPermissions: Map<String, Boolean?> = mapOf(),
 ) =
-    on {
-        it.hasPermission(permission)
-    }.also {
-        PermissionService.setPermission(permission, PermissionService.anyonePermissionId, defaultPermission)
+    PermissionCheckCommandNode<S>(permission, defaultPermissions).also {
+        insert(it)
+    }
+
+suspend fun <S : PermissionAware> InsertableCommandNode<S>.requiresPermission(
+    permission: String,
+    vararg defaultPermissions: Pair<String, Boolean?>,
+) =
+    PermissionCheckCommandNode<S>(permission, defaultPermissions.toMap()).also {
+        insert(it)
     }
