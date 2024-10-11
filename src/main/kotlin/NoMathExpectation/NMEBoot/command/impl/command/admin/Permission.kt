@@ -37,6 +37,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandPermission() =
                         set("allow", true)
                     })
                 }.forward(setPermissionExecuteNode)
+                .withHelp("给予权限")
 
             literal("decline", "deny")
                 .collectPermissionId("permissionId")
@@ -46,6 +47,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandPermission() =
                         set("allow", false)
                     })
                 }.forward(setPermissionExecuteNode)
+                .withHelp("拒绝权限")
 
             literal("clear")
                 .collectPermissionId("permissionId")
@@ -55,6 +57,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandPermission() =
                         set("allow", null)
                     })
                 }.forward(setPermissionExecuteNode)
+                .withHelp("清除权限")
 
             literal("copy")
                 .collectString("from")

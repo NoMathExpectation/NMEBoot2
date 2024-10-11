@@ -86,7 +86,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandEat() =
             executeNode = optionallyCollectGreedyString("pronoun")
                 .executes("帮助决定吃什么") {
                     val globalSubjectId = it.target.globalSubjectPermissionId ?: error("没有群号")
-                    val pronoun = getString("pronoun") ?: "我"
+                    val pronoun = getString("pronoun")?.ifEmpty { "我" } ?: "我"
                     val person = when (pronoun.trim().lowercase()) {
                         "我", "俺" -> "你"
                         "我们", "俺们" -> "你们"
@@ -109,10 +109,8 @@ val shortcutRegex = "^(.*)吃什么[?？]?$".toRegex()
 
 suspend fun InsertableCommandNode<AnyExecuteContext>.commandEatShortcut() =
     requiresPermission("command.common.eat")
-        .on {
-            shortcutRegex.find(reader.string)?.groupValues?.get(1)?.ifEmpty { "我" }?.let {
-                set("pronoun", it)
-                true
-            } ?: false
-        }.requiresGlobalSubjectId()
+        .onMatchRegex(shortcutRegex)
+        .storeGroupValue(1, "pronoun")
+        .withMatchHelp("...吃什么")
+        .requiresGlobalSubjectId()
         .forward(executeNode)
