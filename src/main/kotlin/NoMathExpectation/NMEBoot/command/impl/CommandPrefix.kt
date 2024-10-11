@@ -28,31 +28,12 @@ class PrefixCheckNode(
         )
     }
 
-    override suspend fun completion(context: CommandContext<AnyExecuteContext>) =
-        if (context.source.requiresCommandPrefix) {
-            if (context.reader.peekString(prefix.length) == prefix) {
-                context.reader.next += prefix.length
-                next.completion(context)
-            } else {
-                when (val nextResult = next.completion(context)) {
-                    null -> null
-                    is HelpOption.Help -> HelpOption.Options(
-                        listOf(prefix to nextResult)
-                    )
-
-                    is HelpOption.Options -> HelpOption.Options(
-                        nextResult.options.map {
-                            "${prefix}${it.first}" to it.second
-                        }
-                    )
-                }
-            }
-        } else {
-            if (context.reader.peekString(prefix.length) == prefix) {
-                context.reader.next += prefix.length
-            }
-            next.completion(context)
+    override suspend fun completion(context: CommandContext<AnyExecuteContext>): HelpOption? {
+        if (context.reader.peekString(prefix.length) == prefix) {
+            context.reader.next += prefix.length
         }
+        return next.completion(context)
+    }
 
     override suspend fun help(context: CommandContext<AnyExecuteContext>) = if (context.source.requiresCommandPrefix) {
         when (val nextResult = next.help(context)) {
@@ -63,7 +44,7 @@ class PrefixCheckNode(
 
             is HelpOption.Options -> HelpOption.Options(
                 nextResult.options.map {
-                    "${prefix}${it.first}" to it.second
+                    "${prefix}${it.first ?: ""}" to it.second
                 }
             )
         }
