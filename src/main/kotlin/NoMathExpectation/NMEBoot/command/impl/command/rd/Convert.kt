@@ -75,7 +75,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandConvert() =
         .optionallyCollectBoolean("analyzeBpmAndOffset")
         .optionallyCollectString("type")
         .optionallyCollectBoolean("video")
-        .executes {
+        .executes("转换音视频文件") {
             val attachment = getAttachments("files")?.firstOrNull() ?: run {
                 it.reply("未找到文件。")
                 return@executes

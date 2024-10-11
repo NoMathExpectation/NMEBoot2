@@ -19,9 +19,13 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
     literal("chart", "rdlevel")
         .requiresPermission("command.rd.fanmade.chart")
         .select {
+            help = "查询cafe谱面"
+
             literals {
+                blockOptions = false
+
                 literal("help", "h")
-                    .executes {
+                    .executes("获取帮助") {
                         it.send(RhythmCafeSearchEngine.sendHelp())
                     }
 
@@ -30,7 +34,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                     .optionallyCollectInt("itemPerPage")
                     .checkInRange(1, Request.MAX_PER_PAGE)
                     .optionallyCollectBoolean("peerReview")
-                    .executes {
+                    .executes("查找谱面") {
                         val keyword = getString("keyword")
                         val itemPerPage = getInt("itemPerPage") ?: 10
                         val peerReview = getBoolean("peerReview") == true
@@ -45,7 +49,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
 
                 literal("page", "p")
                     .collectInt("page")
-                    .executes {
+                    .executes("翻页") {
                         if (RhythmCafeSearchEngine.isNotSearched()) {
                             it.send("请先进行一次搜索。")
                             return@executes
@@ -67,7 +71,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
 
                 literal("info", "i")
                     .collectInt("index")
-                    .executes {
+                    .executes("获取谱面详细信息") {
                         if (RhythmCafeSearchEngine.isNotSearched()) {
                             it.send("请先进行一次搜索。")
                             return@executes
@@ -84,7 +88,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
 
                 literal("link", "l")
                     .collectInt("index")
-                    .executes {
+                    .executes("获取下载链接") {
                         if (RhythmCafeSearchEngine.isNotSearched()) {
                             it.send("请先进行一次搜索。")
                             return@executes
@@ -101,7 +105,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
 
                 literal("link2", "l2")
                     .collectInt("index")
-                    .executes {
+                    .executes("获取备用下载链接") {
                         if (RhythmCafeSearchEngine.isNotSearched()) {
                             it.send("请先进行一次搜索。")
                             return@executes
@@ -119,7 +123,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                 //todo: 下载谱面并上传
 
                 literal("pending", "pd")
-                    .executes {
+                    .executes("查询待定谱面数量") {
                         runCatching {
                             val count = RhythmCafeSearchEngine.getPendingLevelCount()
                             val countStr = if (count >= Request.MAX_PER_PAGE) "${count - 1}+" else count
@@ -132,7 +136,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
             }
 
             onEndOfArguments()
-                .executes {
+                .executes("获取帮助") {
                     it.send(RhythmCafeSearchEngine.sendHelp())
                 }
         }

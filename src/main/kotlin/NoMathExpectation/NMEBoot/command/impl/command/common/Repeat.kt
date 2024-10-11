@@ -15,7 +15,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandRepeat()
     literal("repeat")
         .requiresPermission("command.common.repeat")
         .collectGreedyString("text")
-        .executes {
+        .executes("复读机") {
             val str = getString("text") ?: " "
             it.reply(str)
         }

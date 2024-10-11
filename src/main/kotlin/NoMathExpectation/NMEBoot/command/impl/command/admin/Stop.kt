@@ -13,7 +13,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandStop()
               T : PermissionAware =
     literal("stop")
         .requiresPermission("command.admin.stop")
-        .executes {
+        .executes("停止服务器") {
             it.reply("Stopping!")
             stopProgram()
         }

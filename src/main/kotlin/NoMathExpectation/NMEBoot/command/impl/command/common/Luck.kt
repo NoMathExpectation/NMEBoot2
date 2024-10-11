@@ -52,7 +52,7 @@ class Luck(var counter: UseCounter = FixedRateUseCounter.ofDay(1)) : Comparable<
 suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandLuck() =
     literal("luck")
         .requiresPermission("command.common.luck")
-        .executes {
+        .executes("测测你今天的运气") {
             val luck = Luck.get(it.target.uid)
             val message = buildMessages {
                 +"你今天的运气是: $luck"

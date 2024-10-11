@@ -1,9 +1,9 @@
 package NoMathExpectation.NMEBoot.command.impl
 
-import NoMathExpectation.NMEBoot.command.impl.command.*
 import NoMathExpectation.NMEBoot.command.impl.command.admin.commandCooldown
 import NoMathExpectation.NMEBoot.command.impl.command.admin.commandPermission
 import NoMathExpectation.NMEBoot.command.impl.command.admin.commandStop
+import NoMathExpectation.NMEBoot.command.impl.command.commandTransfer
 import NoMathExpectation.NMEBoot.command.impl.command.common.*
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandChart
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandConvert
@@ -44,10 +44,10 @@ suspend fun initDispatcher() {
                 commandOffset()
 
                 //experimental
-                commandExport()
-                commandRef()
-                commandFiles()
-                commandCopy()
+                //commandExport()
+                //commandRef()
+                //commandFiles()
+                //commandCopy()
             }
 
         commandEatShortcut()

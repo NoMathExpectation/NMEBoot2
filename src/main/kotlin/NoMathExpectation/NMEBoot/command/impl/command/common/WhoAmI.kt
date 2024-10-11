@@ -9,6 +9,6 @@ import NoMathExpectation.NMEBoot.command.parser.node.literal
 suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandWhoAmI() =
     literal("whoami")
         .requiresPermission("command.common.whoami")
-        .executes {
+        .executes("我是谁") {
             it.reply(it.target.permissionIds.joinToString())
         }

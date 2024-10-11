@@ -44,7 +44,7 @@ fun LiteralSelectionCommandNode<AnyExecuteContext>.commandCooldown() =
     literal("cooldown", "cd")
         .requiresBotModerator()
         .collectLong("seconds")
-        .executes {
+        .executes("设置指令冷却") {
             val seconds = getLong("seconds") ?: error("Argument \"seconds\" is required.")
             val globalSubjectPermissionId = it.target.globalSubjectPermissionId ?: run {
                 it.reply("此平台不支持调整冷却")

@@ -14,11 +14,13 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandPermission() =
     literal("permission", "perm")
         .requiresPermission("command.admin.permission")
         .literals {
+            help = "设置权限"
+
             val setPermissionExecuteNode = literal("set")
                 .collectPermissionId("permissionId")
                 .collectString("permission")
                 .optionallyCollectBoolean("allow")
-                .executes {
+                .executes("设置权限") {
                     val permissionId = getString("permissionId") ?: error("permissionId is null")
                     val permission = getString("permission") ?: error("permission is null")
                     val allow = getBoolean("allow")
@@ -58,7 +60,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandPermission() =
                 .collectString("from")
                 .collectString("to")
                 .optionallyCollectBoolean("deep")
-                .executes {
+                .executes("复制权限") {
                     val from = getString("from") ?: error("from is null")
                     val to = getString("to") ?: error("to is null")
                     val deep = getBoolean("deep") ?: false
@@ -69,7 +71,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandPermission() =
             literal("move")
                 .collectString("from")
                 .collectString("to")
-                .executes {
+                .executes("移动权限") {
                     val from = getString("from") ?: error("from is null")
                     val to = getString("to") ?: error("to is null")
                     val deep = getBoolean("deep") ?: false

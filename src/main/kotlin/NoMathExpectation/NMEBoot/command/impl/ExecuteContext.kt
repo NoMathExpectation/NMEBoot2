@@ -46,10 +46,10 @@ inline fun <E, T, R> ExecuteContext(
     executor: CommandSource<E>,
     target: CommandSource<T>,
     recipient: CommandSource<R>,
-    buildBlock: ExecuteContext.Builder<E, T, R>.() -> Unit
+    buildBlock: ExecuteContext.Builder<E, T, R>.() -> Unit = {},
 ): ExecuteContext<E, T, R> = ExecuteContext.Builder(executor, target, recipient).apply(buildBlock).build()
 
-inline fun <S> ExecuteContext(from: CommandSource<S>, buildBlock: ExecuteContext.Builder<S, S, S>.() -> Unit) =
+inline fun <S> ExecuteContext(from: CommandSource<S>, buildBlock: ExecuteContext.Builder<S, S, S>.() -> Unit = {}) =
     ExecuteContext(from, from, from, buildBlock)
 
 fun InsertableCommandNode<AnyExecuteContext>.requiresGlobalSubjectId() = on("只能在群内使用此指令") {

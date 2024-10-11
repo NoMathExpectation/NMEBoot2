@@ -33,7 +33,7 @@ sealed interface HelpOption {
         }
 
         override fun toString() = unfold().joinToString("\n") {
-            val option = it.first.joinToString(" ")
+            val option = it.first.joinToString(" ").ifBlank { "(无输入)" }
             val help = if (it.second.isBlank()) "" else " : ${it.second}"
             "$option$help"
         }
@@ -46,7 +46,7 @@ sealed interface HelpOption {
         override fun unfold() = listOf((if (omitted) listOf("...") else listOf()) to help)
 
         override fun toString() = unfold().joinToString("\n") {
-            val option = it.first.joinToString(" ")
+            val option = it.first.joinToString(" ").ifBlank { "(无输入)" }
             val help = if (it.second.isBlank()) "" else " : ${it.second}"
             "$option$help"
         }

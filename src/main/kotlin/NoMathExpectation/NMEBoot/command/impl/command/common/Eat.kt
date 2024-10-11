@@ -21,10 +21,14 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandEat() =
         .requiresPermission("command.common.eat")
         .requiresGlobalSubjectId()
         .select {
+            help = "吃什么"
+
             literals {
+                blockOptions = false
+
                 literal("add")
                     .collectGreedyString("dish")
-                    .executes {
+                    .executes("添加菜品") {
                         val globalSubjectId = it.target.globalSubjectPermissionId ?: error("没有群号")
                         val dish = getString("dish") ?: error("未提供菜品")
                         storage.referenceUpdate(globalSubjectId) { dishes ->
@@ -35,7 +39,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandEat() =
 
                 literal("remove", "delete")
                     .collectGreedyString("dishOrIndex")
-                    .executes {
+                    .executes("移除菜品") {
                         val globalSubjectId = it.target.globalSubjectPermissionId ?: error("没有群号")
                         val dish = getString("dish") ?: error("未提供菜品")
                         val actualDish = storage.referenceUpdate(globalSubjectId) { dishes ->
@@ -55,7 +59,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandEat() =
                     }
 
                 literal("show")
-                    .executes {
+                    .executes("展示菜单") {
                         val globalSubjectId = it.target.globalSubjectPermissionId ?: error("没有群号")
                         val dishes = storage.get(globalSubjectId)
                         it.reply(
@@ -66,7 +70,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandEat() =
                     }
 
                 literal("help")
-                    .executes {
+                    .executes("显示帮助") {
                         it.reply(buildMessages {
                             val prefix = commandConfig.get().commandPrefix
                             +"${prefix}eat...\n"
@@ -80,7 +84,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandEat() =
             }
 
             executeNode = optionallyCollectGreedyString("pronoun")
-                .executes {
+                .executes("帮助决定吃什么") {
                     val globalSubjectId = it.target.globalSubjectPermissionId ?: error("没有群号")
                     val pronoun = getString("pronoun") ?: "我"
                     val person = when (pronoun.trim().lowercase()) {

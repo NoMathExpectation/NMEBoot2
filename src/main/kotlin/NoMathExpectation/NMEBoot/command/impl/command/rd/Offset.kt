@@ -22,7 +22,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandOffset() =
         .requiresPermission("command.rd.fanmade.offset")
         .collectAttachment("files")
         .optionallyCollectDouble("knownBpm")
-        .executes {
+        .executes("测量bpm与偏移") {
             val attachment = getAttachments("files")?.firstOrNull() ?: run {
                 it.reply("未找到文件。")
                 return@executes

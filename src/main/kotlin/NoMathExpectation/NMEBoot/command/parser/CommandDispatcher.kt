@@ -1,6 +1,7 @@
 package NoMathExpectation.NMEBoot.command.parser
 
 import NoMathExpectation.NMEBoot.command.parser.node.CommandNode
+import NoMathExpectation.NMEBoot.command.parser.node.HelpOption
 import NoMathExpectation.NMEBoot.command.parser.node.LiteralSelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.commandNodeTodo
 
@@ -13,6 +14,13 @@ class CommandDispatcher<S>(
     }
 
     suspend fun dispatch(source: S, commandString: String) = dispatch(source, StringReader(commandString))
+
+    suspend fun completion(source: S, reader: StringReader): HelpOption? {
+        val context = CommandContext(source, reader)
+        return root.completion(context)
+    }
+
+    suspend fun completion(source: S, commandString: String) = completion(source, StringReader(commandString))
 }
 
 inline fun <S> CommandDispatcher(block: LiteralSelectionCommandNode<S>.() -> Unit) =

@@ -6,6 +6,7 @@ import NoMathExpectation.NMEBoot.command.parser.ExecuteResult
 
 class LiteralSelectionCommandNode<S>(
     val options: MutableMap<String, CommandNode<S>> = mutableMapOf(),
+    val helpOptions: MutableList<Pair<List<String>, CommandNode<S>>> = mutableListOf(),
 ) : CommandNode<S> {
     var blockOptions: Boolean = true
     var help: String = ""
@@ -28,7 +29,9 @@ class LiteralSelectionCommandNode<S>(
 
     override suspend fun completion(context: CommandContext<S>): HelpOption? {
         val subCommand = context.reader.readWord() ?: return HelpOption.Options(
-            options.mapNotNull { it.key to (it.value.help(context.copy()) ?: return@mapNotNull null) }
+            helpOptions.mapNotNull {
+                it.first.joinToString("|") to (it.second.help(context.copy()) ?: return@mapNotNull null)
+            }
         )
         return options[subCommand]?.completion(context)
     }
@@ -39,13 +42,18 @@ class LiteralSelectionCommandNode<S>(
             true,
         )
     } else {
-        options.mapNotNull { it.key to (it.value.help(context.copy()) ?: return@mapNotNull null) }
+        helpOptions.mapNotNull {
+            it.first.joinToString("|") to (it.second.help(context.copy()) ?: return@mapNotNull null)
+        }
             .takeIf { it.isNotEmpty() }
             ?.let { HelpOption.Options(it) }
     }
 
-    operator fun set(vararg names: String, node: CommandNode<S>) = names.forEach {
-        options[it] = node
+    operator fun set(vararg names: String, node: CommandNode<S>) {
+        names.forEach {
+            options[it] = node
+        }
+        helpOptions += names.toList() to node
     }
 }
 
