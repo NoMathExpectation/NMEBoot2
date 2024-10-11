@@ -10,6 +10,8 @@ class DoubleArgumentCollector<in S> : ArgumentCollector<S, Double> {
         val str = context.reader.readWord() ?: error("期望一个double，但是什么都没有得到。")
         return str.toDoubleOrNull() ?: error("无效的double值 $str.")
     }
+
+    override fun buildHelp(name: String) = "<$name:double>"
 }
 
 fun <S> InsertableCommandNode<S>.collectDouble(name: String) =
@@ -23,6 +25,8 @@ class OptionalDoubleArgumentCollector<in S> : ArgumentCollector<S, Double?> {
         }
         return str.toDoubleOrNull() ?: error("无效的double值 $str.")
     }
+
+    override fun buildHelp(name: String) = "[$name:double]"
 }
 
 fun <S> InsertableCommandNode<S>.optionallyCollectDouble(name: String) =

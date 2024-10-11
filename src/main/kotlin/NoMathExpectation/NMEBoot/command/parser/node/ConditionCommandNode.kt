@@ -29,6 +29,26 @@ class ConditionCommandNode<S>(
             exceptions = if (reportOnFail) listOf(exception) else listOf(),
         )
     }
+
+    var helpCondition: ConditionClause<S>? = null
+
+    override suspend fun completion(context: CommandContext<S>) = when {
+        reportOnFail -> next.completion(context)
+        helpCondition?.invoke(context, context.source) == true -> next.completion(context)
+        else -> kotlin.runCatching {
+            condition(context, context.source)
+            next.completion(context)
+        }.getOrNull()
+    }
+
+    override suspend fun help(context: CommandContext<S>) = when {
+        reportOnFail -> next.help(context)
+        helpCondition?.invoke(context, context.source) == true -> next.help(context)
+        else -> kotlin.runCatching {
+            condition(context, context.source)
+            next.help(context)
+        }.getOrNull()
+    }
 }
 
 fun <S> InsertableCommandNode<S>.onNotFail(clause: RawConditionClause<S>) =
@@ -40,3 +60,7 @@ fun <S> InsertableCommandNode<S>.on(failMessage: String = "", clause: ConditionC
     }.also { insert(it) }
 
 fun <S> ConditionCommandNode<S>.reportOnFail(boolean: Boolean = true) = apply { reportOnFail = boolean }
+
+fun <S> ConditionCommandNode<S>.overrideHelpCondition(clause: ConditionClause<S>) = apply {
+    helpCondition = clause
+}

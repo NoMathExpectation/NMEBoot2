@@ -7,6 +7,9 @@ import NoMathExpectation.NMEBoot.command.parser.ExecuteResult
 class SelectionCommandNode<S>(
     val options: MutableList<CommandNode<S>> = mutableListOf()
 ) : InsertableCommandNode<S> {
+    var blockOptions: Boolean = true
+    var help: String = ""
+
     override suspend fun execute(context: CommandContext<S>): ExecuteResult<S> {
         val exceptions = mutableListOf<CommandException>()
         options.forEach {
@@ -25,6 +28,43 @@ class SelectionCommandNode<S>(
             exceptions = exceptions,
         )
     }
+
+    override suspend fun completion(context: CommandContext<S>) =
+        buildList {
+            options.mapNotNull {
+                it.completion(context.copy())
+            }.forEach {
+                when (it) {
+                    is HelpOption.Options -> addAll(it.options)
+                    is HelpOption.Help -> add(null to it)
+                }
+            }
+        }.takeIf {
+            it.isNotEmpty()
+        }?.let {
+            HelpOption.Options(it)
+        }
+
+    override suspend fun help(context: CommandContext<S>) = if (blockOptions) {
+        HelpOption.Help(
+            help,
+            true,
+        )
+    } else buildList {
+        options.mapNotNull {
+            it.help(context.copy())
+        }.forEach {
+            when (it) {
+                is HelpOption.Options -> addAll(it.options)
+                is HelpOption.Help -> add(null to it)
+            }
+        }
+    }.takeIf {
+        it.isNotEmpty()
+    }?.let {
+        HelpOption.Options(it)
+    }
+
 
     override fun insert(commandNode: CommandNode<S>) {
         options += commandNode

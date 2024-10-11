@@ -7,6 +7,9 @@ import NoMathExpectation.NMEBoot.command.parser.ExecuteResult
 class LiteralSelectionCommandNode<S>(
     val options: MutableMap<String, CommandNode<S>> = mutableMapOf(),
 ) : CommandNode<S> {
+    var blockOptions: Boolean = true
+    var help: String = ""
+
     override suspend fun execute(context: CommandContext<S>): ExecuteResult<S> {
         val subCommand = context.reader.readWord() ?: return ExecuteResult(
             context.source,
@@ -21,6 +24,24 @@ class LiteralSelectionCommandNode<S>(
             exceptions = listOf(CommandParseException("未知的子指令 $subCommand。"))
         )
         return node.execute(context)
+    }
+
+    override suspend fun completion(context: CommandContext<S>): HelpOption? {
+        val subCommand = context.reader.readWord() ?: return HelpOption.Options(
+            options.mapNotNull { it.key to (it.value.help(context.copy()) ?: return@mapNotNull null) }
+        )
+        return options[subCommand]?.completion(context)
+    }
+
+    override suspend fun help(context: CommandContext<S>) = if (blockOptions) {
+        HelpOption.Help(
+            help,
+            true,
+        )
+    } else {
+        options.mapNotNull { it.key to (it.value.help(context.copy()) ?: return@mapNotNull null) }
+            .takeIf { it.isNotEmpty() }
+            ?.let { HelpOption.Options(it) }
     }
 
     operator fun set(vararg names: String, node: CommandNode<S>) = names.forEach {

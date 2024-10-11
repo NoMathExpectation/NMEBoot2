@@ -13,6 +13,8 @@ class NotImplementedCommandNode<S> : CommandNode<S> {
             exceptions = listOf(CommandParseException("此指令尚未实现。"))
         )
     }
+
+    override suspend fun help(context: CommandContext<S>) = null
 }
 
 fun <S> commandNodeTodo() = NotImplementedCommandNode<S>()

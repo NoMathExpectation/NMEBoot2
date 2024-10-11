@@ -28,6 +28,27 @@ class ArgumentCollectCommandNode<S, T>(
         context[name] = collected
         return next.execute(context)
     }
+
+    override suspend fun completion(context: CommandContext<S>): HelpOption? {
+        val readerCursor = context.reader.next
+        val collected = kotlin.runCatching {
+            collector.collect(context)
+        }.getOrElse {
+            return if (readerCursor == context.reader.next) {
+                help(context)
+            } else {
+                null
+            }
+        }
+        context[name] = collected
+        return next.completion(context)
+    }
+
+    override suspend fun help(context: CommandContext<S>) = next.help(context)?.let {
+        HelpOption.Options(
+            listOf(collector.buildHelp(name) to it)
+        )
+    }
 }
 
 fun <S, T> InsertableCommandNode<S>.collect(name: String, collector: ArgumentCollector<S, T>) =

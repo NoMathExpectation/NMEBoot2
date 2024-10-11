@@ -10,6 +10,8 @@ class FloatArgumentCollector<in S> : ArgumentCollector<S, Float> {
         val str = context.reader.readWord() ?: error("期望一个float，但是什么都没有得到。")
         return str.toFloatOrNull() ?: error("无效的float值 $str.")
     }
+
+    override fun buildHelp(name: String) = "<$name:float>"
 }
 
 fun <S> InsertableCommandNode<S>.collectFloat(name: String) =
@@ -23,6 +25,8 @@ class OptionalFloatArgumentCollector<in S> : ArgumentCollector<S, Float?> {
         }
         return str.toFloatOrNull() ?: error("无效的float值 $str.")
     }
+
+    override fun buildHelp(name: String) = "[$name:float]"
 }
 
 fun <S> InsertableCommandNode<S>.optionallyCollectFloat(name: String) =

@@ -9,6 +9,7 @@ typealias ExecuteClause<S> = suspend CommandContext<S>.(S) -> Unit
 
 class ExecuteCommandNode<S>(
     private val executes: ExecuteClause<S>,
+    val help: String = "",
     override var next: CommandNode<S> = commandNodeTodo(),
 ) : SingleNextCommandNode<S> {
     override suspend fun execute(context: CommandContext<S>): ExecuteResult<S> {
@@ -31,7 +32,19 @@ class ExecuteCommandNode<S>(
             exceptions = if (exception != null) listOf(CommandExecuteException(exception)) else listOf(),
         )
     }
+
+    override suspend fun completion(context: CommandContext<S>) = if (nextImplemented) {
+        next.completion(context)
+    } else {
+        HelpOption.Help(help)
+    }
+
+    override suspend fun help(context: CommandContext<S>) = if (nextImplemented) {
+        next.help(context)
+    } else {
+        HelpOption.Help(help)
+    }
 }
 
-fun <S> InsertableCommandNode<S>.executes(executes: ExecuteClause<S>) =
-    ExecuteCommandNode(executes).also { insert(it) }
+fun <S> InsertableCommandNode<S>.executes(help: String = "", executes: ExecuteClause<S>) =
+    ExecuteCommandNode(executes, help).also { insert(it) }

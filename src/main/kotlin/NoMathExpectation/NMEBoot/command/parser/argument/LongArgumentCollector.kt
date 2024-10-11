@@ -15,6 +15,8 @@ class LongArgumentCollector<in S> : ArgumentCollector<S, Long> {
             else -> str.toLongOrNull() ?: error("无效的long值 $str.")
         }
     }
+
+    override fun buildHelp(name: String) = "<$name:long>"
 }
 
 fun <S> InsertableCommandNode<S>.collectLong(name: String) =
@@ -33,6 +35,8 @@ class OptionalLongArgumentCollector<in S> : ArgumentCollector<S, Long?> {
             else -> str.toLongOrNull() ?: error("无效的long值 $str.")
         }
     }
+
+    override fun buildHelp(name: String) = "[$name:long]"
 }
 
 fun <S> InsertableCommandNode<S>.optionallyCollectLong(name: String) =

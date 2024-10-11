@@ -42,6 +42,13 @@ class ForkCommandNode<S>(
             exceptions = exceptions,
         )
     }
+
+    override suspend fun completion(context: CommandContext<S>) =
+        transform(context, context.source)
+            .firstOrNull()
+            ?.let {
+                next.completion(it)
+            }
 }
 
 fun <S> InsertableCommandNode<S>.fork(transform: TransformClause<S>): ForkCommandNode<S> =

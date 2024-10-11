@@ -42,6 +42,8 @@ class StringArgumentCollector<in S> : ArgumentCollector<S, String> {
         }
     }
 
+    override fun buildHelp(name: String) = "<$name:str>"
+
     private companion object {
         const val escapeChar = '\\'
         const val quoteChars = "\"'/"
@@ -92,6 +94,8 @@ class OptionalStringArgumentCollector<in S> : ArgumentCollector<S, String?> {
         }
     }
 
+    override fun buildHelp(name: String) = "[$name:str]"
+
     private companion object {
         const val escapeChar = '\\'
         const val quoteChars = "\"'/"
@@ -107,6 +111,8 @@ class GreedyStringArgumentCollector<in S> : ArgumentCollector<S, String> {
         val str = context.reader.readRemain() ?: error("期望一个字符串，但是什么都没有得到。")
         return str
     }
+
+    override fun buildHelp(name: String) = "<$name:str..>"
 }
 
 fun <S> InsertableCommandNode<S>.collectGreedyString(name: String) =
@@ -118,6 +124,8 @@ class OptionalGreedyStringArgumentCollector<in S> : ArgumentCollector<S, String?
         val str = context.reader.readRemain()
         return str
     }
+
+    override fun buildHelp(name: String) = "[$name:str..]"
 }
 
 fun <S> InsertableCommandNode<S>.optionallyCollectGreedyString(name: String) =

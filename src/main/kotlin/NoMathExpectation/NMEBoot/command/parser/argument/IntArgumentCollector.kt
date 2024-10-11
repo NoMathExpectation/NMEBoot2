@@ -15,6 +15,8 @@ class IntArgumentCollector<in S> : ArgumentCollector<S, Int> {
             else -> str.toIntOrNull() ?: error("无效的int值 $str.")
         }
     }
+
+    override fun buildHelp(name: String) = "<$name:int>"
 }
 
 fun <S> InsertableCommandNode<S>.collectInt(name: String) =
@@ -33,6 +35,8 @@ class OptionalIntArgumentCollector<in S> : ArgumentCollector<S, Int?> {
             else -> str.toIntOrNull() ?: error("无效的int值 $str.")
         }
     }
+
+    override fun buildHelp(name: String) = "[$name:int]"
 }
 
 fun <S> InsertableCommandNode<S>.optionallyCollectInt(name: String) =

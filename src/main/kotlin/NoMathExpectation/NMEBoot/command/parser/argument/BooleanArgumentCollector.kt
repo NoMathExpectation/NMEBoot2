@@ -14,6 +14,8 @@ class BooleanArgumentCollector<in S> : ArgumentCollector<S, Boolean> {
             else -> error("无效的布尔值 $str.")
         }
     }
+
+    override fun buildHelp(name: String) = "<$name:bool>"
 }
 
 fun <S> InsertableCommandNode<S>.collectBoolean(name: String) =
@@ -29,6 +31,8 @@ class OptionalBooleanArgumentCollector<in S> : ArgumentCollector<S, Boolean?> {
             else -> error("无效的布尔值 $str.")
         }
     }
+
+    override fun buildHelp(name: String) = "[$name:bool]"
 }
 
 fun <S> InsertableCommandNode<S>.optionallyCollectBoolean(name: String) =
