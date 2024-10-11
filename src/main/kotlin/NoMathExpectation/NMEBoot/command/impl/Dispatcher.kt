@@ -10,10 +10,8 @@ import NoMathExpectation.NMEBoot.command.impl.command.rd.commandConvert
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandOffset
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.parser.CommandDispatcher
-import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.SelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.literals
-import NoMathExpectation.NMEBoot.command.parser.node.on
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger { }
@@ -21,16 +19,11 @@ private val logger = KotlinLogging.logger { }
 lateinit var commandDispatcher: CommandDispatcher<AnyExecuteContext>
     private set
 
-private fun InsertableCommandNode<AnyExecuteContext>.onCommandPrefix() = on { ctx ->
-    val prefix = commandConfig.get().commandPrefix
-    (!ctx.requiresCommandPrefix || reader.peekString(prefix.length) == prefix).also { if (it) reader.next += prefix.length }
-}
-
 suspend fun initDispatcher() {
     logger.info { "构建指令树......" }
 
     commandDispatcher = CommandDispatcher(SelectionCommandNode()) {
-        onCommandPrefix()
+        onCommandPrefix(commandConfig.get().commandPrefix)
             .consumeCooldown()
             .literals {
                 commandStop()
