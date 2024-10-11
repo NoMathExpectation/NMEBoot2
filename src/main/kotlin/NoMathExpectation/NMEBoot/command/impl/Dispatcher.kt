@@ -10,6 +10,8 @@ import NoMathExpectation.NMEBoot.command.impl.command.rd.commandConvert
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandOffset
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.parser.CommandDispatcher
+import NoMathExpectation.NMEBoot.command.parser.CommandExecuteException
+import NoMathExpectation.NMEBoot.command.parser.CommandParseException
 import NoMathExpectation.NMEBoot.command.parser.node.SelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.literals
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -63,12 +65,16 @@ suspend fun <T> CommandSource<T>.executeCommand(
     val executeContext = ExecuteContext(this, contextBlock)
     val result = commandDispatcher.dispatch(executeContext, command)
 
-    val exceptions = result.exceptions
-    if (exceptions.isNotEmpty()) {
-        exceptions.forEach {
-            logger.error(it) { "Error while executing $command from $this: " }
+    var exceptions = result.exceptions
+    exceptions.forEach {
+        when (it) {
+            is CommandParseException -> logger.debug(it) { "Command \"$command\" parse failed from $this: " }
+            is CommandExecuteException -> logger.error(it) { "Error while executing \"$command\" from $this: " }
         }
+    }
 
+    exceptions = exceptions.filter { it is CommandExecuteException || it.showToUser }
+    if (exceptions.isNotEmpty()) {
         val debug = hasPermission("use.debug")
 
         val firstDisplayException = if (debug) exceptions.firstOrNull() else exceptions.firstOrNull { it.showToUser }
