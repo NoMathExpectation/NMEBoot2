@@ -1,7 +1,7 @@
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version "2.1.0"
 
-    kotlin("plugin.serialization") version "2.0.0"
+    kotlin("plugin.serialization") version "2.1.0"
 
     application
 }
@@ -46,7 +46,7 @@ dependencies {
     implementation("io.github.xxfast:kstore-file:$kStoreVersion")
 
     // ktor
-    val ktorVersion = "2.3.12"
+    val ktorVersion = "2.3.13"
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
@@ -54,10 +54,10 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
     // simbot
-    val simbotVersion = "4.6.0"
+    val simbotVersion = "4.8.0"
     implementation("love.forte.simbot:simbot-core:$simbotVersion")
     compileOnly("love.forte.simbot.common:simbot-common-annotations:$simbotVersion")
-    implementation("love.forte.simbot.component:simbot-component-onebot-v11-core:1.4.1")
+    implementation("love.forte.simbot.component:simbot-component-onebot-v11-core:1.5.0")
     implementation("love.forte.simbot.component:simbot-component-kook-core:4.0.2")
 
     // kotter
