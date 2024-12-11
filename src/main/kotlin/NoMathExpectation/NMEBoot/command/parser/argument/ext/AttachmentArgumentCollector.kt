@@ -29,7 +29,7 @@ class AttachmentArgumentCollector : ArgumentCollector<AnyExecuteContext, List<At
                 }
 
                 val keyword = stringCollector.collect(context)
-                val info = OneBotFileCache[executor.subject.id.toLong(), executor.executor.id.toLong(), keyword]
+                val info = OneBotFileCache[executor.subject.id.toLong(), keyword]
                     ?: error("未找到文件")
                 listOf(OneBotIncomingAttachment(executor.bot, executor.subject.id.toLongID(), info))
             }
