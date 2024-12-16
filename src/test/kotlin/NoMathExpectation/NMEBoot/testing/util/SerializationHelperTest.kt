@@ -1,4 +1,4 @@
-package NoMathExpectation.NMEBoot.testing
+package NoMathExpectation.NMEBoot.testing.util
 
 import NoMathExpectation.NMEBoot.util.polymorphicTransform
 import kotlinx.serialization.SerialName
@@ -9,7 +9,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlin.test.Test
 import kotlin.test.assertIs
 
-class PolymorphismTest {
+class SerializationHelperTest {
     interface I
 
     interface A : I
