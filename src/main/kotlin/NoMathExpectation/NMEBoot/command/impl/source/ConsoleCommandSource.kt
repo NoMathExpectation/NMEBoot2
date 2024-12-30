@@ -1,5 +1,6 @@
 package NoMathExpectation.NMEBoot.command.impl.source
 
+import NoMathExpectation.NMEBoot.command.impl.source.offline.OfflineConsoleCommandSource
 import NoMathExpectation.NMEBoot.message.toReadableString
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.message.Message
@@ -25,4 +26,6 @@ object ConsoleCommandSource : CommandSource<Nothing?> {
     }
 
     override suspend fun reply(message: Message) = send(message)
+
+    override suspend fun toOffline() = OfflineConsoleCommandSource
 }

@@ -2,6 +2,7 @@ package NoMathExpectation.NMEBoot.command.impl.source
 
 import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
 import NoMathExpectation.NMEBoot.command.impl.PermissionServiceAware
+import NoMathExpectation.NMEBoot.command.impl.source.offline.OfflineCommandSource
 import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.on
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -104,7 +105,11 @@ interface CommandSource<out T> : PermissionServiceAware, SendSupport, ReplySuppo
             register(KookPrivateCommandSource.Event.Companion::invoke)
         }
     }
+
+    suspend fun toOffline(): OfflineCommandSource<*>
 }
+
+suspend fun CommandSource<*>.toOfflineOrNull() = kotlin.runCatching { toOffline() }.getOrNull()
 
 interface BotAwareCommandSource<out T> : CommandSource<T> {
     override val bot: Bot

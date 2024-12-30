@@ -22,6 +22,9 @@ class FakeCommandSource : CommandSource<Nothing?> {
 
     private val logger = KotlinLogging.logger { }
 
+    override suspend fun toOffline() =
+        throw UnsupportedOperationException("FakeCommandSource cannot be converted to OfflineCommandSource")
+
     val receivedSendMessage: MutableList<Message> = mutableListOf()
     override suspend fun send(message: Message): MessageReceipt {
         receivedSendMessage.add(message)

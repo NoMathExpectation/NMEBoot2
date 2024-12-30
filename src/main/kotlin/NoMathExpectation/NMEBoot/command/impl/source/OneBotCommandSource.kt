@@ -1,5 +1,9 @@
 package NoMathExpectation.NMEBoot.command.impl.source
 
+import NoMathExpectation.NMEBoot.bot.simbotApplication
+import NoMathExpectation.NMEBoot.command.impl.source.offline.OfflineOneBotFriendCommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.offline.OfflineOneBotGroupMemberCommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.offline.OfflineOneBotGroupMemberPrivateCommandSource
 import NoMathExpectation.NMEBoot.message.aggregateAll
 import NoMathExpectation.NMEBoot.message.element.Attachment
 import NoMathExpectation.NMEBoot.message.element.OneBotIncomingAttachment
@@ -12,12 +16,15 @@ import NoMathExpectation.NMEBoot.message.onebot.containsOneBotForward
 import NoMathExpectation.NMEBoot.user.idToUid
 import NoMathExpectation.NMEBoot.util.asMessages
 import io.github.oshai.kotlinlogging.KotlinLogging
+import love.forte.simbot.bot.find
+import love.forte.simbot.common.id.ID
 import love.forte.simbot.common.id.toLong
 import love.forte.simbot.common.id.toLongID
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotFriend
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotGroup
 import love.forte.simbot.component.onebot.v11.core.actor.OneBotMember
 import love.forte.simbot.component.onebot.v11.core.bot.OneBotBot
+import love.forte.simbot.component.onebot.v11.core.bot.OneBotBotManager
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotFriendMessageEvent
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotGroupPrivateMessageEvent
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotNormalGroupMessageEvent
@@ -110,6 +117,8 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
 
     override suspend fun isBotModerator() = hasPermission(adminPermission) || executor.role?.isAdmin == true
 
+    override suspend fun toOffline() = OfflineOneBotGroupMemberCommandSource(bot.id, subject.id, executor.id)
+
     class NormalEvent private constructor(override val origin: OneBotNormalGroupMessageEvent) :
         OneBotGroupMemberCommandSource<OneBotNormalGroupMessageEvent> {
         private var _uid: Long? = null
@@ -150,6 +159,52 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
             suspend operator fun invoke(origin: OneBotNormalGroupMessageEvent) = NormalEvent(origin).apply { init() }
         }
     }
+
+    class Data private constructor(
+        private val botId: ID,
+        private val groupId: ID,
+        private val memberId: ID,
+    ) : OneBotGroupMemberCommandSource<OneBotMember> {
+        override val origin: OneBotMember
+            get() = executor
+
+        private var _uid: Long? = null
+        override val uid: Long
+            get() = _uid ?: error("uid not initialized!")
+
+        override val bot by lazy {
+            simbotApplication
+                ?.botManagers
+                ?.find<OneBotBotManager>()
+                ?.find(botId)
+                ?: error("OneBotBot $botId not found!")
+        }
+
+        private var _subject: OneBotGroup? = null
+        override val subject: OneBotGroup
+            get() = _subject ?: error("subject not initialized!")
+
+        private var _executor: OneBotMember? = null
+        override val executor: OneBotMember
+            get() = _executor ?: error("executor not initialized!")
+
+        suspend fun init() {
+            _subject = bot.groupRelation.group(groupId) ?: error("OneBotGroup $groupId not found!")
+            _executor = subject.member(memberId) ?: error("OneBotMember $memberId not found!")
+            _uid = idToUid()
+        }
+
+        override suspend fun send(message: Message): MessageReceipt {
+            return message.sendByOneBot(bot, globalSubject) { subject.send(it) }
+        }
+
+        override suspend fun reply(message: Message) = send(message)
+
+        companion object {
+            suspend operator fun invoke(botId: ID, groupId: ID, memberId: ID) =
+                Data(botId, groupId, memberId).apply { init() }
+        }
+    }
 }
 
 interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>, MemberPrivateCommandSource<T> {
@@ -162,6 +217,9 @@ interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>,
         get() = listOf(primaryPermissionId, id, subjectPermissionId, globalSubjectPermissionId, platform)
 
     override suspend fun isBotModerator() = hasPermission(adminPermission) || executor.role?.isAdmin == true
+
+    override suspend fun toOffline() =
+        OfflineOneBotGroupMemberPrivateCommandSource(bot.id, globalSubject.id, executor.id)
 
     class Event private constructor(override val origin: OneBotGroupPrivateMessageEvent) :
         OneBotGroupMemberPrivateCommandSource<OneBotGroupPrivateMessageEvent> {
@@ -203,6 +261,52 @@ interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>,
             suspend operator fun invoke(origin: OneBotGroupPrivateMessageEvent) = Event(origin).apply { init() }
         }
     }
+
+    class Data private constructor(
+        private val botId: ID,
+        private val groupId: ID,
+        private val memberId: ID,
+    ) : OneBotGroupMemberPrivateCommandSource<OneBotMember> {
+        override val origin: OneBotMember
+            get() = executor
+
+        override val bot by lazy {
+            simbotApplication
+                ?.botManagers
+                ?.find<OneBotBotManager>()
+                ?.find(botId)
+                ?: error("OneBotBot $botId not found!")
+        }
+
+        private var _globalSubject: OneBotGroup? = null
+        override val globalSubject: OneBotGroup
+            get() = _globalSubject ?: error("globalSubject not initialized!")
+
+        private var _subject: OneBotMember? = null
+        override val subject: OneBotMember
+            get() = _subject ?: error("subject not initialized!")
+
+        private var _uid: Long? = null
+        override val uid: Long
+            get() = _uid ?: error("uid not initialized!")
+
+        override suspend fun send(message: Message): MessageReceipt {
+            return message.sendByOneBot(bot, globalSubject) { subject.send(it) }
+        }
+
+        override suspend fun reply(message: Message) = send(message)
+
+        suspend fun init() {
+            _globalSubject = bot.groupRelation.group(groupId) ?: error("OneBotGroup $groupId not found!")
+            _subject = globalSubject.member(memberId) ?: error("OneBotMember $memberId not found!")
+            _uid = idToUid()
+        }
+
+        companion object {
+            suspend operator fun invoke(botId: ID, groupId: ID, memberId: ID) =
+                Data(botId, groupId, memberId).apply { init() }
+        }
+    }
 }
 
 interface OneBotFriendCommandSource<out T> : OneBotCommandSource<T>, ContactCommandSource<T> {
@@ -212,6 +316,8 @@ interface OneBotFriendCommandSource<out T> : OneBotCommandSource<T>, ContactComm
 
     override val permissionIds: List<String>
         get() = listOf(primaryPermissionId, id, subjectPermissionId, platform)
+
+    override suspend fun toOffline() = OfflineOneBotFriendCommandSource(bot.id, executor.id)
 
     class Event private constructor(override val origin: OneBotFriendMessageEvent) :
         OneBotFriendCommandSource<OneBotFriendMessageEvent> {
@@ -246,6 +352,45 @@ interface OneBotFriendCommandSource<out T> : OneBotCommandSource<T>, ContactComm
 
         companion object {
             suspend operator fun invoke(origin: OneBotFriendMessageEvent) = Event(origin).apply { init() }
+        }
+    }
+
+    class Data private constructor(
+        private val botId: ID,
+        private val friendId: ID,
+    ) : OneBotFriendCommandSource<OneBotFriend> {
+        override val origin: OneBotFriend
+            get() = executor
+
+        private var _uid: Long? = null
+        override val uid: Long
+            get() = _uid ?: error("uid not initialized!")
+
+        override val bot by lazy {
+            simbotApplication
+                ?.botManagers
+                ?.find<OneBotBotManager>()
+                ?.find(botId)
+                ?: error("OneBotBot $botId not found!")
+        }
+
+        private var _executor: OneBotFriend? = null
+        override val executor: OneBotFriend
+            get() = _executor ?: error("executor not initialized!")
+
+        suspend fun init() {
+            _executor = bot.contactRelation.contact(friendId) ?: error("OneBotFriend $friendId not found!")
+            _uid = idToUid()
+        }
+
+        override suspend fun send(message: Message): MessageReceipt {
+            return message.sendByOneBot(bot, subject) { subject.send(it) }
+        }
+
+        override suspend fun reply(message: Message) = send(message)
+
+        companion object {
+            suspend operator fun invoke(botId: ID, friendId: ID) = Data(botId, friendId).apply { init() }
         }
     }
 }
