@@ -6,6 +6,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName("console")
-data object OfflineConsoleCommandSource : OfflineCommandSource<Nothing?> {
+data object OfflineConsoleCommandSource : OfflineCommandSource {
     override suspend fun toOnline() = ConsoleCommandSource
 }

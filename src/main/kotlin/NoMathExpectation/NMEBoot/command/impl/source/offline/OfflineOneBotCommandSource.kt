@@ -6,8 +6,6 @@ import NoMathExpectation.NMEBoot.command.impl.source.OneBotGroupMemberPrivateCom
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import love.forte.simbot.common.id.ID
-import love.forte.simbot.component.onebot.v11.core.actor.OneBotFriend
-import love.forte.simbot.component.onebot.v11.core.actor.OneBotMember
 
 @Serializable
 @SerialName("onebot.group.member")
@@ -15,7 +13,7 @@ data class OfflineOneBotGroupMemberCommandSource(
     val botId: ID,
     val groupId: ID,
     val memberId: ID,
-) : OfflineCommandSource<OneBotMember> {
+) : OfflineCommandSource {
     override suspend fun toOnline() = OneBotGroupMemberCommandSource.Data(botId, groupId, memberId)
 }
 
@@ -25,7 +23,7 @@ data class OfflineOneBotGroupMemberPrivateCommandSource(
     val botId: ID,
     val groupId: ID,
     val memberId: ID,
-) : OfflineCommandSource<OneBotMember> {
+) : OfflineCommandSource {
     override suspend fun toOnline() = OneBotGroupMemberPrivateCommandSource.Data(botId, groupId, memberId)
 }
 
@@ -34,6 +32,6 @@ data class OfflineOneBotGroupMemberPrivateCommandSource(
 data class OfflineOneBotFriendCommandSource(
     val botId: ID,
     val friendId: ID,
-) : OfflineCommandSource<OneBotFriend> {
+) : OfflineCommandSource {
     override suspend fun toOnline() = OneBotFriendCommandSource.Data(botId, friendId)
 }

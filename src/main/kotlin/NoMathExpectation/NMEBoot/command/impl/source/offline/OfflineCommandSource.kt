@@ -2,12 +2,10 @@ package NoMathExpectation.NMEBoot.command.impl.source.offline
 
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 
-sealed interface OfflineCommandSource<out T> {
-    suspend fun toOnline(): CommandSource<T>
+sealed interface OfflineCommandSource {
+    suspend fun toOnline(): CommandSource<*>
 }
 
-typealias AnyOfflineCommandSource = OfflineCommandSource<*>
-
-suspend fun <T> OfflineCommandSource<T>.toOnlineOrNull() = kotlin.runCatching {
+suspend fun OfflineCommandSource.toOnlineOrNull() = kotlin.runCatching {
     toOnline()
 }.getOrNull()
