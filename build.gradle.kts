@@ -41,7 +41,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // KStore
-    val kStoreVersion = "0.8.0"
+    val kStoreVersion = "0.9.1"
     implementation("io.github.xxfast:kstore:$kStoreVersion")
     implementation("io.github.xxfast:kstore-file:$kStoreVersion")
 

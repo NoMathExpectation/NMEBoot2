@@ -1,21 +1,18 @@
 package NoMathExpectation.NMEBoot.command.impl.command.rd
 
-import NoMathExpectation.NMEBoot.command.impl.PermissionAware
+import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
 import NoMathExpectation.NMEBoot.command.impl.requiresPermission
 import NoMathExpectation.NMEBoot.command.parser.argument.*
 import NoMathExpectation.NMEBoot.command.parser.node.*
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.PeerReviewNotifier
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.RhythmCafeSearchEngine
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.Request
 import io.github.oshai.kotlinlogging.KotlinLogging
-import love.forte.simbot.ability.ReplySupport
-import love.forte.simbot.ability.SendSupport
 
 private val logger = KotlinLogging.logger { }
 
 suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
-        where T : SendSupport,
-              T : ReplySupport,
-              T : PermissionAware =
+        where T : AnyExecuteContext =
     literal("chart", "rdlevel")
         .requiresPermission("command.rd.fanmade.chart")
         .select {
@@ -132,6 +129,20 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                             logger.error(e) { "查询待定谱面数失败：" }
                             it.send("请求失败")
                         }
+                    }
+
+                literal("subscribe", "sub")
+                    .collectString("author")
+                    .executes("订阅pr通知") {
+                        val author = getString("author") ?: error("author is null")
+                        PeerReviewNotifier.setSubscribe(it.target, author)
+                        it.send("已订阅 $author 的pr通知")
+                    }
+
+                literal("unsubscribe", "unsub")
+                    .executes("取消订阅pr通知") {
+                        PeerReviewNotifier.removeSubscribe(it.target)
+                        it.send("已取消订阅")
                     }
             }
 

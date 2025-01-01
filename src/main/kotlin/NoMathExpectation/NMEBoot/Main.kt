@@ -5,6 +5,7 @@ import NoMathExpectation.NMEBoot.bot.stopSimbot
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.initDispatcher
 import NoMathExpectation.NMEBoot.command.impl.source.ConsoleCommandSource
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.PeerReviewNotifier
 import com.varabyte.kotter.foundation.firstSuccess
 import com.varabyte.kotter.foundation.input.input
 import com.varabyte.kotter.foundation.input.onInputEntered
@@ -29,8 +30,8 @@ suspend fun main() {
     Path("data").createDirectories()
 
     initDispatcher()
-
     startSimbot()
+    PeerReviewNotifier.start()
 
     runCatching {
         consoleRoutine()
@@ -38,6 +39,7 @@ suspend fun main() {
         logger.error(it) { "终端异常： " }
     }
 
+    PeerReviewNotifier.stop()
     stopSimbot()
 }
 

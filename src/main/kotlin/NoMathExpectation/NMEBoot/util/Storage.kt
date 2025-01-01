@@ -4,9 +4,10 @@ import io.github.xxfast.kstore.KStore
 import io.github.xxfast.kstore.file.storeOf
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.io.files.Path
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import okio.Path.Companion.toPath
+import java.io.File
 
 inline fun <reified T : Any> mutableStorageOf(path: String, default: T): MutableStorage<T> =
     NotNullKStoreStorage.of(path, default)
@@ -77,8 +78,11 @@ open class NullableKStoreStorage<T : @Serializable Any> @InternalStorageApi cons
 
     @OptIn(InternalStorageApi::class)
     companion object {
-        inline fun <reified T : @Serializable Any> of(path: String, default: T? = null) =
-            NullableKStoreStorage(path, storeOf(path.toPath(), default, json = storageJson))
+        inline fun <reified T : @Serializable Any> of(path: String, default: T? = null): NullableKStoreStorage<T> {
+            File(path).parentFile.mkdirs()
+            return NullableKStoreStorage(path, storeOf(Path(path), default, json = storageJson))
+        }
+
     }
 }
 
@@ -110,8 +114,11 @@ open class NotNullKStoreStorage<T : @Serializable Any> @InternalStorageApi const
 
     @OptIn(InternalStorageApi::class)
     companion object {
-        inline fun <reified T : @Serializable Any> of(path: String, default: T) =
-            NotNullKStoreStorage(path, storeOf(path.toPath(), default, json = storageJson), default)
+        inline fun <reified T : @Serializable Any> of(path: String, default: T): NotNullKStoreStorage<T> {
+            File(path).parentFile.mkdirs()
+            return NotNullKStoreStorage(path, storeOf(Path(path), default, json = storageJson), default)
+        }
+
     }
 }
 
@@ -173,7 +180,9 @@ class MapKStoreStorage<K : @Serializable Any?, V : @Serializable Any?> @Internal
         inline fun <reified K : @Serializable Any?, reified V : @Serializable Any?> of(
             path: String,
             noinline defaultCompute: (K) -> V
-        ) =
-            MapKStoreStorage(path, storeOf(path.toPath(), mutableMapOf(), json = storageJson), defaultCompute)
+        ): MapKStoreStorage<K, V> {
+            File(path).parentFile.mkdirs()
+            return MapKStoreStorage(path, storeOf(Path(path), mutableMapOf(), json = storageJson), defaultCompute)
+        }
     }
 }

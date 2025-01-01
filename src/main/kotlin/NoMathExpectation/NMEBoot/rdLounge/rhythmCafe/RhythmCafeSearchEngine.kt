@@ -2,6 +2,7 @@ package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe
 
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.Request
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.Result
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.DatasetteRequest
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -9,6 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
@@ -164,5 +166,12 @@ object RhythmCafeSearchEngine {
         append("link <i> :获取当前页中第i个谱面的链接\n")
         append("link2 <i> :获取当前页中第i个谱面的镜像链接\n")
         append("download <i> :下载当前页中第i个谱面（还没做）")
+        append("pending :获取待审谱面数量\n")
+        append("subscribe <name> :订阅pr通知\n")
+        append("unsubscribe :取消订阅pr通知\n")
+    }
+
+    suspend fun datasetteQuery(request: DatasetteRequest): HttpResponse {
+        return httpClient.get(request)
     }
 }

@@ -106,7 +106,7 @@ interface CommandSource<out T> : PermissionServiceAware, SendSupport, ReplySuppo
         }
     }
 
-    suspend fun toOffline(): OfflineCommandSource<*>
+    suspend fun toOffline(): OfflineCommandSource
 }
 
 suspend fun CommandSource<*>.toOfflineOrNull() = kotlin.runCatching { toOffline() }.getOrNull()
