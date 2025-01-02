@@ -132,17 +132,25 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                     }
 
                 literal("subscribe", "sub")
-                    .collectString("author")
+                    .optionallyCollectString("author")
                     .executes("订阅pr通知") {
-                        val author = getString("author") ?: error("author is null")
+                        val author = getString("author") ?: run {
+                            val name = PeerReviewNotifier.getSubscribeName(it.target)
+                            if (name != null) {
+                                it.reply("你当前订阅了 $name 的pr通知")
+                            } else {
+                                it.reply("你当前没有订阅pr通知")
+                            }
+                            return@executes
+                        }
                         PeerReviewNotifier.setSubscribe(it.target, author)
-                        it.send("已订阅 $author 的pr通知")
+                        it.reply("已订阅 $author 的pr通知")
                     }
 
                 literal("unsubscribe", "unsub")
                     .executes("取消订阅pr通知") {
                         PeerReviewNotifier.removeSubscribe(it.target)
-                        it.send("已取消订阅")
+                        it.reply("已取消订阅")
                     }
             }
 

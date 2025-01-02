@@ -54,6 +54,9 @@ object PeerReviewNotifier {
         }
     }
 
+    suspend fun getSubscribeName(source: CommandSource<*>) =
+        dataStorage.get().subscribers[source.primaryPermissionId]?.authorName
+
     private val pendingLevels = mutableSetOf<String>()
 
     private val logger = KotlinLogging.logger { }
