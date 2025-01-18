@@ -8,6 +8,7 @@ import NoMathExpectation.NMEBoot.command.impl.command.common.*
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandChart
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandConvert
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandOffset
+import NoMathExpectation.NMEBoot.command.impl.command.rd.linSunForCat
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.parser.CommandDispatcher
 import NoMathExpectation.NMEBoot.command.parser.CommandExecuteException
@@ -51,6 +52,8 @@ suspend fun initDispatcher() {
             }
 
         commandEatShortcut()
+
+        linSunForCat()
     }
 }
 
