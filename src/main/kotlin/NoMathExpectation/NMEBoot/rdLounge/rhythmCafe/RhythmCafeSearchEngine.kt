@@ -28,7 +28,7 @@ object RhythmCafeSearchEngine {
             })
         }
         install(HttpTimeout) {
-            requestTimeoutMillis = 5000
+            requestTimeoutMillis = 15 * 1000
         }
         defaultRequest {
             url("https://orchardb.fly.dev")
