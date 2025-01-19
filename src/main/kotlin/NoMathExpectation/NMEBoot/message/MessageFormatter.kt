@@ -10,9 +10,9 @@ object MessageFormatter {
             is PlainText -> element.text
             is At -> element.originContent
             is MentionMessage -> "@$element"
-            is UrlAwareImage -> "[图片:${element.url}]"
-            is IDAwareImage -> "[图片:${element.id}]"
-            is OfflineImage -> "[离线图片]"
+//            is UrlAwareImage -> "[图片:${element.url}]"
+//            is IDAwareImage -> "[图片:${element.id}]"
+//            is OfflineImage -> "[离线图片]"
             is Image -> "[图片]"
             is Emoji -> "[emoji:${element.id}]"
             is Face -> "[表情:${element.id}]"
