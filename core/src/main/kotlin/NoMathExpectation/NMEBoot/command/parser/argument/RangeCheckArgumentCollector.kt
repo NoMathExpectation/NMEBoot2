@@ -20,8 +20,8 @@ class RangeCheckArgumentCollector<in S, out T : Comparable<T & Any>?>(
     override suspend fun collect(context: CommandContext<S>): T {
         val value = collector.collect(context)
         if (value == null) return value
-        if (min != null && value < min) throw throwOutOfRange(value)
-        if (max != null && value > max) throw throwOutOfRange(value)
+        if (min != null && value < min) throwOutOfRange(value)
+        if (max != null && value > max) throwOutOfRange(value)
         return value
     }
 
