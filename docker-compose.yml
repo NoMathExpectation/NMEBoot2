@@ -18,7 +18,7 @@ services:
   nmeboot:
     depends_on:
       - lagrange
-    build: .
+    build: core
     container_name: NMEBoot2
     volumes:
       - nmeboot:/app

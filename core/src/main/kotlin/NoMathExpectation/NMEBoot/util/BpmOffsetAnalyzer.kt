@@ -8,24 +8,8 @@ import java.io.File
 import java.io.InputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.also
-import kotlin.apply
-import kotlin.collections.chunked
-import kotlin.collections.forEach
-import kotlin.collections.getOrElse
-import kotlin.collections.map
-import kotlin.collections.mapIndexed
-import kotlin.collections.minBy
-import kotlin.collections.plusAssign
-import kotlin.collections.sumOf
-import kotlin.io.readBytes
-import kotlin.io.readText
-import kotlin.io.reader
-import kotlin.io.use
 import kotlin.math.absoluteValue
 import kotlin.math.round
-import kotlin.ranges.until
-import kotlin.text.trim
 
 // Copied from almighty ud2!
 object BpmOffsetAnalyzer {
