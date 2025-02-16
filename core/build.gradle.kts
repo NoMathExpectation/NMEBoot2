@@ -1,8 +1,6 @@
 plugins {
     kotlin("jvm") version "2.1.0"
-
     kotlin("plugin.serialization") version "2.1.0"
-
     application
 }
 
@@ -11,7 +9,6 @@ version = "2.0"
 
 repositories {
     mavenCentral()
-
     maven("https://libraries.minecraft.net")
 }
 
@@ -69,6 +66,7 @@ dependencies {
 tasks.test {
     useJUnitPlatform()
 }
+
 kotlin {
     jvmToolchain(11)
 }
