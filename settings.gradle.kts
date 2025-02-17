@@ -3,4 +3,4 @@ plugins {
 }
 rootProject.name = "NMEBoot2"
 
-include("core", "scripting")
+include("core", "scripting", "scripting-data")

@@ -11,14 +11,19 @@ import kotlin.test.assertIs
 class TestScript {
     @Test
     fun testRunning() {
-        val str = "Hello, world!"
+        val input = "Hello, world!"
+        val quoted = "1919810"
         val ret = 114514
         val script = """
-            println("$str")
+            println(readln())
+            print(quoted)
             $ret
         """.trimIndent()
 
-        val result = script.evalScript()
+        val (result, output) = script.evalScript {
+            this.input = input.byteInputStream()
+            this.quoted = quoted
+        }
         val reports = result.reports
         reports.map { it.severity to it.message }.forEach(::println)
         assertIs<ResultWithDiagnostics.Success<EvaluationResult>>(result, "Script failed to run")
@@ -26,5 +31,7 @@ class TestScript {
         val returnValue = result.value.returnValue
         assertIs<ResultValue.Value>(returnValue)
         assertEquals(ret, returnValue.value)
+
+        assertEquals("$input\n$quoted", output)
     }
 }

@@ -1,6 +1,7 @@
 package NoMathExpectation.NMEBoot.scripting
 
 import kotlinx.coroutines.runBlocking
+import kotlin.reflect.typeOf
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.dependencies.*
@@ -33,16 +34,11 @@ object ScriptCompileConfig : ScriptCompilationConfiguration({
         onAnnotations(DependsOn::class, Repository::class, handler = ::configureMavenDepsOnAnnotations)
     }
     implicitReceivers(FakeConsole::class)
+    providedProperties("quoted" to typeOf<String?>())
 })
 
 @Suppress("JavaIoSerializableObjectMustHaveReadResolve")
-object ScriptEvalConfig : ScriptEvaluationConfiguration({
-    val fakeConsole = FakeConsole()
-    implicitReceivers(fakeConsole)
-    scriptExecutionWrapper<Any?> {
-        it().also { println("output: " + fakeConsole.output) }
-    }
-})
+object ScriptEvalConfig : ScriptEvaluationConfiguration({})
 
 @KotlinScript(
     fileExtension = "script.kts",

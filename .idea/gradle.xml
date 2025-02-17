@@ -24,6 +24,7 @@
             <option value="$PROJECT_DIR$/buildSrc" />
             <option value="$PROJECT_DIR$/core" />
             <option value="$PROJECT_DIR$/scripting" />
+            <option value="$PROJECT_DIR$/scripting-data" />
           </set>
         </option>
       </GradleProjectSettings>

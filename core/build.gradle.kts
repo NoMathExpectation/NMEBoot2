@@ -61,6 +61,9 @@ dependencies {
     val kotterVersion = "1.1.2"
     implementation("com.varabyte.kotter:kotter:$kotterVersion")
     testImplementation("com.varabyte.kotterx:kotter-test-support:$kotterVersion")
+
+    //scripting
+    implementation(project(":scripting-data"))
 }
 
 tasks.test {

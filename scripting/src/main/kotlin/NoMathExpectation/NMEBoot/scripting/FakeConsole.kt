@@ -1,6 +1,16 @@
 package NoMathExpectation.NMEBoot.scripting
 
-class FakeConsole {
+import java.io.InputStream
+
+class FakeConsole(val input: InputStream = InputStream.nullInputStream()) : AutoCloseable {
+    private val inputReader = input.bufferedReader()
+
+    fun readln(): String = readlnOrNull() ?: error("EOF has already been reached")
+
+    fun readlnOrNull(): String? = readLine()
+
+    fun readLine(): String? = inputReader.readLine()
+
     private val outputBuilder = StringBuilder()
 
     fun print(obj: Any?) {
@@ -11,11 +21,9 @@ class FakeConsole {
         outputBuilder.appendLine(obj)
     }
 
-    fun readln(): String = error("EOF has already been reached")
-
-    fun readLine(): String? = null
-
-    fun readlnOrNull(): String? = null
-
     val output get() = outputBuilder.toString()
+
+    override fun close() {
+        inputReader.close()
+    }
 }
