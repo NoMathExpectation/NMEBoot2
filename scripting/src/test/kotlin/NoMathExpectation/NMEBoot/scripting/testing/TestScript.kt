@@ -1,6 +1,6 @@
 package NoMathExpectation.NMEBoot.scripting.testing
 
-import NoMathExpectation.NMEBoot.scripting.evalScript
+import NoMathExpectation.NMEBoot.scripting.toSimpleEval
 import kotlin.script.experimental.api.EvaluationResult
 import kotlin.script.experimental.api.ResultValue
 import kotlin.script.experimental.api.ResultWithDiagnostics
@@ -20,11 +20,13 @@ class TestScript {
             $ret
         """.trimIndent()
 
-        val (result, output) = script.evalScript {
+        val simpleEval = script.toSimpleEval {
             this.input = input.byteInputStream()
             this.quoted = quoted
         }
-        val reports = result.reports
+        simpleEval()
+        val result = simpleEval.result
+        val reports = simpleEval.result!!.reports
         reports.map { it.severity to it.message }.forEach(::println)
         assertIs<ResultWithDiagnostics.Success<EvaluationResult>>(result, "Script failed to run")
 
@@ -32,6 +34,6 @@ class TestScript {
         assertIs<ResultValue.Value>(returnValue)
         assertEquals(ret, returnValue.value)
 
-        assertEquals("$input\n$quoted", output)
+        assertEquals("$input\n$quoted", simpleEval.output)
     }
 }

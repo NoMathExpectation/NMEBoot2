@@ -9,59 +9,65 @@ import kotlin.script.experimental.jvmhost.BasicJvmScriptingHost
 import kotlin.script.experimental.jvmhost.createJvmCompilationConfigurationFromTemplate
 import kotlin.script.experimental.jvmhost.createJvmEvaluationConfigurationFromTemplate
 
-val logger = KotlinLogging.logger { }
+private val logger = KotlinLogging.logger { }
 
-data class EvalConfig(
+class SimpleEval(
     val sourceCode: SourceCode,
-    var input: InputStream,
-    var quoted: String? = null,
-) {
+    val input: InputStream,
+    val quoted: String? = null,
+) : AutoCloseable {
     class Builder(val sourceCode: SourceCode) {
         var input: InputStream? = null
         var quoted: String? = null
 
-        fun build() = EvalConfig(
+        fun build() = SimpleEval(
             sourceCode,
             input ?: InputStream.nullInputStream(),
             quoted,
         )
     }
+
+    val fakeConsole = FakeConsole(input)
+    var result: ResultWithDiagnostics<EvaluationResult>? = null
+        private set
+    val output get() = fakeConsole.output
+
+    var invoked = false
+        private set
+
+    operator fun invoke() {
+        if (invoked) {
+            error("This instance is already invoked.")
+        }
+        invoked = true
+
+        use {
+            val compilationConfiguration = createJvmCompilationConfigurationFromTemplate<ScriptDefinition>()
+            val evaluationConfiguration = createJvmEvaluationConfigurationFromTemplate<ScriptDefinition>().with {
+                implicitReceivers(fakeConsole)
+                providedProperties("quoted" to quoted)
+                scriptExecutionWrapper<Any?> {
+                    it().also { logger.info { "Eval output: " + fakeConsole.output } }
+                }
+            }
+
+            result = BasicJvmScriptingHost().eval(sourceCode, compilationConfiguration, evaluationConfiguration)
+        }
+    }
+
+    override fun close() {
+        fakeConsole.close()
+    }
 }
 
-fun EvalConfig(sourceCode: SourceCode, block: EvalConfig.Builder.() -> Unit = {}): EvalConfig {
-    val builder = EvalConfig.Builder(sourceCode)
+fun SimpleEval(sourceCode: SourceCode, block: SimpleEval.Builder.() -> Unit = {}): SimpleEval {
+    val builder = SimpleEval.Builder(sourceCode)
     builder.block()
     return builder.build()
 }
 
-data class EvalResult<out R>(
-    val resultWithDiagnostics: ResultWithDiagnostics<R>,
-    val output: String,
-)
+fun SourceCode.toSimpleEval(block: SimpleEval.Builder.() -> Unit = {}) = SimpleEval(this, block)
 
-fun SourceCode.eval(block: EvalConfig.Builder.() -> Unit = {}): EvalResult<EvaluationResult> {
-    val config = EvalConfig(this, block)
+fun File.toSimpleEval(block: SimpleEval.Builder.() -> Unit = {}) = toScriptSource().toSimpleEval(block)
 
-    val fakeConsole = FakeConsole(config.input)
-
-    val compilationConfiguration = createJvmCompilationConfigurationFromTemplate<ScriptDefinition>()
-    val evaluationConfiguration = createJvmEvaluationConfigurationFromTemplate<ScriptDefinition>().with {
-        implicitReceivers(fakeConsole)
-        providedProperties("quoted" to config.quoted)
-        scriptExecutionWrapper<Any?> {
-            it().also { logger.info { "Eval output: " + fakeConsole.output } }
-        }
-    }
-
-    val resultWithDiagnostics = fakeConsole.use {
-        BasicJvmScriptingHost().eval(config.sourceCode, compilationConfiguration, evaluationConfiguration)
-    }
-    return EvalResult(
-        resultWithDiagnostics,
-        fakeConsole.output,
-    )
-}
-
-fun File.evalScript(block: EvalConfig.Builder.() -> Unit = {}) = toScriptSource().eval(block)
-
-fun String.evalScript(block: EvalConfig.Builder.() -> Unit = {}) = toScriptSource().eval(block)
+fun String.toSimpleEval(block: SimpleEval.Builder.() -> Unit = {}) = toScriptSource().toSimpleEval(block)
