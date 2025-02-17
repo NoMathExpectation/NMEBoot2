@@ -2,7 +2,7 @@ package NoMathExpectation.NMEBoot.scripting
 
 import java.io.InputStream
 
-class FakeConsole(val input: InputStream = InputStream.nullInputStream()) : AutoCloseable {
+class ProxyConsole(val input: InputStream = InputStream.nullInputStream()) : AutoCloseable {
     private val inputReader = input.bufferedReader()
 
     fun readln(): String = readlnOrNull() ?: error("EOF has already been reached")

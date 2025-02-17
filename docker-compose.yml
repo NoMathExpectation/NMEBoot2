@@ -15,9 +15,21 @@ services:
       - nmenet
     restart: always
     tty: true
+  scripting:
+    build: scripting
+    container_name: NMEBoot2.Scripting
+    volumes:
+      - nmeboot-scripting:/app
+      - swap:/swap
+    networks:
+      - nmenet
+    restart: always
+    tty: true
+    stdin_open: false
   nmeboot:
     depends_on:
       - lagrange
+      - scripting
     build: core
     container_name: NMEBoot2
     volumes:

@@ -38,6 +38,7 @@ suspend fun initDispatcher() {
                 commandHelp()
                 commandCooldown()
                 commandEat()
+                commandEval()
 
                 //rd
                 commandChart()

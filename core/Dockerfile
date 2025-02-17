@@ -3,4 +3,4 @@ RUN apk add tzdata ffmpeg
 COPY build/install/core /app/
 WORKDIR /app
 VOLUME ["/app", "/swap"]
-ENTRYPOINT ["/app/bin/NMEBoot2"]
+ENTRYPOINT ["/app/bin/core"]

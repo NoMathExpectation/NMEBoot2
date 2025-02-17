@@ -18,6 +18,8 @@ private val logger = KotlinLogging.logger { }
 
 private val threadPool = Executors.newCachedThreadPool()
 
+private val stackTraceEndRegex = "\\s+at\\s+Script\\.<init>\\(.*?\\.kts:\\d+\\)".toRegex()
+
 fun Routing.evalService() = post<EvalRequest>("/eval") { request ->
     logger.info {
         """
@@ -83,7 +85,15 @@ fun Routing.evalService() = post<EvalRequest>("/eval") { request ->
         var exception: String? = null
 
         when (val returnValue = resultWithDiagnostics.value.returnValue) {
-            is ResultValue.Error -> exception = returnValue.error.stackTraceToString()
+            is ResultValue.Error -> {
+                logger.warn(returnValue.error) { "Error inside the script." }
+                exception = returnValue.error
+                    .stackTraceToString()
+                    .lines()
+                    .dropLastWhile { !stackTraceEndRegex.matches(it) }
+                    .joinToString("\n")
+            }
+
             is ResultValue.Unit -> {}
             is ResultValue.Value -> returns = returnValue.value.toString()
             ResultValue.NotEvaluated -> exception = "Script not evaluated."

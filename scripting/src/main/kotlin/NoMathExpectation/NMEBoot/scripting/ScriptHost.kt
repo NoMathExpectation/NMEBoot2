@@ -27,10 +27,10 @@ class SimpleEval(
         )
     }
 
-    val fakeConsole = FakeConsole(input)
+    val proxyConsole = ProxyConsole(input)
     var result: ResultWithDiagnostics<EvaluationResult>? = null
         private set
-    val output get() = fakeConsole.output
+    val output get() = proxyConsole.output
 
     var invoked = false
         private set
@@ -44,10 +44,10 @@ class SimpleEval(
         use {
             val compilationConfiguration = createJvmCompilationConfigurationFromTemplate<ScriptDefinition>()
             val evaluationConfiguration = createJvmEvaluationConfigurationFromTemplate<ScriptDefinition>().with {
-                implicitReceivers(fakeConsole)
+                implicitReceivers(proxyConsole)
                 providedProperties("quoted" to quoted)
                 scriptExecutionWrapper<Any?> {
-                    it().also { logger.info { "Eval output: " + fakeConsole.output } }
+                    it().also { logger.info { "Eval output: " + proxyConsole.output } }
                 }
             }
 
@@ -56,7 +56,7 @@ class SimpleEval(
     }
 
     override fun close() {
-        fakeConsole.close()
+        proxyConsole.close()
     }
 }
 

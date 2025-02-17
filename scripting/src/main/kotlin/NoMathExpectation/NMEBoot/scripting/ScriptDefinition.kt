@@ -33,7 +33,7 @@ object ScriptCompileConfig : ScriptCompilationConfiguration({
     refineConfiguration {
         onAnnotations(DependsOn::class, Repository::class, handler = ::configureMavenDepsOnAnnotations)
     }
-    implicitReceivers(FakeConsole::class)
+    implicitReceivers(ProxyConsole::class)
     providedProperties("quoted" to typeOf<String?>())
 })
 
@@ -41,7 +41,6 @@ object ScriptCompileConfig : ScriptCompilationConfiguration({
 object ScriptEvalConfig : ScriptEvaluationConfiguration({})
 
 @KotlinScript(
-    fileExtension = "script.kts",
     compilationConfiguration = ScriptCompileConfig::class,
     evaluationConfiguration = ScriptEvalConfig::class
 )
