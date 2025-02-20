@@ -47,11 +47,13 @@ private var stop = false
 private var stopHandle: (() -> Boolean)? = null
 private val stopMutex = Mutex()
 
+private fun stopProgram0() {
+    stop = true
+    stopHandle?.invoke()
+}
+
 suspend fun stopProgram() {
-    stopMutex.withLock {
-        stop = true
-        stopHandle?.invoke()
-    }
+    stopMutex.withLock(action = ::stopProgram0)
 }
 
 private const val inputColor = 0xb2b6b6
