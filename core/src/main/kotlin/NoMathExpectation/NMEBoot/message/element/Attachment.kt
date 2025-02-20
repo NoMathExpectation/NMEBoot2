@@ -46,16 +46,14 @@ suspend fun Attachment.saveAsTempFile(): File = withContext(Dispatchers.IO) {
     return@withContext file
 }
 
-suspend fun Attachment.deleteAfterDelay(delay: Long) = coroutineScope {
-    launch {
-        delay(delay)
-        withContext(NonCancellable) {
-            delete(
-                StandardDeleteOption.IGNORE_ON_NO_SUCH_TARGET,
-                StandardDeleteOption.IGNORE_ON_FAILURE,
-                StandardDeleteOption.IGNORE_ON_UNSUPPORTED,
-            )
-        }
+fun Attachment.deleteAfterDelay(scope: CoroutineScope, delay: Long) = scope.launch {
+    runCatching { delay(delay) }
+    withContext(NonCancellable) {
+        delete(
+            StandardDeleteOption.IGNORE_ON_NO_SUCH_TARGET,
+            StandardDeleteOption.IGNORE_ON_FAILURE,
+            StandardDeleteOption.IGNORE_ON_UNSUPPORTED,
+        )
     }
 }
 

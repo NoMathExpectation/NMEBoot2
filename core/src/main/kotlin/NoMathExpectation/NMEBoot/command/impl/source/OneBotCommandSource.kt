@@ -74,7 +74,7 @@ private suspend inline fun Message.sendByOneBot(
 
                 OneBotFileCache[subject.id.toLong(), bot.id.toLong(), it.name]?.let {
                     val attachment = OneBotIncomingAttachment(bot, subject.id.toLongID(), it)
-                    attachment.deleteAfterDelay(1000 * 60 * 10)
+                    attachment.deleteAfterDelay(bot, 1000 * 60 * 10)
                     receipts += attachment.asMessageReceipt()
                 } ?: logger.warn { "Unable to find file uploaded by bot in cache with name ${it.name}." }
             }
