@@ -1,8 +1,14 @@
 package NoMathExpectation.NMEBoot.message
 
+import NoMathExpectation.NMEBoot.util.asMessages
+import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotMessageSegmentElement
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotReply
 import love.forte.simbot.message.*
+
+typealias SerializedMessage = String
+
+private val logger = KotlinLogging.logger { }
 
 object MessageFormatter {
     private fun messageElementToReadableString(element: Message.Element): String {
@@ -28,9 +34,33 @@ object MessageFormatter {
             else -> message.toString()
         }
     }
+
+    fun messageElementToSerialized(element: Message.Element): SerializedMessage {
+        return when (element) {
+            is PlainText -> element.text
+            is At -> "[at:${element.type}:${element.target}]"
+            is AtAll -> "[atAll]"
+            is IDAwareImage -> "[image:id:${element.id}]"
+            is UrlAwareMessage -> "[image:url:${element.url}]"
+            is Emoji -> "[emoji:${element.id}]"
+            is Face -> "[face:${element.id}]"
+            is MessageReference -> "ref:${element.id}"
+
+            else -> {
+                logger.warn { "Unable to serialize the following message element: $element" }
+                ""
+            }
+        }
+    }
+
+    fun messageToSerialized(message: Message): SerializedMessage {
+        return message.asMessages().joinToString("") { messageElementToSerialized(it) }
+    }
 }
 
 fun Message.toReadableString() = MessageFormatter.messageToReadableString(this)
+
+fun Message.toSerialized() = MessageFormatter.messageToSerialized(this)
 
 fun Messages.removeReferencePrefix() = dropWhile {
     it is MessageReference ||
