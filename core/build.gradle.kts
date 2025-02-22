@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm") version "2.1.0"
     kotlin("plugin.serialization") version "2.1.0"
+    id("com.google.devtools.ksp") version "2.1.0-1.0.29"
     application
 }
 
@@ -64,6 +65,15 @@ dependencies {
 
     //scripting
     implementation(project(":scripting-data"))
+
+    // koin
+    val koinVersion = "4.0.2"
+    implementation(project.dependencies.platform("io.insert-koin:koin-bom:$koinVersion"))
+    implementation("io.insert-koin:koin-core")
+    val koinAnnotationVersion = "1.4.0"
+    implementation(project.dependencies.platform("io.insert-koin:koin-annotations-bom:$koinAnnotationVersion"))
+    api("io.insert-koin:koin-annotations")
+    ksp("io.insert-koin:koin-ksp-compiler")
 }
 
 tasks.test {
