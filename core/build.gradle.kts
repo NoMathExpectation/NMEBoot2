@@ -72,8 +72,8 @@ dependencies {
     implementation("io.insert-koin:koin-core")
     val koinAnnotationVersion = "1.4.0"
     implementation(project.dependencies.platform("io.insert-koin:koin-annotations-bom:$koinAnnotationVersion"))
-    api("io.insert-koin:koin-annotations")
-    ksp("io.insert-koin:koin-ksp-compiler")
+    implementation("io.insert-koin:koin-annotations")
+    ksp("io.insert-koin:koin-ksp-compiler:$koinAnnotationVersion")
 }
 
 tasks.test {
