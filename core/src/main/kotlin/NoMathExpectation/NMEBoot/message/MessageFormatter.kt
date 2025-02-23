@@ -1,12 +1,11 @@
 package NoMathExpectation.NMEBoot.message
 
+import NoMathExpectation.NMEBoot.message.format.SerializedMessage
 import NoMathExpectation.NMEBoot.util.asMessages
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotMessageSegmentElement
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotReply
 import love.forte.simbot.message.*
-
-typealias SerializedMessage = String
 
 private val logger = KotlinLogging.logger { }
 
