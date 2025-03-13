@@ -43,12 +43,12 @@ internal object OneBotFolding {
         msg: Message,
         subject: OneBotGroup
     ): Pair<Message?, MessageReceipt?> {
-        var messages = msg.asMessages()
+        val messages = msg.asMessages()
         if (messages.any { it is FoldIgnore || it.containsOneBotForward() }) {
             return postProcess(msg) to null
         }
 
-        val content = messages.toReadableString()
+        val content = messages.toReadableString(subject)
         val config = configStore.get()
         if (content.length < config.minLength && content.count { it == '\n' } + 1 < config.minLines) {
             return postProcess(messages) to null

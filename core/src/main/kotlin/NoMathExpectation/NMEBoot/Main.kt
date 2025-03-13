@@ -5,7 +5,9 @@ import NoMathExpectation.NMEBoot.bot.stopSimbot
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.initDispatcher
 import NoMathExpectation.NMEBoot.command.impl.source.ConsoleCommandSource
+import NoMathExpectation.NMEBoot.message.ResourceCache
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.PeerReviewNotifier
+import NoMathExpectation.NMEBoot.util.startKoinApplication
 import com.varabyte.kotter.foundation.firstSuccess
 import com.varabyte.kotter.foundation.input.input
 import com.varabyte.kotter.foundation.input.onInputEntered
@@ -28,6 +30,10 @@ suspend fun main() {
 
     Path("config").createDirectories()
     Path("data").createDirectories()
+
+    startKoinApplication()
+
+    ResourceCache.launchRoutine()
 
     initDispatcher()
     startSimbot()

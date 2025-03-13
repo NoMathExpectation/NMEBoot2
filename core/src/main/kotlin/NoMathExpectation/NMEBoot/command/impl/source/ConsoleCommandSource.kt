@@ -21,7 +21,8 @@ object ConsoleCommandSource : CommandSource<Nothing?> {
     private val logger = KotlinLogging.logger("Console")
 
     override suspend fun send(message: Message): MessageReceipt {
-        logger.info { message.toReadableString() }
+        val text = message.toReadableString(globalSubject)
+        logger.info { text }
         return UnsupportedDeleteOpMessageReceipt
     }
 

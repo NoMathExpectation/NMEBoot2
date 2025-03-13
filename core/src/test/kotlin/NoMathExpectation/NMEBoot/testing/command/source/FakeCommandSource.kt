@@ -28,14 +28,16 @@ class FakeCommandSource : CommandSource<Nothing?> {
     val receivedSendMessage: MutableList<Message> = mutableListOf()
     override suspend fun send(message: Message): MessageReceipt {
         receivedSendMessage.add(message)
-        logger.info { "sendRaw: ${message.toReadableString()}" }
+        val text = message.toReadableString(globalSubject)
+        logger.info { "sendRaw: $text" }
         return UnsupportedDeleteOpMessageReceipt
     }
 
     val receivedReplyMessage: MutableList<Message> = mutableListOf()
     override suspend fun reply(message: Message): MessageReceipt {
         receivedReplyMessage.add(message)
-        logger.info { "replyRaw: ${message.toReadableString()}" }
+        val text = message.toReadableString(globalSubject)
+        logger.info { "replyRaw: $text" }
         return UnsupportedDeleteOpMessageReceipt
     }
 }

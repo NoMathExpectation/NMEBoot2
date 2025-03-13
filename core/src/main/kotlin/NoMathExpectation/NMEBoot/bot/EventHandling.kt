@@ -4,7 +4,8 @@ import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
 import NoMathExpectation.NMEBoot.message.removeReferencePrefix
-import NoMathExpectation.NMEBoot.message.toReadableString
+import NoMathExpectation.NMEBoot.message.standardize
+import NoMathExpectation.NMEBoot.message.toSerialized
 import NoMathExpectation.NMEBoot.util.nickOrName
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.component.onebot.v11.core.event.notice.OneBotGroupUploadEvent
@@ -29,7 +30,8 @@ internal suspend fun logEvent(event: Event) {
         return
     }
 
-    val msgString = event.messageContent.messages.toReadableString()
+    val actor = (event as? ActorEvent)?.content()
+    val msgString = event.messageContent.messages.standardize().toSerialized(actor)
 
     when (event) {
         is ChatChannelMessageEvent -> {
@@ -83,7 +85,8 @@ internal suspend fun tryHandleCommand(event: Event) {
     }
 
     val source = CommandSource.get(event) ?: return
-    val text = event.messageContent.messages.removeReferencePrefix().toReadableString()
+    val actor = (event as? ActorEvent)?.content()
+    val text = event.messageContent.messages.standardize().removeReferencePrefix().toSerialized(actor)
 
     source.executeCommand(text) {
         originalMessage = event.messageContent
