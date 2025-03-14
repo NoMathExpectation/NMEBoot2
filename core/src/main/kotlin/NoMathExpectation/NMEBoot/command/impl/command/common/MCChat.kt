@@ -135,24 +135,35 @@ object MCChat : CoroutineScope {
         private suspend fun receiveRoutine(readChannel: ByteReadChannel) {
             while (job?.isActive == true && !readChannel.isClosedForRead) {
                 kotlin.runCatching {
-                    when (val event = readChannel.readExchangeEvent()) {
-                        is MessageEvent -> source.toOnlineOrNull()
-                            ?.sendAndLogEcho("[${connection.name}] ${event.from}: ${event.content}")
-
-                        is PlayerJoinEvent -> source.toOnlineOrNull()
-                            ?.sendAndLogEcho("[${connection.name}] ${event.name} 加入了游戏。")
-
-                        is PlayerLeaveEvent -> source.toOnlineOrNull()
-                            ?.sendAndLogEcho("[${connection.name}] ${event.name} 离开了游戏。")
-
-                        else -> logger.warn { "Received unknown event: $event" }
-                    }
+                    val event = readChannel.readExchangeEvent()
+                    handleEvent(event)
                 }.onFailure {
                     if (job?.isActive != true || readChannel.isClosedForRead) {
                         return@onFailure
                     }
                     logger.error(it) { "Failed to receive message from ${connection.name}." }
                 }
+            }
+        }
+
+        private suspend fun handleEvent(event: ExchangeEvent) {
+            when (event) {
+                is MessageEvent -> source.toOnlineOrNull()
+                    ?.sendAndLogEcho("[${connection.name}] ${event.from}: ${event.content}")
+
+                is PlayerJoinEvent -> source.toOnlineOrNull()
+                    ?.sendAndLogEcho("[${connection.name}] ${event.name} 加入了游戏。")
+
+                is PlayerLeaveEvent -> source.toOnlineOrNull()
+                    ?.sendAndLogEcho("[${connection.name}] ${event.name} 离开了游戏。")
+
+                is PlayerDieEvent -> source.toOnlineOrNull()
+                    ?.sendAndLogEcho("[${connection.name}] ${event.text}")
+
+                is PlayerAdvancementEvent -> source.toOnlineOrNull()
+                    ?.sendAndLogEcho("[${connection.name}] ${event.name} 获得了进度 [${event.advancement}]")
+
+                else -> logger.warn { "Received unknown event: $event" }
             }
         }
 
