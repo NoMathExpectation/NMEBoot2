@@ -213,6 +213,13 @@ object MCChat : CoroutineScope {
         connection.cancel()
     }
 
+    suspend fun listConnections(subjectId: String): List<Pair<String, Boolean>> =
+        configStorage.get()
+            .connections[subjectId]
+            ?.connections
+            ?.map { (name, connection) -> name to connection.enabled }
+            ?: emptyList()
+
     suspend fun putConnection(subjectId: String, source: OfflineCommandSource, connection: Connection) {
         val oldConnection = configStorage.referenceUpdate {
             val subjectConnections = it.connections.getOrPut(subjectId) { SubjectConnections(source) }
@@ -379,5 +386,20 @@ fun LiteralSelectionCommandNode<AnyExecuteContext>.commandMCChat() =
                     } else {
                         it.reply("未找到服务器 $name")
                     }
+                }
+
+            literal("list")
+                .executes("列出服务器") {
+                    val subjectId = it.target.subjectPermissionId ?: error("无法获取SubjectId")
+                    it.reply(
+                        MCChat.listConnections(subjectId)
+                            .joinToString("\n") { (name, enabled) ->
+                                if (enabled) {
+                                    name
+                                } else {
+                                    "$name (已禁用)"
+                                }
+                            }.ifBlank { "没有已连接的服务器" }
+                    )
                 }
         }

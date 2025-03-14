@@ -102,7 +102,7 @@ internal suspend fun tryNotifyMCServers(event: Event) {
     }
 
     val source = CommandSource.get(event) ?: return
-    val content = event.messageContent.messages.toReadableString(source.globalSubject)
+    val content = event.messageContent.messages.standardize().toReadableString(source.globalSubject)
     if (event.authorId == event.bot.id && MCChat.checkEchoAndRemove(content)) {
         return
     }
