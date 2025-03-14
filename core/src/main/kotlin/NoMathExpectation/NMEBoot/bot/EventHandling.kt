@@ -1,10 +1,12 @@
 package NoMathExpectation.NMEBoot.bot
 
+import NoMathExpectation.NMEBoot.command.impl.command.common.MCChat
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
 import NoMathExpectation.NMEBoot.message.removeReferencePrefix
 import NoMathExpectation.NMEBoot.message.standardize
+import NoMathExpectation.NMEBoot.message.toReadableString
 import NoMathExpectation.NMEBoot.message.toSerialized
 import NoMathExpectation.NMEBoot.util.nickOrName
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -21,6 +23,7 @@ internal suspend fun handleEvent(event: Event) {
         OneBotFileCache.record(event)
     }
 
+    tryNotifyMCServers(event)
     tryHandleCommand(event)
 }
 
@@ -91,4 +94,21 @@ internal suspend fun tryHandleCommand(event: Event) {
     source.executeCommand(text) {
         originalMessage = event.messageContent
     }
+}
+
+internal suspend fun tryNotifyMCServers(event: Event) {
+    if (event !is ChatRoomMessageEvent) {
+        return
+    }
+
+    val source = CommandSource.get(event) ?: return
+    val content = event.messageContent.messages.toReadableString(source.globalSubject)
+    if (event.authorId == event.bot.id && MCChat.checkEchoAndRemove(content)) {
+        return
+    }
+
+    val subjectId: String = source.subjectPermissionId ?: return
+    val name = source.executor?.nickOrName ?: "unknown"
+
+    MCChat.sendMessage(subjectId, name, content)
 }

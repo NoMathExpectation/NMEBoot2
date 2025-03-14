@@ -12,7 +12,7 @@ class MessageReferenceFormatter : MessageElementFormatter<MessageReference> {
     override val formatClass = MessageReference::class
 
     override suspend fun toReadableString(element: MessageReference, context: Actor?): String {
-        return "ref:${element.id}"
+        return "[引用]"
     }
 
     override suspend fun serialize(element: MessageReference, context: Actor?): List<String> {

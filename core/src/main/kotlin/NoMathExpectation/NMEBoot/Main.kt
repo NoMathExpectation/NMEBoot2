@@ -2,6 +2,7 @@ package NoMathExpectation.NMEBoot
 
 import NoMathExpectation.NMEBoot.bot.startSimbot
 import NoMathExpectation.NMEBoot.bot.stopSimbot
+import NoMathExpectation.NMEBoot.command.impl.command.common.MCChat
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.initDispatcher
 import NoMathExpectation.NMEBoot.command.impl.source.ConsoleCommandSource
@@ -18,6 +19,7 @@ import com.varabyte.kotter.foundation.text.text
 import com.varabyte.kotter.terminal.system.SystemTerminal
 import com.varabyte.kotter.terminal.virtual.VirtualTerminal
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.io.path.Path
@@ -35,6 +37,8 @@ suspend fun main() {
 
     ResourceCache.launchRoutine()
 
+    MCChat.initConnections()
+
     initDispatcher()
     startSimbot()
     PeerReviewNotifier.start()
@@ -47,6 +51,7 @@ suspend fun main() {
 
     PeerReviewNotifier.stop()
     stopSimbot()
+    MCChat.cancel()
 }
 
 private var stop = false

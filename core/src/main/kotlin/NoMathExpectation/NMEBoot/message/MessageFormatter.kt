@@ -28,6 +28,10 @@ object MessageFormatter {
             .replace("\\:", ":")
 
     private suspend fun messageElementToReadableString(element: Message.Element, context: Actor? = null): String {
+        if (element is PlainText) {
+            return element.text
+        }
+
         return kotlin.runCatching {
             elementFormatters.first { it.formatClass.isInstance(element) }
                 .toReadableString(element, context)

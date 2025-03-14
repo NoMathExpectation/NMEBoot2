@@ -55,3 +55,7 @@ inline fun <S> ExecuteContext(from: CommandSource<S>, buildBlock: ExecuteContext
 fun InsertableCommandNode<AnyExecuteContext>.requiresGlobalSubjectId() = on("只能在群内使用此指令") {
     it.target.globalSubjectPermissionId != null
 }.reportOnFail()
+
+fun InsertableCommandNode<AnyExecuteContext>.requiresSubjectId() = on("只能在群内使用此指令") {
+    it.target.subjectPermissionId != null
+}.reportOnFail()
