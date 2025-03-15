@@ -102,6 +102,11 @@ object MCChat : CoroutineScope {
                         receiveRoutine(readChannel)
                     }
                 }.onFailure {
+                    withContext(NonCancellable) {
+                        mutex.withLock {
+                            sendChannel = null
+                        }
+                    }
                     if (job?.isActive != true) {
                         return@onFailure
                     }
@@ -111,10 +116,11 @@ object MCChat : CoroutineScope {
                         failureNotified = true
                     }
                     delay(retryDelay.seconds)
-                }
-                withContext(NonCancellable) {
-                    mutex.withLock {
-                        sendChannel = null
+                }.onSuccess {
+                    withContext(NonCancellable) {
+                        mutex.withLock {
+                            sendChannel = null
+                        }
                     }
                 }
             }
