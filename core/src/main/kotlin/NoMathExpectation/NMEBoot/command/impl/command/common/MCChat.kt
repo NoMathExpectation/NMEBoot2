@@ -94,7 +94,10 @@ object MCChat : CoroutineScope {
                             }
                         }
 
-                        failureNotified = false
+                        if (failureNotified) {
+                            source.toOnlineOrNull()?.send("已重新连接到${connection.name}。")
+                            failureNotified = false
+                        }
                         mutex.withLock {
                             sendChannel = writeChannel
                         }
