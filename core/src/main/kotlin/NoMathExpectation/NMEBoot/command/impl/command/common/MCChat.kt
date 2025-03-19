@@ -6,10 +6,7 @@ import NoMathExpectation.NMEBoot.command.impl.source.offline.OfflineCommandSourc
 import NoMathExpectation.NMEBoot.command.impl.source.offline.toOnlineOrNull
 import NoMathExpectation.NMEBoot.command.impl.source.requiresBotModerator
 import NoMathExpectation.NMEBoot.command.parser.argument.*
-import NoMathExpectation.NMEBoot.command.parser.node.LiteralSelectionCommandNode
-import NoMathExpectation.NMEBoot.command.parser.node.executes
-import NoMathExpectation.NMEBoot.command.parser.node.literal
-import NoMathExpectation.NMEBoot.command.parser.node.literals
+import NoMathExpectation.NMEBoot.command.parser.node.*
 import NoMathExpectation.NMEBoot.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.network.selector.*
@@ -49,6 +46,7 @@ object MCChat : CoroutineScope {
     private data class SubjectConnections(
         val source: OfflineCommandSource,
         val connections: MutableMap<String, Connection> = mutableMapOf(),
+        val ignoredSenders: MutableSet<String> = mutableSetOf(),
     )
 
     @Serializable
@@ -330,6 +328,18 @@ object MCChat : CoroutineScope {
     suspend fun checkEchoAndRemove(msg: String): Boolean = echoMessagesMutex.withLock {
         echoMessages.remove(msg)
     }
+
+    suspend fun addIgnoredSender(subjectId: String, id: String, source: OfflineCommandSource) =
+        configStorage.referenceUpdate {
+            it.connections.getOrPut(subjectId) { SubjectConnections(source) }.ignoredSenders.add(id)
+        }
+
+    suspend fun removeIgnoredSender(subjectId: String, id: String) = configStorage.referenceUpdate {
+        it.connections[subjectId]?.ignoredSenders?.remove(id) ?: false
+    }
+
+    suspend fun isIgnoredSender(subjectId: String, id: String) =
+        configStorage.get().connections[subjectId]?.ignoredSenders?.contains(id) ?: false
 }
 
 fun LiteralSelectionCommandNode<AnyExecuteContext>.commandMCChat() =
@@ -410,5 +420,30 @@ fun LiteralSelectionCommandNode<AnyExecuteContext>.commandMCChat() =
                                 }
                             }.ifBlank { "没有已连接的服务器" }
                     )
+                }
+
+            literal("broadcastme")
+                .select {
+                    collectBoolean("toggle").executes {
+                        val subjectId = it.target.subjectPermissionId ?: error("无法获取SubjectId")
+                        val toggle = getBoolean("toggle") ?: error("Toggle is required.")
+                        val source = it.target.toOffline()
+                        if (toggle) {
+                            MCChat.removeIgnoredSender(subjectId, it.target.id)
+                            it.reply("你的消息将会被广播")
+                        } else {
+                            MCChat.addIgnoredSender(subjectId, it.target.id, source)
+                            it.reply("你的消息将不会被广播")
+                        }
+                    }
+
+                    executes {
+                        val subjectId = it.target.subjectPermissionId ?: error("无法获取SubjectId")
+                        if (MCChat.isIgnoredSender(subjectId, it.target.id)) {
+                            it.reply("你的消息当前不会被广播")
+                        } else {
+                            it.reply("你的消息当前会被广播")
+                        }
+                    }
                 }
         }

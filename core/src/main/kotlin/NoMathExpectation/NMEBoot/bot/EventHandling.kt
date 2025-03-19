@@ -102,13 +102,35 @@ internal suspend fun tryNotifyMCServers(event: Event) {
     }
 
     val source = CommandSource.get(event) ?: return
-    val content = event.messageContent.messages.standardize().toReadableString(source.globalSubject)
+    var content = event.messageContent
+        .messages
+        .removeReferencePrefix()
+        .standardize()
+        .toReadableString(source.globalSubject)
+
+    val subjectId = source.subjectPermissionId ?: return
+    if (MCChat.isIgnoredSender(
+            subjectId,
+            source.id
+        ) && !(content.startsWith("@broadcast") || content.startsWith("@bc") || content.startsWith("@广播"))
+    ) {
+        return
+    }
+
+    content = if (content.startsWith("@broadcast")) {
+        content.removePrefix("@broadcast")
+    } else if (content.startsWith("@bc")) {
+        content.removePrefix("@bc")
+    } else if (content.startsWith("@广播")) {
+        content.removePrefix("@广播")
+    } else {
+        content
+    }.trimStart()
+
     if (event.authorId == event.bot.id && MCChat.checkEchoAndRemove(content)) {
         return
     }
 
-    val subjectId: String = source.subjectPermissionId ?: return
     val name = source.executor?.nickOrName ?: "unknown"
-
     MCChat.sendMessage(subjectId, name, content)
 }
