@@ -7,6 +7,7 @@ import NoMathExpectation.NMEBoot.command.impl.source.offline.toOnlineOrNull
 import NoMathExpectation.NMEBoot.command.impl.source.requiresBotModerator
 import NoMathExpectation.NMEBoot.command.parser.argument.*
 import NoMathExpectation.NMEBoot.command.parser.node.*
+import NoMathExpectation.NMEBoot.message.toMessageWithCICode
 import NoMathExpectation.NMEBoot.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.network.selector.*
@@ -133,10 +134,11 @@ object MCChat : CoroutineScope {
         }
 
         private suspend fun SendSupport.sendAndLogEcho(msg: String) {
-            echoMessagesMutex.withLock {
-                echoMessages += msg
-                send(msg)
-            }
+//            echoMessagesMutex.withLock {
+//                echoMessages += msg
+//                send(msg)
+//            }
+            send(msg.toMessageWithCICode())
         }
 
         private suspend fun receiveRoutine(readChannel: ByteReadChannel) {

@@ -6,7 +6,7 @@ import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
 import NoMathExpectation.NMEBoot.message.removeReferencePrefix
 import NoMathExpectation.NMEBoot.message.standardize
-import NoMathExpectation.NMEBoot.message.toReadableString
+import NoMathExpectation.NMEBoot.message.toReadableStringWithCICode
 import NoMathExpectation.NMEBoot.message.toSerialized
 import NoMathExpectation.NMEBoot.util.nickOrName
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -106,7 +106,7 @@ internal suspend fun tryNotifyMCServers(event: Event) {
         .messages
         .removeReferencePrefix()
         .standardize()
-        .toReadableString(source.globalSubject)
+        .toReadableStringWithCICode(source.globalSubject)
 
     val subjectId = source.subjectPermissionId ?: return
     if (MCChat.isIgnoredSender(
@@ -127,7 +127,7 @@ internal suspend fun tryNotifyMCServers(event: Event) {
         content
     }.trimStart()
 
-    if (event.authorId == event.bot.id && MCChat.checkEchoAndRemove(content)) {
+    if (event.authorId == event.bot.id /* && MCChat.checkEchoAndRemove(content) */) {
         return
     }
 
