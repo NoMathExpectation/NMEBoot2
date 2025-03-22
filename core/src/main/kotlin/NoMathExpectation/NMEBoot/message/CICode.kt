@@ -6,6 +6,8 @@ import love.forte.simbot.definition.Actor
 import love.forte.simbot.message.*
 import love.forte.simbot.resource.toResource
 import java.net.URL
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 private val logger = KotlinLogging.logger { }
 
@@ -28,6 +30,7 @@ suspend fun Message.toReadableStringWithCICode(context: Actor? = null) =
         MessageFormatter.messageToReadableString(it, context)
     }.joinToString("")
 
+@OptIn(ExperimentalEncodingApi::class)
 fun String.ciCodeToImageOrElse(
     default: Message = "[未知图片]".toText(),
     nsfwDefault: Message = "[数据删除]".toText(),
@@ -43,9 +46,24 @@ fun String.ciCodeToImageOrElse(
         return nsfwDefault
     }
 
-    val url = data["url"]?.replace('\\', '/') ?: return default
+    val url = data["url"] ?: return default
 
-    return URL(url).toResource().toOfflineResourceImage()
+    if (url == "invalid") {
+        return default
+    }
+
+    if (url.startsWith("base64://")) {
+        return url.removePrefix("base64://")
+            .let { Base64.decode(it) }
+            .toResource()
+            .toOfflineResourceImage()
+    }
+
+    return url.replace('\\', '/')
+        .replace(" ", "%20")
+        .let { URL(it) }
+        .toResource()
+        .toOfflineResourceImage()
 }
 
 fun String.toMessageWithCICode(): Message {
