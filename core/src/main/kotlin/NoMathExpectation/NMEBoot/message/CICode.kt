@@ -53,10 +53,7 @@ fun String.ciCodeToImageOrElse(
     }
 
     if (url.startsWith("base64://")) {
-        return url.removePrefix("base64://")
-            .let { Base64.decode(it) }
-            .toResource()
-            .toOfflineResourceImage()
+        return OfflineByteArrayImage(Base64.decode(url.removePrefix("base64://")))
     }
 
     return url.replace('\\', '/')
