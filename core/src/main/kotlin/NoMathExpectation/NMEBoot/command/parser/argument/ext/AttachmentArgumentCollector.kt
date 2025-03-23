@@ -36,7 +36,7 @@ class AttachmentArgumentCollector : ArgumentCollector<AnyExecuteContext, List<At
 
             is KookCommandSource -> {
                 context.source.originalMessage?.messages?.findKookAttachment()?.takeIf { it.isNotEmpty() }
-                    ?: context.source.originalMessage?.referenceMessage?.messages?.findKookAttachment()
+                    ?: context.source.originalMessage?.referenceMessage()?.messages?.findKookAttachment()
                     ?: listOf()
             }
 
