@@ -64,7 +64,7 @@ dependencies {
     implementation("com.varabyte.kotter:kotter:$kotterVersion")
     testImplementation("com.varabyte.kotterx:kotter-test-support:$kotterVersion")
 
-    //scripting
+    // scripting
     implementation(project(":scripting-data"))
 
     // koin
@@ -75,6 +75,15 @@ dependencies {
     implementation(project.dependencies.platform("io.insert-koin:koin-annotations-bom:$koinAnnotationVersion"))
     implementation("io.insert-koin:koin-annotations")
     ksp("io.insert-koin:koin-ksp-compiler:$koinAnnotationVersion")
+
+    // exposed
+    val exposedVersion = "0.60.0"
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
+    implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+    implementation("com.zaxxer:HikariCP:6.3.0")
 }
 
 tasks.test {
