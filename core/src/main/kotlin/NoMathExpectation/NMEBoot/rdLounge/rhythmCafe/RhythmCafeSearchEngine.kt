@@ -31,7 +31,7 @@ object RhythmCafeSearchEngine {
             requestTimeoutMillis = 15 * 1000
         }
         defaultRequest {
-            url("https://orchardb.fly.dev")
+            url("https://api.rhythm.cafe")
             header("x-typesense-api-key", apiKey)
         }
     }
