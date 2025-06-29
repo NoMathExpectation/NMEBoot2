@@ -8,6 +8,7 @@ import NoMathExpectation.NMEBoot.command.parser.node.LiteralSelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.executes
 import NoMathExpectation.NMEBoot.command.parser.node.literal
 import NoMathExpectation.NMEBoot.message.toSerialized
+import NoMathExpectation.NMEBoot.message.unescapeMessageFormatIdentifiers
 import NoMathExpectation.NMEBoot.scripting.data.EvalRequest
 import NoMathExpectation.NMEBoot.scripting.data.EvalResponse
 import NoMathExpectation.NMEBoot.util.defaultHttpClient
@@ -34,7 +35,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandEval() =
         .requiresPermission("command.common.eval")
         .collectGreedyString("code")
         .executes("运行Kotlin代码") {
-            val code = getString("code") ?: error("Code required.")
+            val code = getString("code")?.unescapeMessageFormatIdentifiers() ?: error("Code required.")
             val quoted = it.originalMessage?.referenceMessage()?.messages?.toSerialized(it.target.globalSubject)
 
             val (endpoint, timeout) = configStorage.get()

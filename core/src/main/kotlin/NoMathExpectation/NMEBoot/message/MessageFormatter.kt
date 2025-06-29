@@ -27,6 +27,14 @@ object MessageFormatter {
             .replace("\\]", "]")
             .replace("\\:", ":")
 
+    fun escapeMessageFormatIdentifiers(message: String): String {
+        return message.escapeIdentifiers()
+    }
+
+    fun unescapeMessageFormatIdentifiers(message: String): String {
+        return message.unescapeIdentifiers()
+    }
+
     private suspend fun messageElementToReadableString(element: Message.Element, context: Actor? = null): String {
         if (element is PlainText) {
             return element.text
@@ -134,6 +142,10 @@ object MessageFormatter {
         }
     }
 }
+
+fun String.escapeMessageFormatIdentifiers() = MessageFormatter.escapeMessageFormatIdentifiers(this)
+
+fun String.unescapeMessageFormatIdentifiers() = MessageFormatter.unescapeMessageFormatIdentifiers(this)
 
 suspend inline fun Message.toReadableString(context: Actor? = null) =
     MessageFormatter.messageToReadableString(this, context)

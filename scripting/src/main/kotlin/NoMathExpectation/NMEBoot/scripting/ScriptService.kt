@@ -99,6 +99,8 @@ fun Routing.evalService() = post<EvalRequest>("/eval") { request ->
             ResultValue.NotEvaluated -> exception = "Script not evaluated."
         }
 
+        logger.info { "Eval return: $returns" }
+
         call.respond(
             EvalResponse(
                 simpleEval.output,
@@ -109,6 +111,7 @@ fun Routing.evalService() = post<EvalRequest>("/eval") { request ->
         return@post
     }
 
+    logger.warn { "Unable to resolve the diagnostic result: $resultWithDiagnostics" }
     call.respond(
         EvalResponse(
             simpleEval.output,
