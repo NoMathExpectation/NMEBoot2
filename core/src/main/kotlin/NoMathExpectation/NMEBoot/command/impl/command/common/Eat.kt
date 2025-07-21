@@ -41,15 +41,15 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandEat() =
                     .collectGreedyString("dishOrIndex")
                     .executes("移除菜品") {
                         val globalSubjectId = it.target.globalSubjectPermissionId ?: error("没有群号")
-                        val dish = getString("dish") ?: error("未提供菜品")
+                        val dish = getString("dishOrIndex")?.lowercase() ?: error("未提供菜品")
                         val actualDish = storage.referenceUpdate(globalSubjectId) { dishes ->
                             dish.toIntOrNull()?.let { idx ->
                                 if (idx !in 1..dishes.size) {
                                     return@referenceUpdate null
                                 }
-                                return@referenceUpdate dishes.removeAt(idx)
+                                return@referenceUpdate dishes.removeAt(idx - 1)
                             }
-                            return@referenceUpdate dishes.indexOfFirst { it.contains(dish) }
+                            return@referenceUpdate dishes.indexOfFirst { it.lowercase().contains(dish) }
                                 .takeIf { it > 0 }
                                 ?.let {
                                     dishes.removeAt(it)
