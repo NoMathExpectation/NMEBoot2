@@ -10,6 +10,11 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.json.Json
 
 fun main() {
+    println("Preheating eval service...")
+    val eval = "print(\"Hello, world!\")".toSimpleEval()
+    eval()
+    println(eval.output)
+
     embeddedServer(CIO, port = 8080) {
         install(ContentNegotiation) {
             json(Json {
