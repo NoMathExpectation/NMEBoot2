@@ -32,6 +32,7 @@ suspend fun initDispatcher() {
                 commandStop()
                 commandRepeat()
                 commandLuck()
+                commandRandom()
                 commandWhoAmI()
                 commandPermission()
                 commandTransfer()

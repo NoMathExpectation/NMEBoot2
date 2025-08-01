@@ -25,7 +25,12 @@ class RangeCheckArgumentCollector<in S, out T : Comparable<T & Any>?>(
         return value
     }
 
-    override fun buildHelp(name: String) = "${collector.buildHelp(name)}($min-$max)"
+    override fun buildHelp(name: String) = when {
+        min != null && max != null -> "${collector.buildHelp(name)}($min-$max)"
+        min != null -> "${collector.buildHelp(name)}(≥$min)"
+        max != null -> "${collector.buildHelp(name)}(≤$max)"
+        else -> collector.buildHelp(name)
+    }
 }
 
 fun <S, T : Comparable<T & Any>?> ArgumentCollectCommandNode<S, T>.checkInRange(min: T? = null, max: T? = null) =
