@@ -40,5 +40,9 @@ inline operator fun <reified T : Any> CommandContext<*>.get(name: String): T? {
     return get(name, T::class)
 }
 
+inline fun <reified T : Any> CommandContext<*>.getOrPut(name: String, defaultBlock: () -> T): T {
+    return get(name, T::class) ?: defaultBlock().also { this[name] = it }
+}
+
 inline fun <reified T : Any> CommandContext<*>.argument() = argument(T::class)
 
