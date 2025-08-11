@@ -13,7 +13,6 @@ suspend fun <S> LiteralSelectionCommandNode<S>.commandRandom()
     literal("random")
         .requiresPermission("command.common.random")
         .select {
-            blockOptions = false
             help = "生成随机数或随机一个选项"
 
             collectLong("min")
