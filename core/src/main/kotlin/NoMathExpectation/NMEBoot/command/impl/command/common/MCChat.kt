@@ -1,6 +1,7 @@
 package NoMathExpectation.NMEBoot.command.impl.command.common
 
 import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
+import NoMathExpectation.NMEBoot.command.impl.requiresPermission
 import NoMathExpectation.NMEBoot.command.impl.requiresSubjectId
 import NoMathExpectation.NMEBoot.command.impl.source.offline.OfflineCommandSource
 import NoMathExpectation.NMEBoot.command.impl.source.offline.toOnlineOrNull
@@ -344,8 +345,9 @@ object MCChat : CoroutineScope {
         configStorage.get().connections[subjectId]?.ignoredSenders?.contains(id) ?: false
 }
 
-fun LiteralSelectionCommandNode<AnyExecuteContext>.commandMCChat() =
+suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandMCChat() =
     literal("mcchat")
+        .requiresPermission("command.common.mcchat")
         .requiresBotModerator()
         .requiresSubjectId()
         .literals {
