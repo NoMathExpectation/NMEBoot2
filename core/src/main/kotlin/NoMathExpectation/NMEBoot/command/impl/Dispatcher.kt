@@ -30,6 +30,7 @@ suspend fun initDispatcher() {
             .consumeCooldown()
             .literals {
                 commandStop()
+                commandStatus()
                 commandRepeat()
                 commandLuck()
                 commandRandom()
