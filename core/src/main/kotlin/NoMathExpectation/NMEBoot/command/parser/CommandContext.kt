@@ -1,5 +1,6 @@
 package NoMathExpectation.NMEBoot.command.parser
 
+import NoMathExpectation.NMEBoot.util.StringReader
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty

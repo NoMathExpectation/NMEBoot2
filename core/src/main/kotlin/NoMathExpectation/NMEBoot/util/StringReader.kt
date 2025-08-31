@@ -1,4 +1,4 @@
-package NoMathExpectation.NMEBoot.command.parser
+package NoMathExpectation.NMEBoot.util
 
 import kotlin.math.min
 
@@ -71,21 +71,23 @@ class StringReader(
         return string.substring(start, next)
     }
 
-    val nextWordIndex: Int? get() {
-        var cur = next
-        while (this[cur]?.isWhitespace() == true) {
-            cur++
+    val nextWordIndex: Int?
+        get() {
+            var cur = next
+            while (this[cur]?.isWhitespace() == true) {
+                cur++
+            }
+            return if (isEnd(cur)) null else cur
         }
-        return if (isEnd(cur)) null else cur
-    }
 
-    val nextWordEndIndex: Int? get() {
-        var cur = nextWordIndex ?: return null
-        while (this[cur]?.isWhitespace() == false) {
-            cur++
+    val nextWordEndIndex: Int?
+        get() {
+            var cur = nextWordIndex ?: return null
+            while (this[cur]?.isWhitespace() == false) {
+                cur++
+            }
+            return cur
         }
-        return cur
-    }
 
     fun alignNextWord() {
         next = nextWordIndex ?: string.length
@@ -106,5 +108,59 @@ class StringReader(
         val end = nextWordEndIndex ?: string.length
         next = end
         return string.substring(start, end)
+    }
+
+    fun readPaired(startChar: Char, endChar: Char): String? {
+        if (isEnd) {
+            return null
+        }
+        val startIndex = next
+        if (peekChar() != startChar) {
+            return null
+        }
+        var depth = 1
+        var cur = next + 1
+        while (!isEnd(cur)) {
+            val c = this[cur] ?: break
+            if (c == startChar) {
+                depth++
+            } else if (c == endChar) {
+                depth--
+                if (depth == 0) {
+                    next = cur + 1
+                    return string.substring(startIndex, next)
+                }
+            }
+            cur++
+        }
+        return null
+    }
+
+    fun readNumberString(): String? {
+        if (isEnd) {
+            return null
+        }
+        val start = next
+        var cur = start
+        var hasDot = false
+        if (this[cur] == '-' || this[cur] == '+') {
+            cur++
+        }
+        while (!isEnd(cur)) {
+            val c = this[cur] ?: break
+            if (c.isDigit()) {
+                cur++
+            } else if (c == '.' && !hasDot) {
+                hasDot = true
+                cur++
+            } else {
+                break
+            }
+        }
+        if (cur == start) {
+            return null
+        }
+        next = cur
+        return string.substring(start, next)
     }
 }

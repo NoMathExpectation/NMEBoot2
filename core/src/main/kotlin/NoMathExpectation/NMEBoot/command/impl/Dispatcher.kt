@@ -42,6 +42,7 @@ suspend fun initDispatcher() {
                 commandEat()
                 commandEval()
                 commandMCChat()
+                commandDraw()
 
                 //rd
                 commandChart()

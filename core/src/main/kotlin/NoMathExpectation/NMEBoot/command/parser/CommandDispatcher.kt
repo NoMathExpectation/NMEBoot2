@@ -4,6 +4,7 @@ import NoMathExpectation.NMEBoot.command.parser.node.CommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.HelpOption
 import NoMathExpectation.NMEBoot.command.parser.node.LiteralSelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.commandNodeTodo
+import NoMathExpectation.NMEBoot.util.StringReader
 
 class CommandDispatcher<S>(
     var root: CommandNode<S> = commandNodeTodo()
