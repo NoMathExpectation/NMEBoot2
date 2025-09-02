@@ -55,9 +55,9 @@ abstract class Canvas : AutoCloseable {
 
         fun createFromInstructions(inst: String): Pair<RealCanvas, InstructionReader> {
             val border = calculateBorder(inst)
-            val canvasWidth = (border.maxX - border.minX + 1).coerceAtMost(8192) + 16
-            val canvasHeight = (border.maxY - border.minY + 1).coerceAtMost(8192) + 16
-            val canvas = RealCanvas(canvasWidth, canvasHeight)
+            val canvasWidth = (border.maxX.toLong() - border.minX.toLong() + 1).coerceAtMost(8192) + 16
+            val canvasHeight = (border.maxY.toLong() - border.minY.toLong() + 1).coerceAtMost(8192) + 16
+            val canvas = RealCanvas(canvasWidth.toInt(), canvasHeight.toInt())
             canvas.penX = -border.minX + 8
             canvas.penY = -border.minY + 8
 

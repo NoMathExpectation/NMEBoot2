@@ -21,7 +21,7 @@ data class SetStepInstruction(val step: Int) : CanvasInstruction
 data class MovePenInstruction(val direction: Char) : CanvasInstruction
 
 data class InstructParseException(val reason: String, val relevantInstruction: String) :
-    IllegalStateException("解析指令时发生了错误：$reason\n->$relevantInstruction...")
+    IllegalStateException("解析指令时发生了错误：$reason\n...$relevantInstruction...")
 
 class InstructionReader(val instruction: String) {
     private val logger = KotlinLogging.logger { }
@@ -36,7 +36,7 @@ class InstructionReader(val instruction: String) {
     fun throwParseException(reason: String): Nothing {
         throw InstructParseException(
             reason,
-            unwindInstruction.substring(max(cursor, 0), min(cursor + 10, unwindInstruction.length))
+            unwindInstruction.substring(max(cursor - 10, 0), min(cursor + 10, unwindInstruction.length))
         )
     }
 
@@ -91,19 +91,27 @@ class InstructionReader(val instruction: String) {
         return string.also { cursor += length }
     }
 
+    val pairChars = mapOf(
+        '(' to ')',
+        '[' to ']',
+        '{' to '}',
+    )
+
     private fun readPaired(derefLazyPtr: Boolean): String {
-        if (readChar(derefLazyPtr) != '[') {
-            throwParseException("尝试读取括号内容，但是当前字符不是'['。")
+        val char = readChar(derefLazyPtr)
+        if (char !in pairChars) {
+            throwParseException("尝试读取括号内容，但是当前字符${char}不是括号。")
         }
 
+        val pairChar = pairChars[char]
         return buildString {
             var depth = 1
 
             while (true) {
                 val c = readChar(derefLazyPtr)
-                if (c == '[') {
+                if (c == char) {
                     depth++
-                } else if (c == ']') {
+                } else if (c == pairChar) {
                     depth--
                     if (depth <= 0) {
                         break
@@ -116,7 +124,7 @@ class InstructionReader(val instruction: String) {
 
     private fun readCharOrPaired(derefLazyPtr: Boolean): String {
         val char = peekChar(derefLazyPtr) ?: throwParseException("期望更多字符，但是已经到达了指令结尾。")
-        if (char == '[') {
+        if (char in pairChars) {
             return readPaired(derefLazyPtr)
         }
 
@@ -145,7 +153,11 @@ class InstructionReader(val instruction: String) {
     }
 
     private fun readColor(): Color {
-        if (cursorChar == '[') {
+        if (cursor >= unwindInstruction.length) {
+            throwParseException("期望更多字符，但是已经到达了指令结尾。")
+        }
+
+        if (cursorChar in pairChars) {
             val colorStr = readPaired(true)
             return runCatching {
                 Color(
@@ -177,7 +189,7 @@ class InstructionReader(val instruction: String) {
     }
 
     private fun getVariable(name: String): String {
-        return variables[name] ?: ""
+        return variables[name] ?: "0"
     }
 
     private fun addValues(left: String, right: String): String {
@@ -267,6 +279,40 @@ class InstructionReader(val instruction: String) {
         setVariable(leftVarName, result)
     }
 
+    private fun unaryPlus(value: String): String {
+        value.toIntOrNull()?.let {
+            return (it + 1).toString()
+        }
+
+        if (value.length == 1) {
+            return (value[0].code + 1).toChar().toString()
+        }
+
+        throwParseException("无法对${value}自增")
+    }
+
+    private fun unaryMinus(value: String): String {
+        value.toIntOrNull()?.let {
+            return (it - 1).toString()
+        }
+
+        if (value.length == 1) {
+            return (value[0].code - 1).toChar().toString()
+        }
+
+        return value.dropLast(1)
+    }
+
+    private fun doUnaryOp(varName: String, op: Char) {
+        val value = getVariable(varName)
+        val result = when (op) {
+            '+' -> unaryPlus(value)
+            '-' -> unaryMinus(value)
+            else -> throwParseException("无效的单目运算符：$op")
+        }
+        setVariable(varName, result)
+    }
+
     fun readNext(): CanvasInstruction? {
         return when (val char = readCharOrNull(true)) {
             null -> null
@@ -283,14 +329,20 @@ class InstructionReader(val instruction: String) {
                 NoOpInstruction
             }
 
-            '+', '-', '*' -> {
-                val leftName = readCharOrPaired(true)
-                val right = readCharOrPaired(false)
-                doBinaryOp(leftName, right, char)
+            '+', '-' -> {
+                val varName = readCharOrPaired(true)
+                doUnaryOp(varName, char)
                 NoOpInstruction
             }
 
-            '[' -> {
+//            '+', '-', '*', '/', '%' -> {
+//                val leftName = readCharOrPaired(true)
+//                val right = readCharOrPaired(false)
+//                doBinaryOp(leftName, right, char)
+//                NoOpInstruction
+//            }
+
+            '(', '[', '{' -> {
                 cursor--
                 readCharOrPaired(false)
                 NoOpInstruction
@@ -308,7 +360,7 @@ class InstructionReader(val instruction: String) {
     }
 
     fun variablesToString(): String {
-        return variables.entries.joinToString("\n") { (k, v) -> "$k = $v" }
+        return variables.entries.joinToString("\n") { (k, v) -> "$k=\"$v\"" }
     }
 
     companion object {
@@ -323,20 +375,22 @@ class InstructionReader(val instruction: String) {
             f：设置绘制模式为填充模式
             sN：设置步长为N（N为整数，默认为$DEFAULT_STEP）
             =xc：将变量x的值设为c
-            +xc：使变量x的值加上c
-            -xc：使变量x的值减去c
-            *xc：使变量x的值乘以c
-            [...]：将括号里的内容视为一个整体
+            +x：使变量x自增
+            -x：使变量x自减
+            (...)，[]，{}：将括号里的内容视为一个整体
             &x：懒惰变量引用，只有在需要的时候才会解引用
             *x：强制变量引用，无条件解引用成变量的值
             空格：无操作（可用于分隔指令）
             指令区分大小写，其他字符均视为无效指令
         """.trimIndent()
 
-        /* unused
-        * /xc：使变量x的值除以c（整数除法）
-        *  %xc：使变量x的值对c取模
-        *  */
+        /*  unused
+        *   +xc：使变量x的值加上c
+        *   -xc：使变量x的值减去c
+        *   *xc：使变量x的值乘以c
+        *   /xc：使变量x的值除以c（整数除法）
+        *   %xc：使变量x的值对c取模
+        */
     }
 }
 
