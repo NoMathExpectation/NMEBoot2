@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import java.awt.Color
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.random.Random
 
 sealed interface CanvasInstruction
 
@@ -32,6 +33,7 @@ class InstructionReader(val instruction: String) {
     val cursorChar get() = unwindInstruction[cursor]
 
     private val variables = mutableMapOf<String, String>()
+    var random: Random = Random
 
     fun throwParseException(reason: String): Nothing {
         throw InstructParseException(
@@ -190,10 +192,18 @@ class InstructionReader(val instruction: String) {
     }
 
     private fun setVariable(name: String, value: String) {
+        if (name == RANDOM_VARIABLE_NAME) {
+            random = Random(value.toIntOrNull() ?: value.hashCode())
+        }
+
         variables[name] = value
     }
 
     private fun getVariable(name: String): String {
+        if (name == RANDOM_VARIABLE_NAME) {
+            return random.nextInt().toString()
+        }
+
         return variables[name] ?: "0"
     }
 
@@ -370,6 +380,7 @@ class InstructionReader(val instruction: String) {
 
     companion object {
         const val MAX_INSTRUCTIONS = 1_000_000
+        const val RANDOM_VARIABLE_NAME = "r"
 
         val INST_PATTERN_INFO = """
             qweadzxc：八个方向移动画笔
@@ -387,6 +398,7 @@ class InstructionReader(val instruction: String) {
             *x：强制变量引用，无条件解引用成变量的值
             空格：无操作（可用于分隔指令）
             指令区分大小写，其他字符均视为无效指令
+            从变量${RANDOM_VARIABLE_NAME}中读取随机数，赋值给${RANDOM_VARIABLE_NAME}以设置种子
         """.trimIndent()
 
         /*  unused
