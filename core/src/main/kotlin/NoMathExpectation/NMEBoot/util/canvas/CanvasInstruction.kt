@@ -133,7 +133,12 @@ class InstructionReader(val instruction: String) {
 
     private fun readNumberString(): String = buildString {
         if (peekChar(true)?.isDigit() != true) {
-            throwParseException("尝试读取数字，但是当前字符不是数字。")
+            if (peekChar(true) == '-') {
+                append('-')
+                cursor++
+            } else {
+                throwParseException("期望一个数字，但是当前字符不是数字。")
+            }
         }
 
         while (true) {
