@@ -32,8 +32,13 @@ class InstructionReader(val instruction: String) {
 
     val cursorChar get() = unwindInstruction[cursor]
 
-    private val variables = mutableMapOf<String, String>()
-    var random: Random = Random
+    private val variables = mutableMapOf(
+        "r" to Random.nextInt().toString(),
+        "p" to "*",
+        "l" to "&",
+    )
+
+    var random: Random = Random(variables["r"]!!.toInt())
 
     fun throwParseException(reason: String): Nothing {
         throw InstructParseException(
@@ -42,8 +47,11 @@ class InstructionReader(val instruction: String) {
         )
     }
 
+    val pointerSymbol get() = getVariable("p").lastOrNull() ?: throwParseException("缺失强制引用标识符。")
+    val lazyPointerSymbol get() = getVariable("l").lastOrNull() ?: throwParseException("缺失懒惰引用标识符。")
+
     private fun dereferencePointer() {
-        if (cursorChar != '&' && cursorChar != '*') {
+        if (cursorChar !in listOf(pointerSymbol, lazyPointerSymbol)) {
             throwParseException("尝试解引用一个非指针的值。")
         }
         val startCursor = cursor
@@ -59,7 +67,10 @@ class InstructionReader(val instruction: String) {
             return null
         }
 
-        val deref = (derefLazyPtr && (cursorChar == '&' || cursorChar == '*')) || (!derefLazyPtr && cursorChar == '*')
+        val deref = (derefLazyPtr && (cursorChar in listOf(
+            pointerSymbol,
+            lazyPointerSymbol
+        ))) || (!derefLazyPtr && cursorChar == pointerSymbol)
         if (deref) {
             dereferencePointer()
             return peekChar(derefLazyPtr)
@@ -363,9 +374,9 @@ class InstructionReader(val instruction: String) {
                 NoOpInstruction
             }
 
-            '&', '*' -> {
+            pointerSymbol, lazyPointerSymbol -> {
                 // 你是怎么进到这里的？
-                logger.warn { "在${cursor}处读到了解引用符号！\n相关指令：$unwindInstruction" }
+                logger.warn { "在${cursor}处读到了解引用符号'$char'！\n相关指令：$unwindInstruction" }
                 NoOpInstruction
             }
 
@@ -394,8 +405,8 @@ class InstructionReader(val instruction: String) {
             +x：使变量x自增
             -x：使变量x自减
             (...)，[]，{}：将括号里的内容视为一个整体
-            &x：懒惰变量引用，只有在需要的时候才会解引用
-            *x：强制变量引用，无条件解引用成变量的值
+            &x：懒惰变量引用，只有在需要的时候才会解引用，引用符号取变量l的末尾
+            *x：强制变量引用，无条件解引用成变量的值，引用符号取变量p的末尾
             空格：无操作（可用于分隔指令）
             指令区分大小写，其他字符均视为无效指令
             从变量${RANDOM_VARIABLE_NAME}中读取随机数，赋值给${RANDOM_VARIABLE_NAME}以设置种子
