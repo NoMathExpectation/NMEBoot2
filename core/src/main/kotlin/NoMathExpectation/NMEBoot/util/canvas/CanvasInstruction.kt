@@ -310,11 +310,11 @@ class InstructionReader(val instruction: String) {
             return (it + 1).toString()
         }
 
-        if (value.length == 1) {
-            return (value[0].code + 1).toChar().toString()
+        value.lastOrNull()?.let {
+            return value.dropLast(1) + (it + 1)
         }
 
-        throwParseException("无法对${value}自增")
+        return value
     }
 
     private fun unaryMinus(value: String): String {
@@ -322,10 +322,21 @@ class InstructionReader(val instruction: String) {
             return (it - 1).toString()
         }
 
-        if (value.length == 1) {
-            return (value[0].code - 1).toChar().toString()
+        value.lastOrNull()?.let {
+            return value.dropLast(1) + (it - 1)
         }
 
+        return value
+    }
+
+    private fun unaryPush(value: String): String {
+        return value + '0'
+    }
+
+    private fun unaryPop(value: String): String {
+        if (value.isEmpty()) {
+            return value
+        }
         return value.dropLast(1)
     }
 
@@ -334,6 +345,8 @@ class InstructionReader(val instruction: String) {
         val result = when (op) {
             '+' -> unaryPlus(value)
             '-' -> unaryMinus(value)
+            '>' -> unaryPush(value)
+            '<' -> unaryPop(value)
             else -> throwParseException("无效的单目运算符：$op")
         }
         setVariable(varName, result)
@@ -355,7 +368,7 @@ class InstructionReader(val instruction: String) {
                 NoOpInstruction
             }
 
-            '+', '-' -> {
+            '+', '-', '>', '<' -> {
                 val varName = readCharOrPaired(true)
                 doUnaryOp(varName, char)
                 NoOpInstruction
@@ -402,8 +415,10 @@ class InstructionReader(val instruction: String) {
             f：设置绘制模式为填充模式
             sN：设置步长为N（N为整数，默认为$DEFAULT_STEP）
             =xc：将变量x的值设为c
-            +x：使变量x自增
-            -x：使变量x自减
+            +x：使变量x自增，若无法操作则使最后一位自增
+            -x：使变量x自减，若无法操作则使最后一位自减
+            >x：往变量x追加字符0
+            <x：从变量x移除最后一个字符
             (...)，[]，{}：将括号里的内容视为一个整体
             &x：懒惰变量引用，只有在需要的时候才会解引用，引用符号取变量l的末尾
             *x：强制变量引用，无条件解引用成变量的值，引用符号取变量p的末尾
