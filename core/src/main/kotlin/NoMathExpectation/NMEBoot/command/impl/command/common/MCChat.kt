@@ -19,6 +19,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.Serializable
 import love.forte.simbot.ability.SendSupport
+import love.forte.simbot.message.buildMessages
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.seconds
 
@@ -173,6 +174,24 @@ object MCChat : CoroutineScope {
                 is PlayerAdvancementEvent -> source.toOnlineOrNull()
                     ?.sendAndLogEcho("[${connection.name}] ${event.name} 获得了进度 [${event.advancement}]")
 
+                is StatusEvent -> source.toOnlineOrNull()?.let {
+                    val message = buildMessages {
+                        +"${connection.name} 状态：\n"
+                        +"版本：${event.brand} ${event.version}\n"
+                        +"人数：${event.playerNumber}/${event.maxPlayerNumber}\n"
+
+                        if (event.playerNumber <= 0) {
+                            return@buildMessages
+                        }
+                        +"玩家："
+                        +event.playerNames.joinToString(", ")
+                        if (event.playerNames.size != event.playerNumber) {
+                            +"..."
+                        }
+                    }
+                    it.send(message)
+                }
+
                 else -> logger.warn { "Received unknown event: $event" }
             }
         }
@@ -303,6 +322,21 @@ object MCChat : CoroutineScope {
         }
     }
 
+    suspend fun pingConnection(subjectId: String, name: String): Boolean {
+        connectionMutex.withLock {
+            runningConnections[subjectId to name]?.let { connection ->
+                kotlin.runCatching {
+                    connection.sendEvent(StatusPingEvent)
+                }.onFailure {
+                    logger.error(it) { "Failed to ping ${connection.connection.address}" }
+                    return false
+                }
+                return true
+            }
+            return false
+        }
+    }
+
     private var inited = false
     suspend fun initConnections() {
         if (inited) {
@@ -346,14 +380,14 @@ object MCChat : CoroutineScope {
 }
 
 suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandMCChat() =
-    literal("mcchat")
+    literal("mcchat", "mc")
         .requiresPermission("command.common.mcchat")
-        .requiresBotModerator()
         .requiresSubjectId()
         .literals {
             help = "分享 Minecraft 服务器聊天"
 
             literal("connect")
+                .requiresBotModerator()
                 .collectString("name")
                 .collectString("host")
                 .collectInt("port")
@@ -376,6 +410,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandMCChat() =
                 }
 
             literal("disconnect")
+                .requiresBotModerator()
                 .collectString("name")
                 .executes("移除服务器") {
                     val name = getString("name") ?: error("Name is required.")
@@ -388,6 +423,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandMCChat() =
                 }
 
             literal("enable")
+                .requiresBotModerator()
                 .collectString("name")
                 .executes("启用服务器") {
                     val name = getString("name") ?: error("Name is required.")
@@ -400,6 +436,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandMCChat() =
                 }
 
             literal("disable")
+                .requiresBotModerator()
                 .collectString("name")
                 .executes("禁用服务器") {
                     val name = getString("name") ?: error("Name is required.")
@@ -426,9 +463,22 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandMCChat() =
                     )
                 }
 
+            literal("ping")
+                .collectString("name")
+                .executes("获取服务器状态") {
+                    val subjectId = it.target.subjectPermissionId ?: error("无法获取SubjectId")
+                    val name = getString("name") ?: error("无法获取名字")
+                    if (!MCChat.pingConnection(subjectId, name)) {
+                        it.reply("无法获取服务器 $name 的状态")
+                    }
+                }
+
             literal("broadcastme")
                 .select {
-                    collectBoolean("toggle").executes {
+                    help = "控制你的消息是否会被广播"
+                    blockOptions = false
+
+                    collectBoolean("toggle").executes("设置你的消息是否会被广播") {
                         val subjectId = it.target.subjectPermissionId ?: error("无法获取SubjectId")
                         val toggle = getBoolean("toggle") ?: error("Toggle is required.")
                         val source = it.target.toOffline()
@@ -441,7 +491,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandMCChat() =
                         }
                     }
 
-                    executes {
+                    executes("查询你的消息是否会被广播") {
                         val subjectId = it.target.subjectPermissionId ?: error("无法获取SubjectId")
                         if (MCChat.isIgnoredSender(subjectId, it.target.id)) {
                             it.reply("你的消息当前不会被广播")
