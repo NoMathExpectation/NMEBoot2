@@ -1,7 +1,7 @@
 package NoMathExpectation.NMEBoot.message.onebot
 
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFolding.FoldIgnore
-import NoMathExpectation.NMEBoot.message.onebot.apiExt.LagrangeSendGroupForwardMsg
+import NoMathExpectation.NMEBoot.message.onebot.apiExt.extApi
 import NoMathExpectation.NMEBoot.message.toReadableString
 import NoMathExpectation.NMEBoot.util.asMessages
 import NoMathExpectation.NMEBoot.util.nickOrName
@@ -54,20 +54,17 @@ internal object OneBotFolding {
             return postProcess(messages) to null
         }
 
-        val api = LagrangeSendGroupForwardMsg.create(
+        val receipt = bot.extApi.sendGroupForwardMsg(
             subject.id.toLongID(),
             listOf(
-                LagrangeForwardNode(
-                    subject.botAsMember().nickOrName,
+                OneBotForwardNode.create(
                     bot.userId.toString().ID,
+                    subject.botAsMember().nickOrName,
                     messages.resolveToOneBotSegmentList(bot.configuration.defaultImageAdditionalParamsProvider)
                 )
             )
         )
-        val result = bot.executeResult(api)
-        require(result.isSuccess) { "Failed to send folded message." }
-
-        return null to CopiedOneBotMessageReceipt(result.dataOrThrow.messageId, bot)
+        return null to receipt
     }
 }
 

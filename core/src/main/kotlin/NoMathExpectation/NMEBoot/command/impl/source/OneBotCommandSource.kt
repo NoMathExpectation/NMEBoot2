@@ -11,7 +11,7 @@ import NoMathExpectation.NMEBoot.message.element.asMessageReceipt
 import NoMathExpectation.NMEBoot.message.element.deleteAfterDelay
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFolding
-import NoMathExpectation.NMEBoot.message.onebot.apiExt.toOneBotUploadApi
+import NoMathExpectation.NMEBoot.message.onebot.apiExt.toOneBotGroupUploadApi
 import NoMathExpectation.NMEBoot.message.onebot.containsOneBotForward
 import NoMathExpectation.NMEBoot.user.idToUid
 import NoMathExpectation.NMEBoot.util.asMessages
@@ -66,7 +66,7 @@ private suspend inline fun Message.sendByOneBot(
             .asMessages()
             .filterIsInstance<Attachment>()
             .forEach {
-                val api = it.toOneBotUploadApi(subject.id.toLongID())
+                val api = it.toOneBotGroupUploadApi(subject.id.toLongID())
                 val result = bot.executeResult(api)
                 if (!result.isSuccess) {
                     throw RuntimeException("上传文件 ${it.name} 失败")

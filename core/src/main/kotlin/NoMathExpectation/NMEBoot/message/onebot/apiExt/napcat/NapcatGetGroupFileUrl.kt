@@ -1,4 +1,4 @@
-package NoMathExpectation.NMEBoot.message.onebot.apiExt
+package NoMathExpectation.NMEBoot.message.onebot.apiExt.napcat
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -9,9 +9,9 @@ import love.forte.simbot.component.onebot.v11.core.api.OneBotApi
 import love.forte.simbot.component.onebot.v11.core.api.OneBotApiResult
 import love.forte.simbot.component.onebot.v11.event.notice.RawGroupUploadEvent
 
-class LagrangeGetGroupFileUrl(
+class NapcatGetGroupFileUrl(
     override val body: Body
-) : OneBotApi<LagrangeGetGroupFileUrl.Result> {
+) : OneBotApi<NapcatGetGroupFileUrl.Result> {
     override val action = ACTION
     override val resultDeserializer = Result.serializer()
     override val apiResultDeserializer = RES_SER
@@ -20,11 +20,10 @@ class LagrangeGetGroupFileUrl(
         const val ACTION = "get_group_file_url"
         val RES_SER = OneBotApiResult.serializer(Result.serializer())
 
-        fun create(groupId: LongID, fileInfo: RawGroupUploadEvent.FileInfo) = LagrangeGetGroupFileUrl(
+        fun create(groupId: LongID, fileInfo: RawGroupUploadEvent.FileInfo) = NapcatGetGroupFileUrl(
             Body(
                 groupId,
                 fileInfo.id.toString().ID,
-                fileInfo.busid,
             )
         )
     }
@@ -35,8 +34,6 @@ class LagrangeGetGroupFileUrl(
         val groupId: LongID,
         @SerialName("file_id")
         val fileId: StringID,
-        @SerialName("busid")
-        val busId: Long,
     )
 
     @Serializable

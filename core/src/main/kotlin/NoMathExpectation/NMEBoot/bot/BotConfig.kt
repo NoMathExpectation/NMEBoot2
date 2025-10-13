@@ -1,5 +1,6 @@
 package NoMathExpectation.NMEBoot.bot
 
+import NoMathExpectation.NMEBoot.message.onebot.apiExt.OnebotExtApi
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.http.*
 import kotlinx.serialization.SerialName
@@ -23,6 +24,7 @@ data class OneBotConfig(
     val eventHost: String,
     val id: String,
     val token: String,
+    val extApiType: OnebotExtApi.Type = OnebotExtApi.Type.LAGRANGE,
 ) : BotConfig {
     override suspend fun Application.register() {
         oneBot11Bots {
@@ -35,6 +37,8 @@ data class OneBotConfig(
                 apiAccessToken = token
                 eventAccessToken = token
             }
+
+            OnebotExtApi.registerBotType(bot, extApiType)
 
             bot.start()
         }

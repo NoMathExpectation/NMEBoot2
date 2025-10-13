@@ -1,7 +1,5 @@
-package NoMathExpectation.NMEBoot.message.onebot.apiExt
+package NoMathExpectation.NMEBoot.message.onebot.apiExt.lagrange
 
-import NoMathExpectation.NMEBoot.message.onebot.LagrangeForwardNode
-import NoMathExpectation.NMEBoot.message.onebot.wrap
 import kotlinx.serialization.Serializable
 import love.forte.simbot.common.id.StringID
 import love.forte.simbot.component.onebot.v11.core.api.OneBotApi

@@ -1,13 +1,12 @@
-package NoMathExpectation.NMEBoot.message.onebot.apiExt
+package NoMathExpectation.NMEBoot.message.onebot.apiExt.lagrange
 
-import NoMathExpectation.NMEBoot.message.onebot.LagrangeForwardNode
-import NoMathExpectation.NMEBoot.message.onebot.wrap
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import love.forte.simbot.common.id.LongID
 import love.forte.simbot.common.id.StringID
 import love.forte.simbot.component.onebot.v11.core.api.OneBotApi
 import love.forte.simbot.component.onebot.v11.core.api.OneBotApiResult
+import love.forte.simbot.component.onebot.v11.message.segment.OneBotForwardNode
 
 class LagrangeSendGroupForwardMsg(
     override val body: Body
@@ -20,10 +19,17 @@ class LagrangeSendGroupForwardMsg(
         const val ACTION = "send_group_forward_msg"
         val RES_SER = OneBotApiResult.serializer(Result.serializer())
 
-        fun create(groupId: LongID, messages: List<LagrangeForwardNode>) = LagrangeSendGroupForwardMsg(
+        fun createFromLagrangeNodes(groupId: LongID, messages: List<LagrangeForwardNode>) = LagrangeSendGroupForwardMsg(
             Body(
                 groupId,
                 messages.wrap(),
+            )
+        )
+
+        fun create(groupId: LongID, messages: List<OneBotForwardNode>) = LagrangeSendGroupForwardMsg(
+            Body(
+                groupId,
+                messages.map { it.toLagrange() },
             )
         )
     }

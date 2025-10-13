@@ -11,7 +11,7 @@ import love.forte.simbot.component.onebot.v11.core.api.OneBotApi
 import love.forte.simbot.component.onebot.v11.core.api.OneBotApiResult
 import java.io.File
 
-class LagrangeUploadGroupFile(
+class CommonUploadGroupFile(
     override val body: Body
 ) : OneBotApi<Unit> {
     override val action = ACTION
@@ -33,7 +33,7 @@ class LagrangeUploadGroupFile(
     )
 }
 
-suspend fun Attachment.toOneBotUploadApi(groupId: LongID, folder: StringID? = null): LagrangeUploadGroupFile {
+suspend fun Attachment.toOneBotGroupUploadApi(groupId: LongID, folder: StringID? = null): CommonUploadGroupFile {
     File("/swap/onebot/upload/").mkdirs()
     val fileName = "/swap/onebot/upload/${UUID.random()}"
     val file = File(fileName)
@@ -45,8 +45,8 @@ suspend fun Attachment.toOneBotUploadApi(groupId: LongID, folder: StringID? = nu
     }
     file.deleteOnExit()
 
-    return LagrangeUploadGroupFile(
-        LagrangeUploadGroupFile.Body(
+    return CommonUploadGroupFile(
+        CommonUploadGroupFile.Body(
             groupId,
             fileName,
             name,

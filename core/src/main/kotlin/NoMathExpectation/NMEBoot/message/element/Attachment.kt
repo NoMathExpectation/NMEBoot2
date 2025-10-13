@@ -1,7 +1,6 @@
 package NoMathExpectation.NMEBoot.message.element
 
-import NoMathExpectation.NMEBoot.message.onebot.apiExt.LagrangeDeleteGroupFile
-import NoMathExpectation.NMEBoot.message.onebot.apiExt.LagrangeGetGroupFileUrl
+import NoMathExpectation.NMEBoot.message.onebot.apiExt.extApi
 import NoMathExpectation.NMEBoot.util.asMessages
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -78,9 +77,7 @@ class OneBotIncomingAttachment(
     override val name = fileInfo.name
 
     override suspend fun inputStream() = withContext(Dispatchers.IO) {
-        val api = LagrangeGetGroupFileUrl.create(groupId, fileInfo)
-        val result = bot.executeResult(api)
-        val url = result.data?.url ?: error("获取文件链接失败")
+        val url = bot.extApi.getGroupFileUrl(groupId, fileInfo)
 
         val response = downloadClient.get(url)
         if (!response.status.isSuccess()) {
@@ -90,9 +87,8 @@ class OneBotIncomingAttachment(
     }
 
     override suspend fun delete(vararg options: DeleteOption) {
-        val api = LagrangeDeleteGroupFile.create(groupId, fileInfo)
         runCatching {
-            bot.executeResult(api).dataOrThrow
+            bot.extApi.deleteGroupFile(groupId, fileInfo)
         }.onFailure {
             if (StandardDeleteOption.IGNORE_ON_FAILURE !in options) {
                 throw it

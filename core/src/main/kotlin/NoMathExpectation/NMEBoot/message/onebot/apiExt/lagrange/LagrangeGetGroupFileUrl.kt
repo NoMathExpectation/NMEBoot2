@@ -1,8 +1,7 @@
-package NoMathExpectation.NMEBoot.message.onebot.apiExt
+package NoMathExpectation.NMEBoot.message.onebot.apiExt.lagrange
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.serializer
 import love.forte.simbot.common.id.LongID
 import love.forte.simbot.common.id.StringID
 import love.forte.simbot.common.id.StringID.Companion.ID
@@ -10,20 +9,24 @@ import love.forte.simbot.component.onebot.v11.core.api.OneBotApi
 import love.forte.simbot.component.onebot.v11.core.api.OneBotApiResult
 import love.forte.simbot.component.onebot.v11.event.notice.RawGroupUploadEvent
 
-class LagrangeDeleteGroupFile(
+class LagrangeGetGroupFileUrl(
     override val body: Body
-) : OneBotApi<Unit> {
+) : OneBotApi<LagrangeGetGroupFileUrl.Result> {
     override val action = ACTION
-    override val resultDeserializer = Unit.serializer()
+    override val resultDeserializer = Result.serializer()
     override val apiResultDeserializer = RES_SER
 
     companion object {
-        const val ACTION = "delete_group_file"
-        val RES_SER = OneBotApiResult.emptySerializer()
+        const val ACTION = "get_group_file_url"
+        val RES_SER = OneBotApiResult.serializer(Result.serializer())
 
-        fun create(groupId: LongID, fileInfo: RawGroupUploadEvent.FileInfo): LagrangeDeleteGroupFile {
-            return LagrangeDeleteGroupFile(Body(groupId, fileInfo.id.toString().ID))
-        }
+        fun create(groupId: LongID, fileInfo: RawGroupUploadEvent.FileInfo) = LagrangeGetGroupFileUrl(
+            Body(
+                groupId,
+                fileInfo.id.toString().ID,
+                fileInfo.busid,
+            )
+        )
     }
 
     @Serializable
@@ -32,5 +35,12 @@ class LagrangeDeleteGroupFile(
         val groupId: LongID,
         @SerialName("file_id")
         val fileId: StringID,
+        @SerialName("busid")
+        val busId: Long,
+    )
+
+    @Serializable
+    data class Result(
+        val url: String,
     )
 }

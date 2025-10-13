@@ -1,0 +1,44 @@
+networks:
+  nmenet:
+volumes:
+  napcat:
+  napcat_qq:
+  nmeboot:
+  swap:
+services:
+  napcat:
+    image: mlikiowa/napcat-docker:latest
+    container_name: Napcat-Docker
+    volumes:
+      - napcat:/app/napcat/config
+      - napcat_qq:/app/.config/QQ
+      - swap:/swap
+    networks:
+      - nmenet
+    restart: always
+    tty: true
+  scripting:
+    build: scripting
+    container_name: NMEBoot2.Scripting
+    volumes:
+      - nmeboot-scripting:/app
+      - swap:/swap
+    networks:
+      - nmenet
+    restart: always
+    tty: true
+    stdin_open: false
+  nmeboot:
+    depends_on:
+      - napcat
+      - scripting
+    build: core
+    container_name: NMEBoot2
+    volumes:
+      - nmeboot:/app
+      - swap:/swap
+    networks:
+      - nmenet
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
