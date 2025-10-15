@@ -1,7 +1,7 @@
 plugins {
-    kotlin("jvm") version "2.1.0"
-    kotlin("plugin.serialization") version "2.1.0"
-    id("com.google.devtools.ksp") version "2.1.0-1.0.29"
+    kotlin("jvm") version "2.2.20"
+    kotlin("plugin.serialization") version "2.2.20"
+    id("com.google.devtools.ksp") version "2.2.10-2.0.2"
     application
 }
 
@@ -68,10 +68,10 @@ dependencies {
     implementation(project(":scripting-data"))
 
     // koin
-    val koinVersion = "4.0.2"
+    val koinVersion = "4.1.0"
     implementation(project.dependencies.platform("io.insert-koin:koin-bom:$koinVersion"))
     implementation("io.insert-koin:koin-core")
-    val koinAnnotationVersion = "1.4.0"
+    val koinAnnotationVersion = "2.1.0"
     implementation(project.dependencies.platform("io.insert-koin:koin-annotations-bom:$koinAnnotationVersion"))
     implementation("io.insert-koin:koin-annotations")
     ksp("io.insert-koin:koin-ksp-compiler:$koinAnnotationVersion")
@@ -92,6 +92,10 @@ tasks.test {
 
 kotlin {
     jvmToolchain(11)
+
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
 }
 
 application {
