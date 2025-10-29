@@ -5,6 +5,7 @@ import NoMathExpectation.NMEBoot.command.impl.command.admin.commandPermission
 import NoMathExpectation.NMEBoot.command.impl.command.admin.commandStop
 import NoMathExpectation.NMEBoot.command.impl.command.commandTransfer
 import NoMathExpectation.NMEBoot.command.impl.command.common.*
+import NoMathExpectation.NMEBoot.command.impl.command.custom.bitterBirds
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandChart
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandConvert
 import NoMathExpectation.NMEBoot.command.impl.command.rd.commandOffset
@@ -59,6 +60,7 @@ suspend fun initDispatcher() {
         commandEatShortcut()
 
         linSunForCat()
+        bitterBirds()
     }
 }
 
