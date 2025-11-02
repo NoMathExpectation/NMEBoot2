@@ -11,7 +11,7 @@ private val matchRegex = ".*真是一对苦命鸳鸯.*".toRegex()
 
 // requested by AQ_ly, to be moved after implementation of //alias
 suspend fun InsertableCommandNode<AnyExecuteContext>.bitterBirds() =
-    requiresPermission("command.custom.bitter_birds")
+    requiresPermission("command.custom.bitter_birds", silent = true)
         .onMatchRegex(matchRegex)
         .withMatchHelp("？？？")
         .executes("苦命鸳鸯") {

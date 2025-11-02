@@ -11,7 +11,7 @@ private val matchRegex = ".*林孙.*".toRegex()
 
 // requested by 林孙, to be moved after implementation of //alias
 suspend fun InsertableCommandNode<AnyExecuteContext>.linSunForCat() =
-    requiresPermission("command.rd.cat")
+    requiresPermission("command.rd.cat", silent = true)
         .onMatchRegex(matchRegex)
         .withMatchHelp("...林孙...")
         .executes("猫猫") {

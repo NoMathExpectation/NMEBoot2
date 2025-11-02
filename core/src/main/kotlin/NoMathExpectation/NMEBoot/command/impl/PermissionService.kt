@@ -146,13 +146,12 @@ class CommandPermissionDeniedException(val source: PermissionAware, val permissi
     override val showToUser = false
 }
 
-class CommandNotAvailableException() : CommandParseException("未知的指令。") {
-    override val showToUser = true
-}
+class CommandNotAvailableException(override val showToUser: Boolean = true) : CommandParseException("未知的指令。")
 
 class PermissionCheckCommandNode<S : PermissionAware> private constructor(
     val permission: String,
     val defaultPermissions: Map<String, Boolean?> = mapOf(),
+    val silent: Boolean = false,
     override var next: CommandNode<S> = commandNodeTodo(),
 ) : SingleNextCommandNode<S> {
     private suspend fun init() {
@@ -167,7 +166,7 @@ class PermissionCheckCommandNode<S : PermissionAware> private constructor(
         val exception = if (context.source.isDebug()) {
             CommandPermissionDeniedException(context.source, permission)
         } else {
-            CommandNotAvailableException()
+            CommandNotAvailableException(!silent)
         }
 
         ExecuteResult(
@@ -193,9 +192,10 @@ class PermissionCheckCommandNode<S : PermissionAware> private constructor(
     companion object {
         suspend operator fun <S : PermissionAware> invoke(
             permission: String,
-            defaultPermissions: Map<String, Boolean?> = mapOf()
+            defaultPermissions: Map<String, Boolean?> = mapOf(),
+            silent: Boolean = false,
         ) =
-            PermissionCheckCommandNode<S>(permission, defaultPermissions).also {
+            PermissionCheckCommandNode<S>(permission, defaultPermissions, silent).also {
                 it.init()
             }
     }
@@ -204,15 +204,17 @@ class PermissionCheckCommandNode<S : PermissionAware> private constructor(
 suspend fun <S : PermissionAware> InsertableCommandNode<S>.requiresPermission(
     permission: String,
     defaultPermissions: Map<String, Boolean?> = mapOf(),
+    silent: Boolean = false,
 ) =
-    PermissionCheckCommandNode<S>(permission, defaultPermissions).also {
+    PermissionCheckCommandNode<S>(permission, defaultPermissions, silent).also {
         insert(it)
     }
 
 suspend fun <S : PermissionAware> InsertableCommandNode<S>.requiresPermission(
     permission: String,
     vararg defaultPermissions: Pair<String, Boolean?>,
+    silent: Boolean = false,
 ) =
-    PermissionCheckCommandNode<S>(permission, defaultPermissions.toMap()).also {
+    PermissionCheckCommandNode<S>(permission, defaultPermissions.toMap(), silent).also {
         insert(it)
     }

@@ -108,7 +108,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandEat() =
 val shortcutRegex = "^(.*)吃什么[?？]?$".toRegex()
 
 suspend fun InsertableCommandNode<AnyExecuteContext>.commandEatShortcut() =
-    requiresPermission("command.common.eat")
+    requiresPermission("command.common.eat", silent = true)
         .onMatchRegex(shortcutRegex)
         .storeGroupValue(1, "pronoun")
         .withMatchHelp("...吃什么")
