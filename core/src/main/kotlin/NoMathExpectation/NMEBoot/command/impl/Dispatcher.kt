@@ -85,10 +85,10 @@ suspend fun <T> CommandSource<T>.executeCommand(
 
     exceptions = exceptions.filter { it is CommandExecuteException || it.showToUser }
     if (exceptions.isNotEmpty()) {
-        val debug = hasPermission("use.debug")
+        val debug = isDebug()
 
         val firstDisplayException = if (debug) exceptions.firstOrNull() else exceptions.firstOrNull { it.showToUser }
-        val firstDisplayMsg = firstDisplayException?.message ?: "未知错误"
+        val firstDisplayMsg = firstDisplayException?.messageToUser ?: "未知错误"
         val msg = when {
             debug && exceptions.size > 1 -> "运行指令时产生了${exceptions.size}个错误，第一个错误为 $firstDisplayMsg"
             debug -> firstDisplayMsg
@@ -98,3 +98,5 @@ suspend fun <T> CommandSource<T>.executeCommand(
         reply(msg)
     }
 }
+
+suspend fun PermissionAware.isDebug() = hasPermission("use.debug")

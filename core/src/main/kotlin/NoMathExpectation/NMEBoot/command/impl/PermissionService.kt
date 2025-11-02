@@ -146,6 +146,10 @@ class CommandPermissionDeniedException(val source: PermissionAware, val permissi
     override val showToUser = false
 }
 
+class CommandNotAvailableException() : CommandParseException("未知的指令。") {
+    override val showToUser = true
+}
+
 class PermissionCheckCommandNode<S : PermissionAware> private constructor(
     val permission: String,
     val defaultPermissions: Map<String, Boolean?> = mapOf(),
@@ -160,11 +164,17 @@ class PermissionCheckCommandNode<S : PermissionAware> private constructor(
     override suspend fun execute(context: CommandContext<S>) = if (context.source.hasPermission(permission)) {
         next.execute(context)
     } else {
+        val exception = if (context.source.isDebug()) {
+            CommandPermissionDeniedException(context.source, permission)
+        } else {
+            CommandNotAvailableException()
+        }
+
         ExecuteResult(
             context.source,
             0,
             1,
-            exceptions = listOf(CommandPermissionDeniedException(context.source, permission))
+            exceptions = listOf(exception)
         )
     }
 

@@ -7,6 +7,8 @@ sealed class CommandException : RuntimeException {
     constructor(message: String, throwable: Throwable) : super(message, throwable)
 
     open val showToUser = false
+
+    val messageToUser get() = message
 }
 
 open class CommandParseException : CommandException {
