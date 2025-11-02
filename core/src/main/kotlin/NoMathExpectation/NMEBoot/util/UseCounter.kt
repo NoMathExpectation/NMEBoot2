@@ -1,9 +1,17 @@
+@file:OptIn(ExperimentalTime::class)
+
 package NoMathExpectation.NMEBoot.util
 
-import kotlinx.datetime.*
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @Serializable
 sealed class UseCounter() {
@@ -61,7 +69,7 @@ class FixedDelayUseCounter(
 
 @Serializable
 @SerialName("fixed-rate-use-counter")
-class FixedRateUseCounter constructor(
+class FixedRateUseCounter(
     override var useCount: Int,
     val rate: Duration,
     override var nextRefresh: LocalDateTime = Clock.System.now().toLocalDateTime()
@@ -87,7 +95,7 @@ class FixedRateUseCounter constructor(
             return FixedRateUseCounter(
                 useCount,
                 Duration.parse("1d"),
-                LocalDateTime(now.year, now.month, now.dayOfMonth, 0, 0, 0, 0)
+                LocalDateTime(now.year, now.month, now.day, 0, 0, 0, 0)
             )
         }
     }
