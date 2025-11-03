@@ -44,6 +44,7 @@ suspend fun initDispatcher() {
                 commandEval()
                 commandMCChat()
                 commandDraw()
+                commandSql()
 
                 //rd
                 commandChart()

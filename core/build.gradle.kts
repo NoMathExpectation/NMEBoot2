@@ -77,12 +77,13 @@ dependencies {
     ksp("io.insert-koin:koin-ksp-compiler:$koinAnnotationVersion")
 
     // exposed
-    val exposedVersion = "0.60.0"
+    val exposedVersion = "1.0.0-rc-2"
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
     implementation("org.xerial:sqlite-jdbc:3.49.1.0")
+    implementation("org.postgresql:postgresql:42.7.3")
     implementation("com.zaxxer:HikariCP:6.3.0")
 }
 

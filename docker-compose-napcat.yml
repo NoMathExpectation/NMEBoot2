@@ -5,6 +5,7 @@ volumes:
   napcat_qq:
   nmeboot:
   swap:
+  sql-playground:
 services:
   napcat:
     image: mlikiowa/napcat-docker:latest
@@ -28,10 +29,21 @@ services:
     restart: always
     tty: true
     stdin_open: false
+  sql-playground:
+    build: sql-playground
+    container_name: NMEBoot2.SQLPlayground
+    networks:
+      - nmenet
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: CHANGE_ME
+    volumes:
+      - sql-playground:/var/lib/postgresql
   nmeboot:
     depends_on:
       - napcat
       - scripting
+      - sql-playground
     build: core
     container_name: NMEBoot2
     volumes:

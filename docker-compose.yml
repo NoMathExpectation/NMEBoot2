@@ -4,6 +4,7 @@ volumes:
   lagrange:
   nmeboot:
   swap:
+  sql-playground:
 services:
   lagrange:
     image: ghcr.io/lagrangedev/lagrange.onebot:edge
@@ -26,10 +27,21 @@ services:
     restart: always
     tty: true
     stdin_open: false
+  sql-playground:
+    build: sql-playground
+    container_name: NMEBoot2.SQLPlayground
+    networks:
+      - nmenet
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: CHANGE_ME
+    volumes:
+      - sql-playground:/var/lib/postgresql
   nmeboot:
     depends_on:
       - lagrange
       - scripting
+      - sql-playground
     build: core
     container_name: NMEBoot2
     volumes:
