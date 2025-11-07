@@ -29,7 +29,7 @@ internal suspend fun handleEvent(event: Event) {
 
 internal suspend fun logEvent(event: Event) {
     if (event !is MessageEvent) {
-        logger.debug { event }
+        logger.info { event }
         return
     }
 
