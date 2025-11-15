@@ -2,14 +2,13 @@ package NoMathExpectation.NMEBoot.bot
 
 import NoMathExpectation.NMEBoot.command.impl.command.common.MCChat
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
-import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
+import NoMathExpectation.NMEBoot.command.impl.source.*
+import NoMathExpectation.NMEBoot.message.*
+import NoMathExpectation.NMEBoot.message.event.CommandSourcePostSendEvent
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
-import NoMathExpectation.NMEBoot.message.removeReferencePrefix
-import NoMathExpectation.NMEBoot.message.standardize
-import NoMathExpectation.NMEBoot.message.toReadableStringWithCICode
-import NoMathExpectation.NMEBoot.message.toSerialized
 import NoMathExpectation.NMEBoot.util.nickOrName
 import io.github.oshai.kotlinlogging.KotlinLogging
+import love.forte.simbot.component.onebot.v11.core.event.meta.OneBotHeartbeatEvent
 import love.forte.simbot.component.onebot.v11.core.event.notice.OneBotGroupUploadEvent
 import love.forte.simbot.event.*
 
@@ -28,8 +27,16 @@ internal suspend fun handleEvent(event: Event) {
 }
 
 internal suspend fun logEvent(event: Event) {
-    if (event !is MessageEvent) {
-        logger.info { event }
+    when (event) {
+        is OneBotHeartbeatEvent, is InternalMessagePreSendEvent -> return
+        is InternalMessagePostSendEvent -> logPostSendMessage(event)
+        is MessageEvent -> logMessageEvent(event)
+        else -> logger.info { event }
+    }
+}
+
+private suspend fun logMessageEvent(event: MessageEvent) {
+    if (event.bot.isMe(event.authorId)) {
         return
     }
 
@@ -82,6 +89,56 @@ internal suspend fun logEvent(event: Event) {
     }
 }
 
+private suspend fun logPostSendMessage(event: InternalMessagePostSendEvent) {
+    if (event !is CommandSourcePostSendEvent<*>) {
+        return
+    }
+
+    val source = event.content
+    val msgString = event.message.message.toSerialized(event.target())
+    when (source) {
+        is GuildMemberCommandSource -> {
+            val globalSubject = source.globalSubject
+            val subject = source.subject
+            messageLogger.info {
+                "Bot.${source.bot.id}.tx [${globalSubject.name}(${globalSubject.id})][${subject.name}(${subject.id})] <- $msgString"
+            }
+        }
+
+        is ChatGroupMemberCommandSource -> {
+            val subject = source.subject
+            messageLogger.info {
+                "Bot.${source.bot.id}.tx [${subject.name}(${subject.id})] <- $msgString"
+            }
+        }
+
+        is MemberPrivateCommandSource -> {
+            val globalSubject = source.globalSubject
+            val subject = source.subject
+            messageLogger.info {
+                "Bot.${source.bot.id}.tx [${globalSubject.name}(${globalSubject.id})][private] ${subject.name}(${subject.id}) <- $msgString"
+            }
+        }
+
+        is ContactCommandSource -> {
+            val subject = source.subject
+            messageLogger.info {
+                "Bot.${source.bot.id}.tx [contact] ${subject.name}(${subject.id}) <- $msgString"
+            }
+        }
+
+        is ConsoleCommandSource -> {
+            // skip, since we already log console messages when sending
+        }
+
+        else -> messageLogger.info {
+            val globalSubject = source.globalSubject
+            val subject = source.subject
+            "Bot.${source.bot?.id}.tx [unknown(${globalSubject?.id})] <unknown>(${subject?.id}) <- $msgString"
+        }
+    }
+}
+
 internal suspend fun tryHandleCommand(event: Event) {
     if (event !is MessageEvent) {
         return
@@ -117,7 +174,7 @@ internal suspend fun tryNotifyMCServers(event: Event) {
         return
     }
 
-    content = if (content.startsWith("@broadcast")) {
+    content = (if (content.startsWith("@broadcast")) {
         content.removePrefix("@broadcast")
     } else if (content.startsWith("@bc")) {
         content.removePrefix("@bc")
@@ -125,7 +182,7 @@ internal suspend fun tryNotifyMCServers(event: Event) {
         content.removePrefix("@广播")
     } else {
         content
-    }.trimStart()
+    }).trimStart()
 
     if (event.authorId == event.bot.id /* && MCChat.checkEchoAndRemove(content) */) {
         return

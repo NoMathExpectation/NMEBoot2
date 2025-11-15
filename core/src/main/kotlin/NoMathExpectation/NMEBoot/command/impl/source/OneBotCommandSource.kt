@@ -52,7 +52,7 @@ private val logger = KotlinLogging.logger { }
 private suspend inline fun Message.sendByOneBot(
     bot: OneBotBot,
     subject: Actor,
-    sendBlock: (Message) -> MessageReceipt,
+    crossinline sendBlock: suspend (Message) -> MessageReceipt,
 ): MessageReceipt {
     require(subject is OneBotGroup || subject is OneBotFriend || subject is OneBotMember) {
         "subject must be OneBotGroup, OneBotFriend or OneBotMember"
@@ -142,16 +142,20 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
         }
 
         override suspend fun send(message: Message): MessageReceipt {
-            return message.sendByOneBot(bot, globalSubject) { subject.send(it) }
+            return sendAndBroadcast(message) { finalMessage ->
+                finalMessage.sendByOneBot(bot, globalSubject) { subject.send(it) }
+            }
         }
 
         override suspend fun reply(message: Message): MessageReceipt {
-            return message.sendByOneBot(bot, globalSubject) {
-                if (it.containsOneBotForward()) {
-                    return subject.send(it)
+            return sendAndBroadcast(message) { finalMessage ->
+                finalMessage.sendByOneBot(bot, globalSubject) {
+                    if (it.containsOneBotForward()) {
+                        subject.send(it)
+                    } else {
+                        origin.reply(it)
+                    }
                 }
-
-                return origin.reply(it)
             }
         }
 
@@ -195,7 +199,9 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
         }
 
         override suspend fun send(message: Message): MessageReceipt {
-            return message.sendByOneBot(bot, globalSubject) { subject.send(it) }
+            return sendAndBroadcast(message) { finalMessage ->
+                finalMessage.sendByOneBot(bot, globalSubject) { subject.send(it) }
+            }
         }
 
         override suspend fun reply(message: Message) = send(message)
@@ -238,16 +244,20 @@ interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>,
             get() = _uid ?: error("uid not initialized!")
 
         override suspend fun send(message: Message): MessageReceipt {
-            return message.sendByOneBot(bot, globalSubject) { subject.send(it) }
+            return sendAndBroadcast(message) { finalMessage ->
+                finalMessage.sendByOneBot(bot, globalSubject) { subject.send(it) }
+            }
         }
 
         override suspend fun reply(message: Message): MessageReceipt {
-            return message.sendByOneBot(bot, globalSubject) {
-                if (it.containsOneBotForward()) {
-                    return subject.send(it)
+            return sendAndBroadcast(message) { finalMessage ->
+                finalMessage.sendByOneBot(bot, globalSubject) {
+                    if (it.containsOneBotForward()) {
+                        subject.send(it)
+                    } else {
+                        origin.reply(it)
+                    }
                 }
-
-                return origin.reply(it)
             }
         }
 
@@ -291,7 +301,9 @@ interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>,
             get() = _uid ?: error("uid not initialized!")
 
         override suspend fun send(message: Message): MessageReceipt {
-            return message.sendByOneBot(bot, globalSubject) { subject.send(it) }
+            return sendAndBroadcast(message) { finalMessage ->
+                finalMessage.sendByOneBot(bot, globalSubject) { subject.send(it) }
+            }
         }
 
         override suspend fun reply(message: Message) = send(message)
@@ -337,16 +349,20 @@ interface OneBotFriendCommandSource<out T> : OneBotCommandSource<T>, ContactComm
         }
 
         override suspend fun send(message: Message): MessageReceipt {
-            return message.sendByOneBot(bot, subject) { subject.send(it) }
+            return sendAndBroadcast(message) { finalMessage ->
+                finalMessage.sendByOneBot(bot, subject) { subject.send(it) }
+            }
         }
 
         override suspend fun reply(message: Message): MessageReceipt {
-            return message.sendByOneBot(bot, subject) {
-                if (it.containsOneBotForward()) {
-                    return subject.send(it)
+            return sendAndBroadcast(message) { finalMessage ->
+                finalMessage.sendByOneBot(bot, subject) {
+                    if (it.containsOneBotForward()) {
+                        subject.send(it)
+                    } else {
+                        origin.reply(it)
+                    }
                 }
-
-                return origin.reply(it)
             }
         }
 
@@ -384,7 +400,9 @@ interface OneBotFriendCommandSource<out T> : OneBotCommandSource<T>, ContactComm
         }
 
         override suspend fun send(message: Message): MessageReceipt {
-            return message.sendByOneBot(bot, subject) { subject.send(it) }
+            return sendAndBroadcast(message) { finalMessage ->
+                finalMessage.sendByOneBot(bot, subject) { subject.send(it) }
+            }
         }
 
         override suspend fun reply(message: Message) = send(message)

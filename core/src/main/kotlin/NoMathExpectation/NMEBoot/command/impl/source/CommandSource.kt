@@ -1,11 +1,16 @@
 package NoMathExpectation.NMEBoot.command.impl.source
 
+import NoMathExpectation.NMEBoot.bot.simbotApplication
 import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
 import NoMathExpectation.NMEBoot.command.impl.PermissionServiceAware
 import NoMathExpectation.NMEBoot.command.impl.source.offline.OfflineCommandSource
 import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.on
+import NoMathExpectation.NMEBoot.message.event.CommandSourcePostSendEvent
+import NoMathExpectation.NMEBoot.message.event.CommandSourcePreSendEvent
+import NoMathExpectation.NMEBoot.message.message
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.flow.collect
 import love.forte.simbot.ability.DeleteOption
 import love.forte.simbot.ability.ReplySupport
 import love.forte.simbot.ability.SendSupport
@@ -13,6 +18,8 @@ import love.forte.simbot.ability.StandardDeleteOption
 import love.forte.simbot.bot.Bot
 import love.forte.simbot.common.id.IntID.Companion.ID
 import love.forte.simbot.definition.*
+import love.forte.simbot.event.InteractionMessage
+import love.forte.simbot.event.onEachError
 import love.forte.simbot.message.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.superclasses
@@ -62,7 +69,7 @@ interface CommandSource<out T> : PermissionServiceAware, SendSupport, ReplySuppo
             suspend fun buildFromAny(origin: Any) = (origin as? T)?.let { build(it) }
         }
 
-        private val logger = KotlinLogging.logger { }
+        internal val logger = KotlinLogging.logger { }
 
         private val registry: MutableMap<KClass<*>, CommandSourceBuilder<*, *>> = mutableMapOf()
 
@@ -110,6 +117,39 @@ interface CommandSource<out T> : PermissionServiceAware, SendSupport, ReplySuppo
 }
 
 suspend fun CommandSource<*>.toOfflineOrNull() = kotlin.runCatching { toOffline() }.getOrNull()
+
+suspend fun <T> CommandSource<T>.broadcastPreSendMessage(message: Message): Message {
+    val event = CommandSourcePreSendEvent(this, InteractionMessage.valueOf(message))
+    simbotApplication?.eventDispatcher?.push(event)?.onEachError {
+        CommandSource.logger.error(it.content) { "Exception while presending message: " }
+    }?.collect() ?: run {
+        CommandSource.logger.warn { "Application not started! Will not broadcast presend." }
+        return message
+    }
+    return event.currentMessage.message
+}
+
+suspend fun <T> CommandSource<T>.broadcastPostSendMessage(
+    message: Message,
+    receipt: MessageReceipt,
+) {
+    val event = CommandSourcePostSendEvent(this, InteractionMessage.valueOf(message), receipt)
+    simbotApplication?.eventDispatcher?.push(event)?.onEachError {
+        CommandSource.logger.error(it.content) { "Exception while postsending message: " }
+    }?.collect() ?: run {
+        CommandSource.logger.warn { "Application not started! Will not broadcast postsend." }
+    }
+}
+
+suspend inline fun <T, R : MessageReceipt> CommandSource<T>.sendAndBroadcast(
+    message: Message,
+    crossinline sendBlock: suspend (Message) -> R
+): R {
+    val finalMessage = broadcastPreSendMessage(message)
+    val receipt = sendBlock(finalMessage)
+    broadcastPostSendMessage(finalMessage, receipt)
+    return receipt
+}
 
 interface BotAwareCommandSource<out T> : CommandSource<T> {
     override val bot: Bot

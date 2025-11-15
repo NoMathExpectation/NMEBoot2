@@ -108,13 +108,17 @@ interface KookChannelCommandSource<out T> : KookCommandSource<T>, GuildMemberCom
         }
 
         override suspend fun send(message: Message): MessageReceipt {
-            val finalMessage = processMessage(message)
-            return subject.send(finalMessage)
+            return sendAndBroadcast(message) {
+                val finalMessage = processMessage(it)
+                subject.send(finalMessage)
+            }
         }
 
         override suspend fun reply(message: Message): MessageReceipt {
-            val finalMessage = processMessage(message)
-            return origin.reply(finalMessage)
+            return sendAndBroadcast(message) {
+                val finalMessage = processMessage(it)
+                origin.reply(finalMessage)
+            }
         }
 
         companion object {
@@ -169,8 +173,10 @@ interface KookChannelCommandSource<out T> : KookCommandSource<T>, GuildMemberCom
                 throw UnsupportedOperationException("Channel $channelId does not support sending messages!")
             }
 
-            val finalMessage = processMessage(message)
-            return subject.send(finalMessage)
+            return sendAndBroadcast(message) {
+                val finalMessage = processMessage(it)
+                subject.send(finalMessage)
+            }
         }
 
         override suspend fun reply(message: Message) = send(message)
@@ -213,13 +219,17 @@ interface KookPrivateCommandSource<out T> : KookCommandSource<T>, ContactCommand
         }
 
         override suspend fun send(message: Message): MessageReceipt {
-            val finalMessage = processMessage(message)
-            return executor.send(finalMessage)
+            return sendAndBroadcast(message) {
+                val finalMessage = processMessage(it)
+                executor.send(finalMessage)
+            }
         }
 
         override suspend fun reply(message: Message): MessageReceipt {
-            val finalMessage = processMessage(message)
-            return origin.reply(finalMessage)
+            return sendAndBroadcast(message) {
+                val finalMessage = processMessage(it)
+                origin.reply(finalMessage)
+            }
         }
 
         companion object {
@@ -256,8 +266,10 @@ interface KookPrivateCommandSource<out T> : KookCommandSource<T>, ContactCommand
         }
 
         override suspend fun send(message: Message): MessageReceipt {
-            val finalMessage = processMessage(message)
-            return executor.send(finalMessage)
+            return sendAndBroadcast(message) {
+                val finalMessage = processMessage(it)
+                executor.send(finalMessage)
+            }
         }
 
         override suspend fun reply(message: Message) = send(message)
