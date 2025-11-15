@@ -42,8 +42,9 @@ bin/
 .DS_Store
 
 ### config & data ###
+.idea/
 ./lagrange/
-./data/
-./config/
-./logs/
+**/data/
+**/config/
+**/logs/
 ./compose/
