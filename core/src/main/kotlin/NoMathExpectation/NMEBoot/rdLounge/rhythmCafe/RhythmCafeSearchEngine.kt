@@ -14,9 +14,6 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
-import love.forte.simbot.message.OfflineURIImage.Companion.toOfflineImage
-import love.forte.simbot.message.buildMessages
-import java.net.URI
 
 object RhythmCafeSearchEngine {
     private const val apiKey = "nicolebestgirl"
@@ -117,38 +114,7 @@ object RhythmCafeSearchEngine {
 //    fun getDescription(index: Int, from: Contact): MessageChain =
 //        runBlocking { RhythmCafeSearchEngine.getDescription(index, from) }
 
-    fun getDescription(index: Int) = buildMessages {
-        val level = currentSearch.hits[index - 1].document
-
-        +URI(level.image).toOfflineImage()
-
-        +"歌曲名: ${level.song}\n"
-
-        +"作曲家: ${level.artist}\n"
-
-        +"作者: ${level.authors.joinToString()}\n"
-
-        +"难度: ${level.getDifficulty()}\n"
-
-        if (level.seizure_warning) {
-            +"癫痫警告!\n"
-        }
-
-        +"同行评审: ${level.peerReviewed()}\n"
-
-        +"描述:\n${level.description}\n"
-
-        +"模式: "
-        if (level.single_player) {
-            +"1p "
-        }
-        if (level.two_player) {
-            +"2p "
-        }
-        +"\n"
-
-        +"标签: ${level.tags.joinToString()}"
-    }
+    fun getDescription(index: Int) = currentSearch.hits[index - 1].document.toDetailedMessage()
 
     suspend fun getPendingLevelCount() = httpClient.get(
         Request(
@@ -160,6 +126,7 @@ object RhythmCafeSearchEngine {
     fun sendHelp() = buildString {
         append("//chart...\n")
         append("help :显示此帮助\n")
+        append("random [peerReview] :随机获取一个谱面\n")
         append("search [text] [itemPerPage] [peerReview] :搜索谱面（有空格请用引号括起）\n")
         append("page <i> :将搜索结果翻到第i页\n")
         append("info <i> :显示当前页中第i个谱面的描述\n")

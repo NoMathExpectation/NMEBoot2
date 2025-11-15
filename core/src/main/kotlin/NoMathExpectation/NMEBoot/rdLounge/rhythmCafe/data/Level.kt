@@ -1,6 +1,9 @@
 package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data
 
 import kotlinx.serialization.Serializable
+import love.forte.simbot.message.OfflineURIImage.Companion.toOfflineImage
+import love.forte.simbot.message.buildMessages
+import java.net.URI
 
 @Serializable
 internal data class Level(
@@ -52,5 +55,38 @@ internal data class Level(
         in 0..9 -> "-"
         in 10..Int.MAX_VALUE -> "√"
         else -> approval.toString()
+    }
+
+    fun toDetailedMessage() = buildMessages {
+        +URI(image).toOfflineImage()
+
+        +"歌曲名: $song\n"
+
+        +"作曲家: $artist\n"
+
+        +"作者: ${authors.joinToString()}\n"
+
+        +"难度: ${getDifficulty()}\n"
+
+        if (seizure_warning) {
+            +"癫痫警告!\n"
+        }
+
+        +"同行评审: ${peerReviewed()}\n"
+
+        +"描述:\n$description\n"
+
+        +"模式: "
+        if (single_player) {
+            +"1p "
+        }
+        if (two_player) {
+            +"2p "
+        }
+        +"\n"
+
+        +"标签: ${tags.joinToString()}\n"
+
+        +url2
     }
 }

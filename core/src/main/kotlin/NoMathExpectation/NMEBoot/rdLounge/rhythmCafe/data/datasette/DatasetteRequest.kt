@@ -29,7 +29,7 @@ data class DatasetteRequest(
     val shape: DatasetteResultShape = DatasetteResultShape.ARRAY,
 ) {
     companion object {
-        private const val QUERY_SQL_PREFIX = "select id, artist, song, authors, approval from combined"
+        private const val QUERY_SQL_PREFIX = "select * from combined"
 
         fun ofPending(shape: DatasetteResultShape = DatasetteResultShape.ARRAY) = DatasetteRequest(
             "$QUERY_SQL_PREFIX where approval = 0",
@@ -44,5 +44,14 @@ data class DatasetteRequest(
                 ) { "'$it'" },
                 shape,
             )
+
+        fun ofRandom(
+            limit: Int = 1,
+            peerReview: Boolean = true,
+            shape: DatasetteResultShape = DatasetteResultShape.ARRAY
+        ) = DatasetteRequest(
+            "$QUERY_SQL_PREFIX ${if (peerReview) "where approval >= 10" else ""} order by random() limit $limit",
+            shape,
+        )
     }
 }

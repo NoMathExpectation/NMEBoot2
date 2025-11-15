@@ -7,6 +7,8 @@ import NoMathExpectation.NMEBoot.command.parser.node.*
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.PeerReviewNotifier
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.RhythmCafeSearchEngine
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.Request
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.DatasetteRequest
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.bodyToLevelStatusList
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger { }
@@ -24,6 +26,27 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                 literal("help", "h")
                     .executes("获取帮助") {
                         it.send(RhythmCafeSearchEngine.sendHelp())
+                    }
+
+                literal("random", "r")
+                    .optionallyCollectBoolean("peerReview")
+                    .executes("随机谱面") {
+                        val peerReview = getBoolean("peerReview") == true
+
+                        runCatching {
+                            val query = DatasetteRequest.ofRandom(1, peerReview)
+                            val level = RhythmCafeSearchEngine.datasetteQuery(query)
+                                .bodyToLevelStatusList()
+                                .firstOrNull() ?: run {
+                                it.reply("没有可以随机的谱面...")
+                                return@executes
+                            }
+
+                            it.send(level.toDetailedMessage())
+                        }.onFailure { ex ->
+                            logger.error(ex) { "随机谱面失败" }
+                            it.reply("请求失败")
+                        }
                     }
 
                 literal("search", "s")
