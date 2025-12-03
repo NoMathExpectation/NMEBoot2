@@ -10,6 +10,7 @@ import love.forte.simbot.definition.Actor
 import love.forte.simbot.message.*
 import love.forte.simbot.resource.toResource
 import org.koin.core.annotation.Single
+import java.net.URL
 
 @Single
 class ImageFormatter : MessageElementFormatter<Image> {
@@ -53,6 +54,15 @@ class ImageFormatter : MessageElementFormatter<Image> {
                         .toResource()
                 resource.toOfflineResourceImage()
             }
+            "url" -> {
+                val url = segments[2]
+                URL(url).toResource().toOfflineResourceImage()
+            }
+
+            "unknown" -> this::class.java
+                .getResource("/unknown.png")!!
+                .toResource()
+                .toOfflineResourceImage()
 
             else -> {
                 logger.warn { "Unknown image format: $segments" }

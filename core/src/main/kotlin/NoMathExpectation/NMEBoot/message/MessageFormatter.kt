@@ -2,8 +2,7 @@ package NoMathExpectation.NMEBoot.message
 
 import NoMathExpectation.NMEBoot.message.format.MessageElementFormatter
 import NoMathExpectation.NMEBoot.message.format.SerializedMessage
-import NoMathExpectation.NMEBoot.util.asMessages
-import NoMathExpectation.NMEBoot.util.koin
+import NoMathExpectation.NMEBoot.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotMessageSegmentElement
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotReply
@@ -17,15 +16,40 @@ object MessageFormatter {
         koin.koin.getAll<MessageElementFormatter<Message.Element>>()
     }
 
-    private fun String.escapeIdentifiers() =
-        replace("[", "\\[")
-            .replace("]", "\\]")
-            .replace(":", "\\:")
+    private fun String.escapeIdentifiers() = buildString {
+        this@escapeIdentifiers.forEach {
+            when (it) {
+                '[', ']', ':', ',', '\\' -> {
+                    append('\\')
+                    append(it)
+                }
 
-    private fun String.unescapeIdentifiers() =
-        replace("\\[", "[")
-            .replace("\\]", "]")
-            .replace("\\:", ":")
+                '\n' -> append("\\n")
+                '\r' -> append("\\r")
+                else -> append(it)
+            }
+        }
+    }
+
+    private fun String.unescapeIdentifiers() = buildString {
+        val reader = StringReader(this@unescapeIdentifiers)
+        while (!reader.isEnd) {
+            val char = reader.readChar()
+            if (char == '\\' && !reader.isEnd) {
+                when (val nextChar = reader.readChar()) {
+                    'n' -> append('\n')
+                    'r' -> append('\r')
+                    '[', ']', ':', ',', '\\' -> append(nextChar)
+                    else -> {
+                        append(char)
+                        append(nextChar)
+                    }
+                }
+            } else {
+                append(char)
+            }
+        }
+    }
 
     fun escapeMessageFormatIdentifiers(message: String): String {
         return message.escapeIdentifiers()
@@ -83,7 +107,7 @@ object MessageFormatter {
                 .toText()
         }
         val segments = element.removeSurrounding("[", "]")
-            .split(":")
+            .splitUnescaped(':')
             .map { it.unescapeIdentifiers() }
         if (segments.isEmpty()) {
             return "".toText()
@@ -99,47 +123,9 @@ object MessageFormatter {
     }
 
     suspend fun deserializeMessage(message: SerializedMessage, context: Actor? = null): Message {
-        return buildMessages {
-            var cursor = 0
-            var level = 0
-            var lastCursor = 0
-            while (cursor < message.length) {
-                val char = message[cursor]
-                val lastChar = message.getOrNull(cursor - 1)
-
-                if (level == 0) {
-                    if (char == '[' && lastChar != '\\') {
-                        if (cursor > lastCursor) {
-                            +deserializeMessageElement(message.substring(lastCursor, cursor), context)
-                        }
-                        level++
-                        lastCursor = cursor
-                    }
-                    cursor++
-                    continue
-                }
-
-                if (char == '[' && lastChar != '\\') {
-                    level++
-                    cursor++
-                    continue
-                }
-
-                if (char == ']' && lastChar != '\\') {
-                    if (--level <= 0) {
-                        +deserializeMessageElement(message.substring(lastCursor, cursor + 1), context)
-                        lastCursor = cursor + 1
-                    }
-                    cursor++
-                    continue
-                }
-
-                cursor++
-            }
-            if (cursor > lastCursor) {
-                +deserializeMessageElement(message.substring(lastCursor))
-            }
-        }
+        return message.splitByUnescapedPaired('[', ']')
+            .map { deserializeMessageElement(it, context) }
+            .toMessages()
     }
 }
 

@@ -21,6 +21,8 @@ object UIDManager {
             it.mappings.getOrPut(id) { it.nextAllocate++ }
         }
     }
+
+    suspend fun getAll() = data.get().mappings.toMap()
 }
 
 internal suspend fun CommandSource<*>.idToUid() = UIDManager.fromId(id)

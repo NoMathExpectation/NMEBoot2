@@ -19,7 +19,7 @@ class MessageFormatterTest {
     @Test
     fun test() = runTest {
         val string =
-            "123[at:user:456]789[atAll][image:id:123][ref:456]789[emoji:123][face:456]\\]789\\[123[unknown[]element\\[\\]type]456"
+            "123[at:user:456]789[atAll][image:id:123][ref:456]789[emoji:123][face:456]\\]789\\[123[unknown[]element\\[\\]type]456[]"
         val expected = buildMessages {
             +"123"
             +At(456.ID)
@@ -33,6 +33,7 @@ class MessageFormatterTest {
             +"]789[123"
             +""
             +"456"
+            +""
         }
 
         val actual = string.deserializeToMessage()

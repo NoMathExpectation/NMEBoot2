@@ -61,14 +61,73 @@ class StringReader(
         return string.substring(start, next)
     }
 
-    fun readUntil(char: Char): String? {
+    fun readUntil(char: Char, includeEndChar: Boolean = false): String? {
         if (isEnd) {
             return null
         }
         val start = next
         val end = string.indexOf(char, start)
-        next = if (end == -1) string.length else end + 1
+        next = if (end == -1) string.length else if (includeEndChar) end + 1 else end
         return string.substring(start, next)
+    }
+
+    fun readLine(): String? {
+        return readUntil('\n', includeEndChar = true)
+    }
+
+    fun readUntilUnescaped(char: Char, includeEndChar: Boolean = false, escapeChar: Char = '\\'): String? {
+        if (isEnd) {
+            return null
+        }
+        val start = next
+        var cur = start
+        while (!isEnd(cur)) {
+            val c = this[cur] ?: break
+            if (c == char && !string.isEscapedAt(cur, escapeChar)) {
+                break
+            }
+            cur++
+        }
+        if (includeEndChar) {
+            cur++
+        }
+        next = min(cur, string.length)
+        return string.substring(start, next)
+    }
+
+    fun readUnescapedPaired(
+        leftChar: Char,
+        rightChar: Char,
+        includeBounds: Boolean = true,
+        escapeChar: Char = '\\'
+    ): String? {
+        if (isEnd) {
+            return null
+        }
+        val startIndex = next
+        if (peekChar() != leftChar || string.isEscapedAt(next, escapeChar)) {
+            return null
+        }
+        var depth = 1
+        var cur = next + 1
+        while (!isEnd(cur)) {
+            val c = this[cur] ?: break
+            if (c == leftChar && !string.isEscapedAt(cur, escapeChar)) {
+                depth++
+            } else if (c == rightChar && !string.isEscapedAt(cur, escapeChar)) {
+                depth--
+                if (depth == 0) {
+                    next = cur + 1
+                    return if (includeBounds) {
+                        string.substring(startIndex, next)
+                    } else {
+                        string.substring(startIndex + 1, cur)
+                    }
+                }
+            }
+            cur++
+        }
+        return null
     }
 
     val nextWordIndex: Int?

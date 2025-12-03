@@ -6,6 +6,7 @@ import NoMathExpectation.NMEBoot.command.impl.command.common.MCChat
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.initDispatcher
 import NoMathExpectation.NMEBoot.command.impl.source.ConsoleCommandSource
+import NoMathExpectation.NMEBoot.database.DatabaseManager
 import NoMathExpectation.NMEBoot.message.ResourceCache
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.PeerReviewNotifier
 import NoMathExpectation.NMEBoot.util.startKoinApplication
@@ -34,6 +35,8 @@ suspend fun main() {
     Path("data").createDirectories()
 
     startKoinApplication()
+
+    DatabaseManager.init()
 
     ResourceCache.launchRoutine()
 
