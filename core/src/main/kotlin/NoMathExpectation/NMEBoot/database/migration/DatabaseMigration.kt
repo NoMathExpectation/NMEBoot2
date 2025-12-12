@@ -163,7 +163,7 @@ object DatabaseMigration {
         "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}) INFO {2}Messages - Bot\\.(.*?)\\.([rt]x) (?:\\[(.*?)\\((\\d*?)\\)])?(?:\\[(.*?)\\((\\d*?)\\)])?(?:\\[(private|contact|unknown)])? (?:(.*?)\\((\\d*?)\\) )?(?:->|<-) (.*?)$".toRegex(
             RegexOption.DOT_MATCHES_ALL
         )
-    private val atRegex = "@(\\d+)".toRegex()
+    private val atRegex = "(?<!Script)@(\\d+)".toRegex()
     private val numberRegex = "\\d+".toRegex()
     private val lettersRegex = "[a-zA-Z]+".toRegex()
     private val timeFormat = LocalDateTime.Format {
