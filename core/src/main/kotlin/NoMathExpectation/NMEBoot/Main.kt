@@ -7,6 +7,7 @@ import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.initDispatcher
 import NoMathExpectation.NMEBoot.command.impl.source.ConsoleCommandSource
 import NoMathExpectation.NMEBoot.database.DatabaseManager
+import NoMathExpectation.NMEBoot.database.migration.DatabaseMigration
 import NoMathExpectation.NMEBoot.message.ResourceCache
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.PeerReviewNotifier
 import NoMathExpectation.NMEBoot.util.startKoinApplication
@@ -37,6 +38,7 @@ suspend fun main() {
     startKoinApplication()
 
     DatabaseManager.init()
+    DatabaseMigration.checkMigration()
 
     ResourceCache.launchRoutine()
 

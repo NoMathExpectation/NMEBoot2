@@ -1,8 +1,11 @@
+@file:OptIn(ExperimentalTime::class)
+
 package NoMathExpectation.NMEBoot.bot
 
 import NoMathExpectation.NMEBoot.command.impl.command.common.MCChat
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.source.*
+import NoMathExpectation.NMEBoot.database.message.MessageHistory
 import NoMathExpectation.NMEBoot.message.*
 import NoMathExpectation.NMEBoot.message.event.CommandSourcePostSendEvent
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
@@ -11,27 +14,41 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.component.onebot.v11.core.event.meta.OneBotHeartbeatEvent
 import love.forte.simbot.component.onebot.v11.core.event.notice.OneBotGroupUploadEvent
 import love.forte.simbot.event.*
+import kotlin.time.ExperimentalTime
 
 private val logger = KotlinLogging.logger { }
+internal val eventLogger = KotlinLogging.logger("Events")
 internal val messageLogger = KotlinLogging.logger("Messages")
 
 internal suspend fun handleEvent(event: Event) {
-    logEvent(event)
+    val source = CommandSource.get(event)
+    logEvent(event, source)
 
     if (event is OneBotGroupUploadEvent) {
         OneBotFileCache.record(event)
     }
 
     tryNotifyMCServers(event)
-    tryHandleCommand(event)
+
+    source?.let {
+        tryHandleCommand(event, it)
+    }
 }
 
-internal suspend fun logEvent(event: Event) {
+internal suspend fun logEvent(event: Event, source: CommandSource<*>?) {
     when (event) {
         is OneBotHeartbeatEvent, is InternalMessagePreSendEvent -> return
-        is InternalMessagePostSendEvent -> logPostSendMessage(event)
-        is MessageEvent -> logMessageEvent(event)
-        else -> logger.info { event }
+        is InternalMessagePostSendEvent -> {
+            logPostSendMessage(event)
+            MessageHistory.logPostSendMessage(event)
+        }
+
+        is MessageEvent -> {
+            logMessageEvent(event)
+            MessageHistory.logMessage(event, source)
+        }
+
+        else -> eventLogger.info { event }
     }
 }
 
@@ -91,6 +108,7 @@ private suspend fun logMessageEvent(event: MessageEvent) {
 
 private suspend fun logPostSendMessage(event: InternalMessagePostSendEvent) {
     if (event !is CommandSourcePostSendEvent<*>) {
+        logger.warn { "Message sent through unexpected way: $event" }
         return
     }
 
@@ -139,12 +157,11 @@ private suspend fun logPostSendMessage(event: InternalMessagePostSendEvent) {
     }
 }
 
-internal suspend fun tryHandleCommand(event: Event) {
+internal suspend fun tryHandleCommand(event: Event, source: CommandSource<*>) {
     if (event !is MessageEvent) {
         return
     }
 
-    val source = CommandSource.get(event) ?: return
     val actor = (event as? ActorEvent)?.content()
     val text = event.messageContent.messages.standardize().removeReferencePrefix().toSerialized(actor)
 

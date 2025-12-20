@@ -7,10 +7,14 @@ import NoMathExpectation.NMEBoot.message.escapeMessageFormatIdentifiers
 import NoMathExpectation.NMEBoot.user.UIDManager
 import NoMathExpectation.NMEBoot.util.splitByUnescapedPaired
 import NoMathExpectation.NMEBoot.util.splitUnescaped
+import NoMathExpectation.NMEBoot.util.storageOf
 import NoMathExpectation.NMEBoot.util.toInstant
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.*
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.format.char
+import kotlinx.serialization.Serializable
+import love.forte.simbot.common.atomic.atomic
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.nio.file.Path
@@ -20,8 +24,78 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-object DatabaseMigration {
+object DatabaseMigration : CoroutineScope by CoroutineScope(Dispatchers.IO) + CoroutineName("DatabaseMigration") {
     private val logger = KotlinLogging.logger { }
+
+    @Serializable
+    private data class Config(
+        var enableMigration: Boolean = false,
+        val legacyJdbcUrl: String = "jdbc:sqlite:data/legacy_sqlite.db",
+        val miraiBotId: Long = 0,
+        val botIdToSenderId: Map<String, String> = mapOf(),
+        val idsToBeAddedToUid: List<String> = listOf(),
+    )
+
+    private val config = storageOf("config/database_migration.json", Config())
+
+    internal val isMigrating = atomic(false)
+    internal val migrationFailed = atomic(false)
+
+    suspend fun getMigrationEnabled(): Boolean {
+        return config.get().enableMigration
+    }
+
+    @OptIn(ExperimentalPathApi::class)
+    suspend fun checkMigration() {
+        if (!config.get().enableMigration) {
+            return
+        }
+
+        launch {
+            logger.info { "Starting database migration..." }
+            isMigrating.getAndSet(true)
+
+            DatabaseManager.makeBackup()
+
+            runCatching {
+                val logPath = Path("logs")
+                val tempLogPath = Path("data/temp/logs")
+                tempLogPath.toFile().deleteOnExit()
+
+                logger.info { "Copying logs to temp folder..." }
+                logPath.copyToRecursively(
+                    tempLogPath.createParentDirectories(),
+                    { _, _, e -> throw e },
+                    followLinks = true,
+                    overwrite = true
+                )
+
+                config.referenceUpdate { cfg ->
+                    if (!cfg.enableMigration) {
+                        return@referenceUpdate
+                    }
+
+                    val (_, legacyJdbcUrl, miraiBotId, botIdToSenderId, idsToBeAddedToUid) = cfg
+
+                    migrateLegacyMessageHistory(legacyJdbcUrl, miraiBotId)
+
+                    idsToBeAddedToUid.forEach { UIDManager.fromId(it) }
+                    migrateConsoleLogMessageHistory(botIdToSenderId)
+
+                    cfg.enableMigration = false
+                    logger.info { "Handling cached messages during migration..." }
+                    MessageHistory.handleCachedMessages()
+                }
+            }.onFailure {
+                migrationFailed.getAndSet(true)
+                isMigrating.getAndSet(false)
+                logger.error(it) { "Migration failed!" }
+                return@launch
+            }
+
+            logger.info { "Migration done." }
+        }
+    }
 
     private fun updateLegacyMessage(message: String): String {
         return message
@@ -68,7 +142,7 @@ object DatabaseMigration {
                     }
 
                     else -> {
-                        logger.warn { "Unknown message type: $it" }
+                        logger.debug { "Unknown message type: $it" }
                         it
                     }
                 }
@@ -330,7 +404,7 @@ object DatabaseMigration {
                         "图片" -> listOf("image", "unknown")
                         "表情" -> listOf("face", segments.getOrNull(1) ?: "unknown")
                         else -> run {
-                            logger.warn { "Unknown message type: $it" }
+                            logger.debug { "Unknown message type: $it" }
                             segments
                         }
                     }
@@ -401,17 +475,7 @@ object DatabaseMigration {
     suspend fun migrateConsoleLogMessageHistory(botIdToSenderId: Map<String, String>) {
         val uidMap = UIDManager.getAll()
 
-        val logPath = Path("logs")
         val tempLogPath = Path("data/temp/logs")
-        tempLogPath.toFile().deleteOnExit()
-
-        logger.info { "Copying logs to temp folder..." }
-        logPath.copyToRecursively(
-            tempLogPath.createParentDirectories(),
-            { _, _, e -> throw e },
-            followLinks = true,
-            overwrite = true
-        )
 
         tempLogPath.walk(PathWalkOption.FOLLOW_LINKS).forEach {
             transaction(DatabaseManager.mainDatabase) {

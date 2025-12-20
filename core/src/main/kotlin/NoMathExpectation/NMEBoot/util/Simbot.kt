@@ -1,11 +1,9 @@
 package NoMathExpectation.NMEBoot.util
 
+import love.forte.simbot.common.id.ID
 import love.forte.simbot.common.time.Timestamp
-import love.forte.simbot.definition.Member
-import love.forte.simbot.definition.User
-import love.forte.simbot.message.Message
-import love.forte.simbot.message.Messages
-import love.forte.simbot.message.messagesOf
+import love.forte.simbot.definition.*
+import love.forte.simbot.message.*
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -20,3 +18,19 @@ fun Message.asMessages() = when (this) {
 
 @OptIn(ExperimentalTime::class)
 val Timestamp.instant get() = Instant.fromEpochMilliseconds(milliseconds)
+
+val Actor.name: String?
+    get() = when (this) {
+        is User -> nickOrName
+        is Channel -> name
+        is ChatRoom -> name
+        is Organization -> name
+        else -> null
+    }
+
+val MessageReceipt.ids: List<ID>?
+    get() = when (this) {
+        is SingleMessageReceipt -> listOf(id)
+        is AggregatedMessageReceipt -> map { it.id }
+        else -> null
+    }
