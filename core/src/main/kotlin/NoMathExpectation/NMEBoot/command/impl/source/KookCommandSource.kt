@@ -71,6 +71,10 @@ interface KookChannelCommandSource<out T> : KookCommandSource<T>, GuildMemberCom
     override val roles: List<KookMemberRole>
         get() = executor.roles.toList()
 
+    override suspend fun botAsSource(): KookChannelCommandSource<*> {
+        return Data.invoke(bot.id, globalSubject.id, subject.id, bot.id)
+    }
+
     override suspend fun isBotModerator() = hasPermission(adminPermission) || globalSubject.owner().id == executor.id
 
     override suspend fun toOffline() = OfflineKookChannelCommandSource(
@@ -198,6 +202,10 @@ interface KookPrivateCommandSource<out T> : KookCommandSource<T>, ContactCommand
     override val globalSubject get() = null
     override val subject: KookUserChat get() = executor
     override val executor: KookUserChat
+
+    override suspend fun botAsSource(): KookPrivateCommandSource<*> {
+        return Data.invoke(bot.id, bot.id)
+    }
 
     override suspend fun toOffline() = OfflineKookPrivateCommandSource(bot.id, executor.id)
 

@@ -176,6 +176,7 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
             try {
                 val source = event.content
                 val msgString = event.message.message.toSerialized(event.target())
+                val botSource = source.botAsSource()
 
                 transaction {
                     new {
@@ -188,9 +189,9 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
                         subjectId = source.subject?.id?.toString()
                         subjectName = source.subject?.name
 
-                        senderId = source.executor?.id?.toString() ?: "unknown"
-                        senderUid = source.uid
-                        senderName = source.executor?.nickOrName ?: "unknown"
+                        senderId = botId ?: "unknown"
+                        senderUid = botSource?.uid ?: -1
+                        senderName = botSource?.executor?.nickOrName ?: "unknown"
 
                         messageId = when (val receipt = event.receipt) {
                             is SingleMessageReceipt -> receipt.id.toString()

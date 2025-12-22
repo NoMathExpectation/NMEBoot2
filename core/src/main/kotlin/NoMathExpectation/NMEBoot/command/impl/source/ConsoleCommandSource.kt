@@ -20,6 +20,8 @@ object ConsoleCommandSource : CommandSource<Nothing?> {
 
     private val logger = KotlinLogging.logger("Console")
 
+    override suspend fun botAsSource() = null
+
     override suspend fun send(message: Message): MessageReceipt {
         val text = message.toReadableString(globalSubject)
         logger.info { text }

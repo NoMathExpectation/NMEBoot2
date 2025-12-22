@@ -41,6 +41,8 @@ interface CommandSource<out T> : PermissionServiceAware, SendSupport, ReplySuppo
 
     val bot: Bot?
 
+    suspend fun botAsSource(): CommandSource<*>?
+
     val globalSubject: Organization?
     val globalSubjectPermissionId: String?
 
@@ -154,6 +156,8 @@ suspend inline fun <T, R : MessageReceipt> CommandSource<T>.sendAndBroadcast(
 
 interface BotAwareCommandSource<out T> : CommandSource<T> {
     override val bot: Bot
+
+    override suspend fun botAsSource(): BotAwareCommandSource<*>
 }
 
 interface UserCommandSource<out T> : CommandSource<T>, BotAwareCommandSource<T> {

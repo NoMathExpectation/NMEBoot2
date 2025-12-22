@@ -130,6 +130,10 @@ interface OneBotGroupMemberCommandSource<out T> : OneBotCommandSource<T>, ChatGr
     override val subject: OneBotGroup
     override val executor: OneBotMember
 
+    override suspend fun botAsSource(): OneBotGroupMemberCommandSource<*> {
+        return Data.invoke(bot.id, subject.id, bot.id)
+    }
+
     override suspend fun isBotModerator() = hasPermission(adminPermission) || executor.role?.isAdmin == true
 
     override suspend fun toOffline() = OfflineOneBotGroupMemberCommandSource(bot.id, subject.id, executor.id)
@@ -237,6 +241,10 @@ interface OneBotGroupMemberPrivateCommandSource<out T> : OneBotCommandSource<T>,
     override val permissionIds: List<String>
         get() = listOf(primaryPermissionId, id, subjectPermissionId, globalSubjectPermissionId, platform)
 
+    override suspend fun botAsSource(): OneBotGroupMemberPrivateCommandSource<*> {
+        return Data.invoke(bot.id, subject.id, bot.id)
+    }
+
     override suspend fun isBotModerator() = hasPermission(adminPermission) || executor.role?.isAdmin == true
 
     override suspend fun toOffline() =
@@ -343,6 +351,10 @@ interface OneBotFriendCommandSource<out T> : OneBotCommandSource<T>, ContactComm
 
     override val permissionIds: List<String>
         get() = listOf(primaryPermissionId, id, subjectPermissionId, platform)
+
+    override suspend fun botAsSource(): OneBotFriendCommandSource<*> {
+        return Data.invoke(bot.id, bot.id)
+    }
 
     override suspend fun toOffline() = OfflineOneBotFriendCommandSource(bot.id, executor.id)
 

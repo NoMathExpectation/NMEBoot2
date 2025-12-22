@@ -1,11 +1,14 @@
 package NoMathExpectation.NMEBoot.util
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.common.id.ID
 import love.forte.simbot.common.time.Timestamp
 import love.forte.simbot.definition.*
 import love.forte.simbot.message.*
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
+
+private val logger = KotlinLogging.logger { }
 
 val User.nickOrName: String
     get() = (this as? Member)?.nick ?: name
@@ -32,5 +35,8 @@ val MessageReceipt.ids: List<ID>?
     get() = when (this) {
         is SingleMessageReceipt -> listOf(id)
         is AggregatedMessageReceipt -> map { it.id }
-        else -> null
+        else -> run {
+            logger.warn { "Cannot resolve ids for message receipt: $this" }
+            null
+        }
     }
