@@ -3,6 +3,7 @@
 package NoMathExpectation.NMEBoot.bot
 
 import NoMathExpectation.NMEBoot.command.impl.command.common.MCChat
+import NoMathExpectation.NMEBoot.command.impl.command.common.pokeEventForHistory
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.source.*
 import NoMathExpectation.NMEBoot.database.message.MessageHistory
@@ -12,6 +13,7 @@ import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
 import NoMathExpectation.NMEBoot.util.nickOrName
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.component.onebot.v11.core.event.meta.OneBotHeartbeatEvent
+import love.forte.simbot.component.onebot.v11.core.event.notice.OneBotBotSelfPokeEvent
 import love.forte.simbot.component.onebot.v11.core.event.notice.OneBotGroupUploadEvent
 import love.forte.simbot.event.*
 import kotlin.time.ExperimentalTime
@@ -29,6 +31,11 @@ internal suspend fun handleEvent(event: Event) {
     }
 
     tryNotifyMCServers(event)
+
+    if (event is OneBotBotSelfPokeEvent) {
+        pokeEventForHistory(event)
+        return
+    }
 
     source?.let {
         tryHandleCommand(event, it)
@@ -108,7 +115,6 @@ private suspend fun logMessageEvent(event: MessageEvent) {
 
 private suspend fun logPostSendMessage(event: InternalMessagePostSendEvent) {
     if (event !is CommandSourcePostSendEvent<*>) {
-        logger.warn { "Message sent through unexpected way: $event" }
         return
     }
 

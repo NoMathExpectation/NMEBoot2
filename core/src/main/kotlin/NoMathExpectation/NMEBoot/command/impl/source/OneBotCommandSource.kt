@@ -28,6 +28,7 @@ import love.forte.simbot.component.onebot.v11.core.bot.OneBotBotManager
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotFriendMessageEvent
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotGroupPrivateMessageEvent
 import love.forte.simbot.component.onebot.v11.core.event.message.OneBotNormalGroupMessageEvent
+import love.forte.simbot.component.onebot.v11.core.event.notice.OneBotPokeEvent
 import love.forte.simbot.definition.Actor
 import love.forte.simbot.definition.User
 import love.forte.simbot.message.Message
@@ -45,6 +46,20 @@ interface OneBotCommandSource<out T> : CommandSource<T>, BotAwareCommandSource<T
 
     override val platform: String
         get() = "onebot"
+
+    companion object {
+        suspend fun ofPokeEvent(pokeEvent: OneBotPokeEvent): OneBotCommandSource<User> {
+            val botId = pokeEvent.bot.id
+            val groupId = pokeEvent.sourceEvent.groupId
+            val userId = pokeEvent.sourceEvent.userId
+
+            return if (groupId == null) {
+                OneBotFriendCommandSource.Data(botId, userId)
+            } else {
+                OneBotGroupMemberCommandSource.Data(botId, groupId, userId)
+            }
+        }
+    }
 }
 
 private val logger = KotlinLogging.logger { }

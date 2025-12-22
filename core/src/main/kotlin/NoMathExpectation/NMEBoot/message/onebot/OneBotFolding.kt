@@ -21,7 +21,7 @@ import love.forte.simbot.message.Message
 import love.forte.simbot.message.MessageReceipt
 import love.forte.simbot.message.toMessages
 
-internal object OneBotFolding {
+object OneBotFolding {
     @Serializable
     data object FoldIgnore : Message.Element {
         override fun toString() = "[Folding Ignored]"

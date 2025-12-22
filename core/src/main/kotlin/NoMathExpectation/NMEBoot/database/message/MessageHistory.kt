@@ -2,9 +2,11 @@
 
 package NoMathExpectation.NMEBoot.database.message
 
+import NoMathExpectation.NMEBoot.command.impl.commandConfig
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.database.migration.DatabaseMigration
 import NoMathExpectation.NMEBoot.database.migration.DatabaseMigration.isMigrating
+import NoMathExpectation.NMEBoot.message.deserializeToMessage
 import NoMathExpectation.NMEBoot.message.event.CommandSourcePostSendEvent
 import NoMathExpectation.NMEBoot.message.message
 import NoMathExpectation.NMEBoot.message.toSerialized
@@ -14,15 +16,19 @@ import NoMathExpectation.NMEBoot.util.nickOrName
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
+import love.forte.simbot.definition.Actor
 import love.forte.simbot.event.ActorEvent
 import love.forte.simbot.event.InternalMessagePostSendEvent
 import love.forte.simbot.event.MessageEvent
+import love.forte.simbot.message.Message
 import love.forte.simbot.message.SingleMessageReceipt
+import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.datetime.timestamp
+import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
@@ -218,6 +224,30 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
                 if (postMigrationMutex.isLocked) {
                     postMigrationMutex.unlock()
                 }
+            }
+        }
+
+        suspend fun fetchRandomMessage(
+            platform: String,
+            globalSubjectId: String,
+            messageDeserializeContext: Actor?
+        ): Pair<String, Message>? {
+            val commandPrefix = commandConfig.get().commandPrefix
+            return transaction {
+                MessageHistoryTable.select(MessageHistoryTable.senderName, MessageHistoryTable.message).where {
+                    (MessageHistoryTable.platform eq platform) and
+                            (MessageHistoryTable.globalSubjectId eq globalSubjectId) and
+                            (MessageHistoryTable.isBot eq false) and
+                            (MessageHistoryTable.message notLike "$commandPrefix%") and
+                            (MessageHistoryTable.message neq "")
+                }.orderBy(Random() to SortOrder.ASC)
+                    .limit(1)
+                    .firstOrNull()
+                    ?.let {
+                        it[MessageHistoryTable.senderName] to it[MessageHistoryTable.message]
+                    }
+            }?.let {
+                it.first to it.second.deserializeToMessage(messageDeserializeContext)
             }
         }
     }

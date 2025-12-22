@@ -106,6 +106,7 @@ interface CommandSource<out T> : PermissionServiceAware, SendSupport, ReplySuppo
             register(OneBotGroupMemberCommandSource.NormalEvent.Companion::invoke)
             register(OneBotGroupMemberPrivateCommandSource.Event.Companion::invoke)
             register(OneBotFriendCommandSource.Event.Companion::invoke)
+            register(OneBotCommandSource.Companion::ofPokeEvent)
 
             // kook
             register(KookChannelCommandSource.Event.Companion::invoke)
