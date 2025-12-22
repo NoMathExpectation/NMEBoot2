@@ -25,7 +25,7 @@ dependencies {
 
     // logging
     implementation("io.github.oshai:kotlin-logging:7.0.0")
-    val log4jVersion = "2.23.1"
+    val log4jVersion = "2.25.3"
     runtimeOnly("org.apache.logging.log4j:log4j-api:$log4jVersion")
     runtimeOnly("org.apache.logging.log4j:log4j-core:$log4jVersion")
     runtimeOnly("org.apache.logging.log4j:log4j-slf4j2-impl:$log4jVersion")
@@ -80,10 +80,12 @@ dependencies {
     val exposedVersion = "1.0.0-rc-2"
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-r2dbc:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-kotlin-datetime:$exposedVersion")
     implementation("org.xerial:sqlite-jdbc:3.49.1.0")
     implementation("org.postgresql:postgresql:42.7.3")
+    implementation("org.postgresql:r2dbc-postgresql:1.1.1.RELEASE")
     implementation("com.zaxxer:HikariCP:6.3.0")
 }
 

@@ -3,6 +3,7 @@ package NoMathExpectation.NMEBoot.testing.tables.message
 import NoMathExpectation.NMEBoot.database.DatabaseManager
 import NoMathExpectation.NMEBoot.database.message.MessageHistory
 import NoMathExpectation.NMEBoot.util.startKoinApplication
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.time.measureTime
@@ -10,7 +11,7 @@ import kotlin.time.measureTime
 class RandomMessage {
     init {
         startKoinApplication()
-        DatabaseManager.init()
+        runBlocking { DatabaseManager.init() }
     }
 
     @Test

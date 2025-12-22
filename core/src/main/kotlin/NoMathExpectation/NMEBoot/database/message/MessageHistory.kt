@@ -49,7 +49,10 @@ object MessageHistoryTable : LongIdTable() {
     val senderName = varchar("senderName", 1024)
 
     val messageId = varchar("messageId", 512).nullable()
-    val message = text("message")
+    val binaryMessage = binary("message")
+    val message = binaryMessage.transform(
+        { it.decodeToString() }, { it.encodeToByteArray() }
+    )
 
     @OptIn(ExperimentalTime::class)
     val time = timestamp("time").clientDefault { Clock.System.now() }
@@ -74,6 +77,7 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
     var senderName by MessageHistoryTable.senderName
 
     var messageId by MessageHistoryTable.messageId
+    var binaryMessage by MessageHistoryTable.binaryMessage
     var message by MessageHistoryTable.message
 
     @OptIn(ExperimentalTime::class)
@@ -234,11 +238,12 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
         ): Pair<String, Message>? {
             val commandPrefix = commandConfig.get().commandPrefix
             return transaction {
+                val textMessage = CustomFunction("text", TextColumnType(), MessageHistoryTable.binaryMessage)
                 MessageHistoryTable.select(MessageHistoryTable.senderName, MessageHistoryTable.message).where {
                     (MessageHistoryTable.platform eq platform) and
                             (MessageHistoryTable.globalSubjectId eq globalSubjectId) and
                             (MessageHistoryTable.isBot eq false) and
-                            (MessageHistoryTable.message notLike "$commandPrefix%") and
+                            (textMessage notLike "$commandPrefix%") and
                             (MessageHistoryTable.message neq "")
                 }.orderBy(Random() to SortOrder.ASC)
                     .limit(1)

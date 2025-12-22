@@ -5,6 +5,7 @@ volumes:
   nmeboot:
   swap:
   sql-playground:
+  db:
 services:
   lagrange:
     image: ghcr.io/lagrangedev/lagrange.onebot:edge
@@ -37,11 +38,32 @@ services:
       POSTGRES_PASSWORD: CHANGE_ME
     volumes:
       - sql-playground:/var/lib/postgresql
+  db:
+    image: postgres:latest
+    restart: always
+    shm_size: 128mb
+    environment:
+      POSTGRES_PASSWORD: CHANGE_ME
+      POSTGRES_DB: nmeboot
+    networks:
+      - nmenet
+    volumes:
+      - db:/var/lib/postgresql
+    ports:
+      - "5433:5432"
+  adminer:
+    image: adminer
+    restart: always
+    networks:
+      - nmenet
+    ports:
+      - "8099:8080"
   nmeboot:
     depends_on:
       - lagrange
       - scripting
       - sql-playground
+      - db
     build: core
     container_name: NMEBoot2
     volumes:
