@@ -305,10 +305,10 @@ object DatabaseMigration : CoroutineScope by CoroutineScope(Dispatchers.IO) + Co
 
         fun loadUnknownMessageMetadata(values: List<String>) {
             isBot = true // since all unknown messages are sent by bot itself
-            globalSubjectName = "unknown"
-            globalSubjectId = "unknown"
-            subjectName = "unknown"
-            subjectId = "unknown"
+            globalSubjectName = "<unknown>"
+            globalSubjectId = "<unknown>"
+            subjectName = "<unknown>"
+            subjectId = "<unknown>"
         }
 
         fun loadMessageMetadata(values: List<String>) {
@@ -330,7 +330,7 @@ object DatabaseMigration : CoroutineScope by CoroutineScope(Dispatchers.IO) + Co
             }
 
             if (isBot) {
-                senderName = "unknown"
+                senderName = "<unknown>"
                 senderId = botIdToSenderId[botId] ?: error("Cannot find senderId for botId: $botId")
             } else {
                 senderName = values[9]

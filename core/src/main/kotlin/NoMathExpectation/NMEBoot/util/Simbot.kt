@@ -3,6 +3,7 @@ package NoMathExpectation.NMEBoot.util
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.common.id.ID
 import love.forte.simbot.common.time.Timestamp
+import love.forte.simbot.component.onebot.v11.message.OneBotMessageReceipt
 import love.forte.simbot.definition.*
 import love.forte.simbot.message.*
 import kotlin.time.ExperimentalTime
@@ -35,6 +36,8 @@ val MessageReceipt.ids: List<ID>?
     get() = when (this) {
         is SingleMessageReceipt -> listOf(id)
         is AggregatedMessageReceipt -> map { it.id }
+        is OneBotMessageReceipt -> listOf(messageId)
+        is Iterable<*> if firstOrNull() is MessageReceipt -> flatMap { (it as? MessageReceipt)?.ids ?: emptyList() }
         else -> run {
             logger.warn { "Cannot resolve ids for message receipt: $this" }
             null

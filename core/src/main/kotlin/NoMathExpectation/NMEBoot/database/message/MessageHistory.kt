@@ -21,7 +21,6 @@ import love.forte.simbot.event.ActorEvent
 import love.forte.simbot.event.InternalMessagePostSendEvent
 import love.forte.simbot.event.MessageEvent
 import love.forte.simbot.message.Message
-import love.forte.simbot.message.SingleMessageReceipt
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
@@ -126,7 +125,7 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
 
                 transaction {
                     new {
-                        platform = source?.platform ?: "unknown"
+                        platform = source?.platform ?: "<unknown>"
                         botId = event.bot.id.toString()
 
                         globalSubjectId = source?.globalSubject?.id?.toString()
@@ -137,7 +136,7 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
 
                         senderId = event.authorId.toString()
                         senderUid = source?.uid ?: -1
-                        senderName = source?.executor?.nickOrName ?: "unknown"
+                        senderName = source?.executor?.nickOrName ?: "<unknown>"
 
                         messageId = event.messageContent.id.toString()
                         this.message = message
@@ -189,13 +188,15 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
                         subjectId = source.subject?.id?.toString()
                         subjectName = source.subject?.name
 
-                        senderId = botId ?: "unknown"
+                        senderId = botId ?: "<unknown>"
                         senderUid = botSource?.uid ?: -1
-                        senderName = botSource?.executor?.nickOrName ?: "unknown"
+                        senderName = botSource?.executor?.nickOrName ?: "<unknown>"
 
-                        messageId = when (val receipt = event.receipt) {
-                            is SingleMessageReceipt -> receipt.id.toString()
-                            else -> receipt.ids?.joinToString(", ", "[", "]")
+                        val ids = event.receipt.ids
+                        messageId = when {
+                            ids == null -> null
+                            ids.size == 1 -> ids.first().toString()
+                            else -> ids.joinToString(", ", "[", "]")
                         }
                         message = msgString
 

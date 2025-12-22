@@ -20,7 +20,7 @@ class FoldIgnoreFormatter : MessageElementFormatter<OneBotFolding.FoldIgnore> {
         element: OneBotFolding.FoldIgnore,
         context: Actor?
     ): List<String> {
-        return emptyList()
+        return listOf(type)
     }
 
     override suspend fun deserialize(
