@@ -81,6 +81,22 @@ object MessageFormatter {
         }
     }
 
+    suspend fun messageElementToSerializedList(
+        element: Message.Element,
+        context: Actor? = null,
+    ): List<String>? {
+        val formatter = elementFormatters.firstOrNull { it.formatClass.isInstance(element) } ?: run {
+            logger.warn { "Unknown element: $element" }
+            return null
+        }
+        return runCatching {
+            formatter.serialize(element, context)
+        }.getOrElse {
+            logger.error(it) { "Error while serializing message element with ${formatter.formatClass}: $element" }
+            null
+        }
+    }
+
     suspend fun messageElementToSerialized(
         element: Message.Element,
         context: Actor? = null,
@@ -90,14 +106,9 @@ object MessageFormatter {
             return element.text.escapeIdentifiers(escapeLineFeeds)
         }
 
-        return kotlin.runCatching {
-            elementFormatters.first { it.formatClass.isInstance(element) }
-                .serialize(element, context)
-                .joinToString(":", "[", "]") { it.escapeIdentifiers(escapeLineFeeds) }
-        }.getOrElse {
-            logger.warn { "Unknown element: $element" }
-            ""
-        }
+        return messageElementToSerializedList(element, context)
+            ?.joinToString(":", "[", "]") { it.escapeIdentifiers(escapeLineFeeds) }
+            ?: ""
     }
 
     suspend fun messageToSerialized(
@@ -106,6 +117,28 @@ object MessageFormatter {
         escapeLineFeeds: Boolean = true
     ): SerializedMessage {
         return message.asMessages().map { messageElementToSerialized(it, context, escapeLineFeeds) }.joinToString("")
+    }
+
+    suspend fun deserializeMessageElementSegmentList(
+        segments: List<String>,
+        context: Actor? = null
+    ): Message.Element? {
+        if (segments.isEmpty()) {
+            logger.debug { "Empty segment list." }
+            return null
+        }
+
+        val formatter = elementFormatters.firstOrNull { it.type == segments[0] } ?: run {
+            logger.warn { "Unknown element segments: $segments" }
+            return null
+        }
+
+        return runCatching {
+            formatter.deserialize(segments, context)
+        }.getOrElse {
+            logger.error(it) { "Error while deserializing message element with type ${formatter.type}: $segments" }
+            null
+        }
     }
 
     suspend fun deserializeMessageElement(
@@ -121,17 +154,7 @@ object MessageFormatter {
         val segments = element.removeSurrounding("[", "]")
             .splitUnescaped(':')
             .map { it.unescapeIdentifiers(unescapeLineFeeds) }
-        if (segments.isEmpty()) {
-            return "".toText()
-        }
-        val type = segments[0]
-        return kotlin.runCatching {
-            elementFormatters.first { it.type == type }
-                .deserialize(segments, context)
-        }.getOrElse {
-            logger.warn { "Unknown element: $element" }
-            "".toText()
-        }
+        return deserializeMessageElementSegmentList(segments, context) ?: "".toText()
     }
 
     suspend fun deserializeMessage(
