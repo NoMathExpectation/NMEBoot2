@@ -1,6 +1,7 @@
 package NoMathExpectation.NMEBoot.command.impl.command.common
 
 import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
+import NoMathExpectation.NMEBoot.command.impl.isDebug
 import NoMathExpectation.NMEBoot.command.impl.requiresGlobalSubjectId
 import NoMathExpectation.NMEBoot.command.impl.requiresPermission
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
@@ -46,9 +47,16 @@ suspend fun pokeEventForHistory(event: OneBotPokeEvent) {
     val platform = context.platform
 
     val time = measureTime {
-        MessageHistory.fetchRandomMessage(platform, globalSubject.id.toString(), globalSubject)?.let { pair ->
-            val (_, message) = pair
-            context.send(OneBotFolding.FoldIgnore + message)
+        runCatching {
+            MessageHistory.fetchRandomMessage(platform, globalSubject.id.toString(), globalSubject)?.let { pair ->
+                val (_, message) = pair
+                context.send(OneBotFolding.FoldIgnore + message)
+            }
+        }.onFailure {
+            logger.error(it) { "Error while poking for history:" }
+            if (context.isDebug()) {
+                context.send(it.message ?: "未知错误")
+            }
         }
     }
     logger.info { "Process time: $time" }
