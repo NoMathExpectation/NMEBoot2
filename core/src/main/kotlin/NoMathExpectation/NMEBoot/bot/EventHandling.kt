@@ -169,7 +169,11 @@ internal suspend fun tryHandleCommand(event: Event, source: CommandSource<*>) {
     }
 
     val actor = (event as? ActorEvent)?.content()
-    val text = event.messageContent.messages.standardize().removeReferencePrefix().toSerialized(actor)
+    val text = event.messageContent
+        .messages
+        .standardize()
+        .removeReferencePrefix()
+        .toSerialized(actor, false)
 
     source.executeCommand(text) {
         originalMessage = event.messageContent

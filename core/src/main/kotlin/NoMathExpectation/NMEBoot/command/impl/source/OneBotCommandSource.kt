@@ -9,6 +9,7 @@ import NoMathExpectation.NMEBoot.message.element.Attachment
 import NoMathExpectation.NMEBoot.message.element.OneBotIncomingAttachment
 import NoMathExpectation.NMEBoot.message.element.asMessageReceipt
 import NoMathExpectation.NMEBoot.message.element.deleteAfterDelay
+import NoMathExpectation.NMEBoot.message.format.ImageFormatter
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFolding
 import NoMathExpectation.NMEBoot.message.onebot.apiExt.toOneBotGroupUploadApi
@@ -31,10 +32,8 @@ import love.forte.simbot.component.onebot.v11.core.event.message.OneBotNormalGro
 import love.forte.simbot.component.onebot.v11.core.event.notice.OneBotPokeEvent
 import love.forte.simbot.definition.Actor
 import love.forte.simbot.definition.User
-import love.forte.simbot.message.Message
-import love.forte.simbot.message.MessageReceipt
-import love.forte.simbot.message.toMessages
-import love.forte.simbot.message.toText
+import love.forte.simbot.message.*
+import love.forte.simbot.message.OfflineImage.Companion.toOfflineImage
 
 interface OneBotCommandSource<out T> : CommandSource<T>, BotAwareCommandSource<T> {
     override val bot: OneBotBot
@@ -75,6 +74,14 @@ private suspend inline fun Message.sendByOneBot(
 
     var finalMessage = this
     val receipts = mutableListOf<MessageReceipt>()
+
+    finalMessage = finalMessage.asMessages().map {
+        when (it) {
+            is OfflineImage -> it.data().toOfflineImage()
+            is RemoteImage -> ImageFormatter.unknownImage // onebot doesn't support remote image yet
+            else -> it
+        }
+    }.toMessages()
 
     if (subject is OneBotGroup) {
         finalMessage

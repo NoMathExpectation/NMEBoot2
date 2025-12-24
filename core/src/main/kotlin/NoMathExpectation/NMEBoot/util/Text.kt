@@ -45,3 +45,22 @@ fun String.splitUnescaped(separator: Char, escapeChar: Char = '\\'): List<String
 
     return result
 }
+
+fun String.unescapeLineFeeds() = buildString {
+    val reader = StringReader(this@unescapeLineFeeds)
+    while (!reader.isEnd) {
+        val char = reader.readChar()
+        if (char == '\\' && !reader.isEnd) {
+            when (val nextChar = reader.readChar()) {
+                'n' -> append('\n')
+                'r' -> append('\r')
+                else -> {
+                    append(char)
+                    append(nextChar)
+                }
+            }
+        } else {
+            append(char)
+        }
+    }
+}

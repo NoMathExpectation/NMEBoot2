@@ -8,6 +8,7 @@ import io.ktor.client.request.*
 import love.forte.simbot.common.id.StringID.Companion.ID
 import love.forte.simbot.definition.Actor
 import love.forte.simbot.message.*
+import love.forte.simbot.message.OfflineImage.Companion.toOfflineImage
 import love.forte.simbot.resource.toResource
 import org.koin.core.annotation.Single
 import java.net.URL
@@ -39,6 +40,14 @@ class ImageFormatter : MessageElementFormatter<Image> {
                 return listOf(type, "cache", id.toString())
             }
         }
+
+        if (element is OfflineImage) {
+            val resource = element.data().toResource()
+            val item = ResourceCache.put(resource, ResourceCache.Item.Type.IMAGE)
+            val id = item.id
+            return listOf(type, "cache", id.toString())
+        }
+
         logger.warn { "Unknown image: $element" }
         return listOf(type, "unknown")
     }
@@ -47,30 +56,31 @@ class ImageFormatter : MessageElementFormatter<Image> {
         return when (segments[1]) {
             "id" -> RemoteIDImage(segments[2].ID)
             "cache" -> {
-                val resource = ResourceCache.get(segments[2].ID)
+                ResourceCache.get(segments[2].ID)
                     ?.toResource()
-                    ?: this::class.java
-                        .getResource("/unknown.png")!!
-                        .toResource()
-                resource.toOfflineResourceImage()
+                    ?.toOfflineResourceImage()
+                    ?: unknownImage
             }
             "url" -> {
                 val url = segments[2]
                 URL(url).toResource().toOfflineResourceImage()
             }
 
-            "unknown" -> this::class.java
-                .getResource("/unknown.png")!!
-                .toResource()
-                .toOfflineResourceImage()
+            "unknown" -> unknownImage
 
             else -> {
                 logger.warn { "Unknown image format: $segments" }
-                this::class.java
-                    .getResource("/unknown.png")!!
-                    .toResource()
-                    .toOfflineResourceImage()
+                unknownImage
             }
+        }
+    }
+
+    companion object {
+        val unknownImage by lazy {
+            this::class.java
+                .getResource("/unknown.png")!!
+                .readBytes()
+                .toOfflineImage()
         }
     }
 }

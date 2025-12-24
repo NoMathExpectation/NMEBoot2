@@ -254,6 +254,7 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
                         it[MessageHistoryTable.senderName] to it[MessageHistoryTable.message]
                     }
             }?.let {
+                logger.info { "Fetched history: $it" }
                 it.first to it.second.deserializeToMessage(messageDeserializeContext)
             }
         }

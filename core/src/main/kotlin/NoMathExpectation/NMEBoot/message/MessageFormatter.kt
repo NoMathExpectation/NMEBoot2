@@ -16,7 +16,7 @@ object MessageFormatter {
         koin.koin.getAll<MessageElementFormatter<Message.Element>>()
     }
 
-    private fun String.escapeIdentifiers() = buildString {
+    private fun String.escapeIdentifiers(escapeLineFeeds: Boolean = true) = buildString {
         this@escapeIdentifiers.forEach {
             when (it) {
                 '[', ']', ':', ',', '\\' -> {
@@ -24,21 +24,21 @@ object MessageFormatter {
                     append(it)
                 }
 
-                '\n' -> append("\\n")
-                '\r' -> append("\\r")
+                '\n' if escapeLineFeeds -> append("\\n")
+                '\r' if escapeLineFeeds -> append("\\r")
                 else -> append(it)
             }
         }
     }
 
-    private fun String.unescapeIdentifiers() = buildString {
+    private fun String.unescapeIdentifiers(unescapeLineFeeds: Boolean = true) = buildString {
         val reader = StringReader(this@unescapeIdentifiers)
         while (!reader.isEnd) {
             val char = reader.readChar()
             if (char == '\\' && !reader.isEnd) {
                 when (val nextChar = reader.readChar()) {
-                    'n' -> append('\n')
-                    'r' -> append('\r')
+                    'n' if unescapeLineFeeds -> append('\n')
+                    'r' if unescapeLineFeeds -> append('\r')
                     '[', ']', ':', ',', '\\' -> append(nextChar)
                     else -> {
                         append(char)
@@ -51,12 +51,12 @@ object MessageFormatter {
         }
     }
 
-    fun escapeMessageFormatIdentifiers(message: String): String {
-        return message.escapeIdentifiers()
+    fun escapeMessageFormatIdentifiers(message: String, escapeLineFeeds: Boolean = true): String {
+        return message.escapeIdentifiers(escapeLineFeeds)
     }
 
-    fun unescapeMessageFormatIdentifiers(message: String): String {
-        return message.unescapeIdentifiers()
+    fun unescapeMessageFormatIdentifiers(message: String, unescapeLineFeeds: Boolean = true): String {
+        return message.unescapeIdentifiers(unescapeLineFeeds)
     }
 
     private suspend fun messageElementToReadableString(element: Message.Element, context: Actor? = null): String {
@@ -81,34 +81,46 @@ object MessageFormatter {
         }
     }
 
-    suspend fun messageElementToSerialized(element: Message.Element, context: Actor? = null): SerializedMessage {
+    suspend fun messageElementToSerialized(
+        element: Message.Element,
+        context: Actor? = null,
+        escapeLineFeeds: Boolean = true
+    ): SerializedMessage {
         if (element is PlainText) {
-            return element.text.escapeIdentifiers()
+            return element.text.escapeIdentifiers(escapeLineFeeds)
         }
 
         return kotlin.runCatching {
             elementFormatters.first { it.formatClass.isInstance(element) }
                 .serialize(element, context)
-                .joinToString(":", "[", "]") { it.escapeIdentifiers() }
+                .joinToString(":", "[", "]") { it.escapeIdentifiers(escapeLineFeeds) }
         }.getOrElse {
             logger.warn { "Unknown element: $element" }
             ""
         }
     }
 
-    suspend fun messageToSerialized(message: Message, context: Actor? = null): SerializedMessage {
-        return message.asMessages().map { messageElementToSerialized(it, context) }.joinToString("")
+    suspend fun messageToSerialized(
+        message: Message,
+        context: Actor? = null,
+        escapeLineFeeds: Boolean = true
+    ): SerializedMessage {
+        return message.asMessages().map { messageElementToSerialized(it, context, escapeLineFeeds) }.joinToString("")
     }
 
-    suspend fun deserializeMessageElement(element: SerializedMessage, context: Actor? = null): Message.Element {
+    suspend fun deserializeMessageElement(
+        element: SerializedMessage,
+        context: Actor? = null,
+        unescapeLineFeeds: Boolean = true
+    ): Message.Element {
         if (!(element.startsWith("[") && element.endsWith("]"))) {
             return element
-                .unescapeIdentifiers()
+                .unescapeIdentifiers(unescapeLineFeeds)
                 .toText()
         }
         val segments = element.removeSurrounding("[", "]")
             .splitUnescaped(':')
-            .map { it.unescapeIdentifiers() }
+            .map { it.unescapeIdentifiers(unescapeLineFeeds) }
         if (segments.isEmpty()) {
             return "".toText()
         }
@@ -122,24 +134,31 @@ object MessageFormatter {
         }
     }
 
-    suspend fun deserializeMessage(message: SerializedMessage, context: Actor? = null): Message {
+    suspend fun deserializeMessage(
+        message: SerializedMessage,
+        context: Actor? = null,
+        unescapeLineFeeds: Boolean = true
+    ): Message {
         return message.splitByUnescapedPaired('[', ']')
-            .map { deserializeMessageElement(it, context) }
+            .map { deserializeMessageElement(it, context, unescapeLineFeeds) }
             .toMessages()
     }
 }
 
-fun String.escapeMessageFormatIdentifiers() = MessageFormatter.escapeMessageFormatIdentifiers(this)
+fun String.escapeMessageFormatIdentifiers(escapeLineFeeds: Boolean = true) =
+    MessageFormatter.escapeMessageFormatIdentifiers(this, escapeLineFeeds)
 
-fun String.unescapeMessageFormatIdentifiers() = MessageFormatter.unescapeMessageFormatIdentifiers(this)
+fun String.unescapeMessageFormatIdentifiers(unescapeLineFeeds: Boolean = true) =
+    MessageFormatter.unescapeMessageFormatIdentifiers(this, unescapeLineFeeds)
 
 suspend inline fun Message.toReadableString(context: Actor? = null) =
     MessageFormatter.messageToReadableString(this, context)
 
-suspend inline fun Message.toSerialized(context: Actor? = null) = MessageFormatter.messageToSerialized(this, context)
+suspend inline fun Message.toSerialized(context: Actor? = null, escapeLineFeeds: Boolean = true) =
+    MessageFormatter.messageToSerialized(this, context, escapeLineFeeds)
 
-suspend inline fun SerializedMessage.deserializeToMessage(context: Actor? = null) =
-    MessageFormatter.deserializeMessage(this, context)
+suspend inline fun SerializedMessage.deserializeToMessage(context: Actor? = null, unescapeLineFeeds: Boolean = true) =
+    MessageFormatter.deserializeMessage(this, context, unescapeLineFeeds)
 
 fun Messages.removeReferencePrefix() = dropWhile {
     it is MessageReference ||
