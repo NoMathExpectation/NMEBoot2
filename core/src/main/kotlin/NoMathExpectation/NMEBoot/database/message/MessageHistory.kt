@@ -9,6 +9,7 @@ import NoMathExpectation.NMEBoot.database.migration.DatabaseMigration.isMigratin
 import NoMathExpectation.NMEBoot.message.deserializeToMessage
 import NoMathExpectation.NMEBoot.message.event.CommandSourcePostSendEvent
 import NoMathExpectation.NMEBoot.message.message
+import NoMathExpectation.NMEBoot.message.standardize
 import NoMathExpectation.NMEBoot.message.toSerialized
 import NoMathExpectation.NMEBoot.util.ids
 import NoMathExpectation.NMEBoot.util.name
@@ -121,7 +122,8 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
                 postMigrationMutex.lock()
             }
             try {
-                val message = event.messageContent.messages.toSerialized((event as? ActorEvent)?.content())
+                val message =
+                    event.messageContent.messages.standardize().toSerialized((event as? ActorEvent)?.content())
 
                 transaction {
                     new {
