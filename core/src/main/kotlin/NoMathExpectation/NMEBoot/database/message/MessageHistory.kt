@@ -14,6 +14,7 @@ import NoMathExpectation.NMEBoot.message.toSerialized
 import NoMathExpectation.NMEBoot.util.ids
 import NoMathExpectation.NMEBoot.util.name
 import NoMathExpectation.NMEBoot.util.nickOrName
+import NoMathExpectation.NMEBoot.util.notLike
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
@@ -242,12 +243,11 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
         ): Pair<String, Message>? {
             val commandPrefix = commandConfig.get().commandPrefix
             return transaction {
-                val textMessage = CustomFunction("text", TextColumnType(), MessageHistoryTable.binaryMessage)
                 MessageHistoryTable.select(MessageHistoryTable.senderName, MessageHistoryTable.message).where {
                     (MessageHistoryTable.platform eq platform) and
                             (MessageHistoryTable.globalSubjectId eq globalSubjectId) and
                             (MessageHistoryTable.isBot eq false) and
-                            (textMessage notLike "$commandPrefix%") and
+                            (MessageHistoryTable.binaryMessage notLike "$commandPrefix%") and
                             (MessageHistoryTable.message neq "")
                 }.orderBy(Random() to SortOrder.ASC)
                     .limit(1)

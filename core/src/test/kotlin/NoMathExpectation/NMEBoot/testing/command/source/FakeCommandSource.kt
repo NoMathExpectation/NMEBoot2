@@ -22,6 +22,8 @@ class FakeCommandSource : CommandSource<Nothing?> {
 
     private val logger = KotlinLogging.logger { }
 
+    override suspend fun botAsSource() = null
+
     override suspend fun toOffline() =
         throw UnsupportedOperationException("FakeCommandSource cannot be converted to OfflineCommandSource")
 

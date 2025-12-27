@@ -1,5 +1,6 @@
 package NoMathExpectation.NMEBoot.util
 
+import org.jetbrains.exposed.v1.core.*
 import java.sql.ResultSet
 
 fun ResultSet.toReadableText(): String {
@@ -37,3 +38,13 @@ fun ResultSet.toReadableText(): String {
         }
     }
 }
+
+infix fun Expression<ByteArray>.like(pattern: String) = like(LikePattern(pattern))
+
+infix fun Expression<ByteArray>.like(pattern: LikePattern) =
+    LikeEscapeOp(this, stringParam(pattern.pattern).castTo(BasicBinaryColumnType()), true, pattern.escapeChar)
+
+infix fun Expression<ByteArray>.notLike(pattern: String) = notLike(LikePattern(pattern))
+
+infix fun Expression<ByteArray>.notLike(pattern: LikePattern) =
+    LikeEscapeOp(this, stringParam(pattern.pattern).castTo(BasicBinaryColumnType()), false, pattern.escapeChar)
