@@ -2,6 +2,7 @@ package NoMathExpectation.NMEBoot.command.impl.source
 
 import NoMathExpectation.NMEBoot.bot.simbotApplication
 import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
+import NoMathExpectation.NMEBoot.command.impl.PermissionService
 import NoMathExpectation.NMEBoot.command.impl.PermissionServiceAware
 import NoMathExpectation.NMEBoot.command.impl.source.offline.OfflineCommandSource
 import NoMathExpectation.NMEBoot.command.parser.node.InsertableCommandNode
@@ -152,6 +153,16 @@ suspend inline fun <T, R : MessageReceipt> CommandSource<T>.sendAndBroadcast(
     val receipt = sendBlock(finalMessage)
     broadcastPostSendMessage(finalMessage, receipt)
     return receipt
+}
+
+suspend fun CommandSource<*>.subjectHasPermission(permission: String): Boolean {
+    val ids = listOfNotNull(subjectPermissionId, globalSubjectPermissionId)
+    return PermissionService.hasPermission(permission, *ids.toTypedArray())
+}
+
+suspend fun CommandSource<*>.globalSubjectHasPermission(permission: String): Boolean {
+    val ids = listOfNotNull(globalSubjectPermissionId)
+    return PermissionService.hasPermission(permission, *ids.toTypedArray())
 }
 
 interface BotAwareCommandSource<out T> : CommandSource<T> {
