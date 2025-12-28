@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
 import love.forte.simbot.event.InteractionMessage
 import love.forte.simbot.message.*
 
-const val SAMURAI_PERMISSION_NAME = "command.rd.samurai"
+const val SAMURAI_PERMISSION_NAME = "command.rd.fanmade.samurai"
 
 private val logger = KotlinLogging.logger { }
 
