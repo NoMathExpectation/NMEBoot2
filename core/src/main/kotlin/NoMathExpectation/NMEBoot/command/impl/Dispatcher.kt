@@ -87,7 +87,7 @@ suspend fun <T> CommandSource<T>.executeCommand(
     exceptions = exceptions.filter { it is CommandExecuteException || it.showToUser }
     if (exceptions.isNotEmpty()) {
         val debug = isDebug()
-        val canSamurai = hasPermission(SAMURAI_PERMISSION_NAME)
+        val canSamurai = canSamurai()
         val subjectPermissionId = subjectPermissionId
 
         val firstDisplayException = if (debug) exceptions.firstOrNull() else exceptions.firstOrNull { it.showToUser }

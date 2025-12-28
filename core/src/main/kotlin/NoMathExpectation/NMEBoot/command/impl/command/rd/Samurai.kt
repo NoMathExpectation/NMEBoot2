@@ -1,6 +1,7 @@
 package NoMathExpectation.NMEBoot.command.impl.command.rd
 
 import NoMathExpectation.NMEBoot.command.impl.AnyExecuteContext
+import NoMathExpectation.NMEBoot.command.impl.PermissionService
 import NoMathExpectation.NMEBoot.command.impl.requiresPermission
 import NoMathExpectation.NMEBoot.command.impl.requiresSubjectId
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
@@ -66,8 +67,14 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandSamurai() =
             }
         }
 
+suspend fun CommandSource<*>.canSamurai() = PermissionService.hasPermission(
+    SAMURAI_PERMISSION_NAME,
+    subjectPermissionId ?: "null",
+    globalSubjectPermissionId ?: "null"
+)
+
 suspend fun CommandSource<*>.isSamuraiMode(): Boolean {
-    return hasPermission(SAMURAI_PERMISSION_NAME) && Samurai.getConfig(
+    return canSamurai() && Samurai.getConfig(
         subjectPermissionId ?: return false
     ).enabled
 }
