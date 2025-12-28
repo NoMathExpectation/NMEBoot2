@@ -6,10 +6,7 @@ import NoMathExpectation.NMEBoot.command.impl.command.admin.commandStop
 import NoMathExpectation.NMEBoot.command.impl.command.commandTransfer
 import NoMathExpectation.NMEBoot.command.impl.command.common.*
 import NoMathExpectation.NMEBoot.command.impl.command.custom.bitterBirds
-import NoMathExpectation.NMEBoot.command.impl.command.rd.commandChart
-import NoMathExpectation.NMEBoot.command.impl.command.rd.commandConvert
-import NoMathExpectation.NMEBoot.command.impl.command.rd.commandOffset
-import NoMathExpectation.NMEBoot.command.impl.command.rd.linSunForCat
+import NoMathExpectation.NMEBoot.command.impl.command.rd.*
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.parser.CommandDispatcher
 import NoMathExpectation.NMEBoot.command.parser.CommandExecuteException
@@ -17,6 +14,7 @@ import NoMathExpectation.NMEBoot.command.parser.CommandParseException
 import NoMathExpectation.NMEBoot.command.parser.node.SelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.literals
 import io.github.oshai.kotlinlogging.KotlinLogging
+import love.forte.simbot.message.toText
 
 private val logger = KotlinLogging.logger { }
 
@@ -51,6 +49,7 @@ suspend fun initDispatcher() {
                 commandChart()
                 commandConvert()
                 commandOffset()
+                commandSamurai()
 
                 //experimental
                 //commandExport()
@@ -88,14 +87,19 @@ suspend fun <T> CommandSource<T>.executeCommand(
     exceptions = exceptions.filter { it is CommandExecuteException || it.showToUser }
     if (exceptions.isNotEmpty()) {
         val debug = isDebug()
+        val canSamurai = hasPermission(SAMURAI_PERMISSION_NAME)
+        val subjectPermissionId = subjectPermissionId
 
         val firstDisplayException = if (debug) exceptions.firstOrNull() else exceptions.firstOrNull { it.showToUser }
-        val firstDisplayMsg = firstDisplayException?.messageToUser ?: "未知错误"
+        val firstDisplayMsg = (firstDisplayException?.messageToUser ?: "未知错误").toText()
         val msg = when {
-            debug && exceptions.size > 1 -> "运行指令时产生了${exceptions.size}个错误，第一个错误为 $firstDisplayMsg"
+            debug && exceptions.size > 1 -> "运行指令时产生了${exceptions.size}个错误，第一个错误为 $firstDisplayMsg".toText()
             debug -> firstDisplayMsg
+            canSamurai && exceptions.any { it is CommandExecuteException && !it.showToUser } && subjectPermissionId != null -> Samurai.exception(
+                subjectPermissionId
+            )
             firstDisplayException != null -> firstDisplayMsg
-            else -> "工口发生。"
+            else -> "工口发生。".toText()
         }
         reply(msg)
     }

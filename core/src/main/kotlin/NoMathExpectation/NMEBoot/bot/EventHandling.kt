@@ -4,11 +4,13 @@ package NoMathExpectation.NMEBoot.bot
 
 import NoMathExpectation.NMEBoot.command.impl.command.common.MCChat
 import NoMathExpectation.NMEBoot.command.impl.command.common.pokeEventForHistory
+import NoMathExpectation.NMEBoot.command.impl.command.rd.handleSamurai
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
 import NoMathExpectation.NMEBoot.command.impl.source.*
 import NoMathExpectation.NMEBoot.database.message.MessageHistory
 import NoMathExpectation.NMEBoot.message.*
 import NoMathExpectation.NMEBoot.message.event.CommandSourcePostSendEvent
+import NoMathExpectation.NMEBoot.message.event.CommandSourcePreSendEvent
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
 import NoMathExpectation.NMEBoot.util.nickOrName
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -25,6 +27,11 @@ internal val messageLogger = KotlinLogging.logger("Messages")
 internal suspend fun handleEvent(event: Event) {
     val source = CommandSource.get(event)
     logEvent(event, source)
+
+    if (event is CommandSourcePreSendEvent<*>) {
+        handleSamurai(event)
+        return
+    }
 
     if (event is OneBotGroupUploadEvent) {
         OneBotFileCache.record(event)
