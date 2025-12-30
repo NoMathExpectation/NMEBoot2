@@ -2,10 +2,12 @@ package NoMathExpectation.NMEBoot.message.format
 
 import NoMathExpectation.NMEBoot.util.nickOrName
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.flow.firstOrNull
 import love.forte.simbot.common.id.ID
 import love.forte.simbot.common.id.StringID.Companion.ID
 import love.forte.simbot.component.kook.message.KookMessages
 import love.forte.simbot.definition.Actor
+import love.forte.simbot.definition.Guild
 import love.forte.simbot.definition.Organization
 import love.forte.simbot.definition.User
 import love.forte.simbot.message.At
@@ -29,11 +31,15 @@ class AtFormatter : MessageElementFormatter<At> {
         }
 
         val name = when (context) {
-            is User -> if (target == context.id) context.name else target.toString()
-            is Organization -> context.member(target)?.nickOrName
+            is User if type == At.DEFAULT_AT_TYPE -> if (target == context.id) context.name else target.toString()
+            is Guild if type == KookMessages.AT_TYPE_CHANNEL -> context.channel(target)?.name ?: target.toString()
+            is Organization if type == KookMessages.AT_TYPE_ROLE -> context.roles.asFlow()
+                .firstOrNull { it.id == target }?.name ?: target.toString()
+
+            is Organization if type == At.DEFAULT_AT_TYPE -> context.member(target)?.nickOrName
             null -> target.toString()
             else -> {
-                logger.warn { "Unknown context for At: $context" }
+                logger.warn { "Unknown type and context for At: $target, $target, $context" }
                 target.toString()
             }
         }

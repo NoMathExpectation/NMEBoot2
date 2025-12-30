@@ -22,7 +22,7 @@ import love.forte.simbot.definition.Actor
 import love.forte.simbot.event.ActorEvent
 import love.forte.simbot.event.InternalMessagePostSendEvent
 import love.forte.simbot.event.MessageEvent
-import love.forte.simbot.message.Message
+import love.forte.simbot.message.Messages
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
@@ -240,7 +240,7 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
             platform: String,
             globalSubjectId: String,
             messageDeserializeContext: Actor?
-        ): Pair<String, Message>? {
+        ): Pair<String, Messages>? {
             val commandPrefix = commandConfig.get().commandPrefix
             return transaction {
                 MessageHistoryTable.select(MessageHistoryTable.senderName, MessageHistoryTable.message).where {

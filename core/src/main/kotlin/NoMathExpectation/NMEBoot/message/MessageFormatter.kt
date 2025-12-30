@@ -4,6 +4,7 @@ import NoMathExpectation.NMEBoot.message.format.MessageElementFormatter
 import NoMathExpectation.NMEBoot.message.format.SerializedMessage
 import NoMathExpectation.NMEBoot.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
+import love.forte.simbot.component.kook.message.KookMessages
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotMessageSegmentElement
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotReply
 import love.forte.simbot.definition.Actor
@@ -161,7 +162,7 @@ object MessageFormatter {
         message: SerializedMessage,
         context: Actor? = null,
         unescapeLineFeeds: Boolean = true
-    ): Message {
+    ): Messages {
         return message.splitByUnescapedPaired('[', ']')
             .map { deserializeMessageElement(it, context, unescapeLineFeeds) }
             .toMessages()
@@ -198,6 +199,13 @@ fun Messages.removeReferencePrefix() = dropWhile {
 fun Messages.standardize() = map {
     if (it is OneBotMessageSegmentElement && it.segment is OneBotReply) {
         return@map it.segment as OneBotReply
+    }
+    it
+}.toMessages()
+
+suspend fun Messages.stringifyUserMentions(context: Actor? = null) = map {
+    if ((it is At && (it.type in listOf(At.DEFAULT_AT_TYPE, KookMessages.AT_TYPE_ROLE))) || it is AtAll) {
+        return@map it.toReadableString(context).toText()
     }
     it
 }.toMessages()

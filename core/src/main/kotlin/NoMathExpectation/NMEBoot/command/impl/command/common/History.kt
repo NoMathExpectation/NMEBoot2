@@ -10,6 +10,7 @@ import NoMathExpectation.NMEBoot.command.parser.node.executes
 import NoMathExpectation.NMEBoot.command.parser.node.literal
 import NoMathExpectation.NMEBoot.database.message.MessageHistory
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFolding
+import NoMathExpectation.NMEBoot.message.stringifyUserMentions
 import io.github.oshai.kotlinlogging.KotlinLogging
 import love.forte.simbot.component.onebot.v11.core.event.notice.OneBotPokeEvent
 import love.forte.simbot.message.plus
@@ -30,7 +31,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandHistory() =
             MessageHistory.fetchRandomMessage(platform, globalSubject.id.toString(), globalSubject)?.let { pair ->
                 val (senderName, message) = pair
                 it.reply("$senderName 曾经说过：")
-                it.send(OneBotFolding.FoldIgnore + message)
+                it.send(OneBotFolding.FoldIgnore + message.stringifyUserMentions(globalSubject))
                 return@executes
             }
 
@@ -50,7 +51,7 @@ suspend fun pokeEventForHistory(event: OneBotPokeEvent) {
         runCatching {
             MessageHistory.fetchRandomMessage(platform, globalSubject.id.toString(), globalSubject)?.let { pair ->
                 val (_, message) = pair
-                context.send(OneBotFolding.FoldIgnore + message)
+                context.send(OneBotFolding.FoldIgnore + message.stringifyUserMentions(globalSubject))
             }
         }.onFailure {
             logger.error(it) { "Error while poking for history:" }
