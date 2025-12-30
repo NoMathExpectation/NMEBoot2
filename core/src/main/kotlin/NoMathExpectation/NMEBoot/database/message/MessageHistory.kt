@@ -11,10 +11,7 @@ import NoMathExpectation.NMEBoot.message.event.CommandSourcePostSendEvent
 import NoMathExpectation.NMEBoot.message.message
 import NoMathExpectation.NMEBoot.message.standardize
 import NoMathExpectation.NMEBoot.message.toSerialized
-import NoMathExpectation.NMEBoot.util.ids
-import NoMathExpectation.NMEBoot.util.name
-import NoMathExpectation.NMEBoot.util.nickOrName
-import NoMathExpectation.NMEBoot.util.notLike
+import NoMathExpectation.NMEBoot.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
@@ -129,7 +126,7 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
                 transaction {
                     new {
                         platform = source?.platform ?: "<unknown>"
-                        botId = event.bot.id.toString()
+                        botId = event.bot.platformId.toString()
 
                         globalSubjectId = source?.globalSubject?.id?.toString()
                         globalSubjectName = source?.globalSubject?.name
@@ -183,7 +180,7 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
                 transaction {
                     new {
                         platform = source.platform
-                        botId = source.bot?.id?.toString()
+                        botId = source.bot?.platformId?.toString()
 
                         globalSubjectId = source.globalSubject?.id?.toString()
                         globalSubjectName = source.globalSubject?.name

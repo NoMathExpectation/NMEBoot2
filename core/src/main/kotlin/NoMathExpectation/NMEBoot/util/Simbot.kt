@@ -2,8 +2,11 @@ package NoMathExpectation.NMEBoot.util
 
 import NoMathExpectation.NMEBoot.message.ComposedMessageReceipt
 import io.github.oshai.kotlinlogging.KotlinLogging
+import love.forte.simbot.bot.Bot
 import love.forte.simbot.common.id.ID
+import love.forte.simbot.common.id.StringID.Companion.ID
 import love.forte.simbot.common.time.Timestamp
+import love.forte.simbot.component.kook.bot.KookBot
 import love.forte.simbot.component.onebot.v11.message.OneBotMessageReceipt
 import love.forte.simbot.definition.*
 import love.forte.simbot.message.*
@@ -44,4 +47,10 @@ val MessageReceipt.ids: List<ID>?
             logger.warn { "Cannot resolve ids for message receipt: $this" }
             null
         }
+    }
+
+val Bot.platformId
+    get() = when (this) {
+        is KookBot -> sourceBot.botUserInfo.id.ID
+        else -> id
     }

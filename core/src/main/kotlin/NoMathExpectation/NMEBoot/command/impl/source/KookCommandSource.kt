@@ -6,6 +6,7 @@ import NoMathExpectation.NMEBoot.command.impl.source.offline.OfflineKookPrivateC
 import NoMathExpectation.NMEBoot.message.element.Attachment
 import NoMathExpectation.NMEBoot.user.idToUid
 import NoMathExpectation.NMEBoot.util.asMessages
+import NoMathExpectation.NMEBoot.util.platformId
 import io.ktor.client.request.forms.*
 import io.ktor.utils.io.jvm.javaio.*
 import love.forte.simbot.ability.SendSupport
@@ -72,7 +73,7 @@ interface KookChannelCommandSource<out T> : KookCommandSource<T>, GuildMemberCom
         get() = executor.roles.toList()
 
     override suspend fun botAsSource(): KookChannelCommandSource<*> {
-        return Data.invoke(bot.id, globalSubject.id, subject.id, bot.id)
+        return Data.invoke(bot.id, globalSubject.id, subject.id, bot.platformId)
     }
 
     override suspend fun isBotModerator() = hasPermission(adminPermission) || globalSubject.owner().id == executor.id
@@ -204,7 +205,7 @@ interface KookPrivateCommandSource<out T> : KookCommandSource<T>, ContactCommand
     override val executor: KookUserChat
 
     override suspend fun botAsSource(): KookPrivateCommandSource<*> {
-        return Data.invoke(bot.id, bot.id)
+        return Data.invoke(bot.id, bot.platformId)
     }
 
     override suspend fun toOffline() = OfflineKookPrivateCommandSource(bot.id, executor.id)
