@@ -27,6 +27,7 @@ suspend fun initDispatcher() {
     commandDispatcher = CommandDispatcher(SelectionCommandNode()) {
         onCommandPrefix(commandConfig.get().commandPrefix)
             .consumeCooldown()
+            .checkNotOverwork()
             .literals {
                 commandStop()
                 commandStatus()
