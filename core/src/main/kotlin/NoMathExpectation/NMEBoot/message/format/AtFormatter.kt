@@ -36,7 +36,7 @@ class AtFormatter : MessageElementFormatter<At> {
             is Organization if type == KookMessages.AT_TYPE_ROLE -> context.roles.asFlow()
                 .firstOrNull { it.id == target }?.name ?: target.toString()
 
-            is Organization if type == At.DEFAULT_AT_TYPE -> context.member(target)?.nickOrName
+            is Organization if type == At.DEFAULT_AT_TYPE -> context.member(target)?.nickOrName ?: target.toString()
             null -> target.toString()
             else -> {
                 logger.warn { "Unknown type and context for At: $target, $target, $context" }

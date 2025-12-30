@@ -76,7 +76,7 @@ object MessageFormatter {
 
     suspend fun messageToReadableString(message: Message, context: Actor? = null): String {
         return when (message) {
-            is Message.Element -> messageElementToReadableString(message)
+            is Message.Element -> messageElementToReadableString(message, context)
             is Messages -> message.map { messageElementToReadableString(it, context) }.joinToString("")
             else -> message.toString()
         }
