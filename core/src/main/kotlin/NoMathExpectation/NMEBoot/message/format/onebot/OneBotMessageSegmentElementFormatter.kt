@@ -1,5 +1,6 @@
 package NoMathExpectation.NMEBoot.message.format.onebot
 
+import NoMathExpectation.NMEBoot.message.FormatOptions
 import NoMathExpectation.NMEBoot.message.format.ImageFormatter
 import NoMathExpectation.NMEBoot.message.format.MessageElementFormatter
 import NoMathExpectation.NMEBoot.message.format.PlainTextFormatter
@@ -22,14 +23,16 @@ class OneBotMessageSegmentElementFormatter(
 
     override suspend fun toReadableString(
         element: OneBotMessageSegmentElement,
-        context: Actor?
+        context: Actor?,
+        options: FormatOptions
     ): String {
         return "[onebot消息段]"
     }
 
     override suspend fun serialize(
         element: OneBotMessageSegmentElement,
-        context: Actor?
+        context: Actor?,
+        options: FormatOptions
     ): List<String> {
         when (element) {
             is OneBotDice.Element -> return diceFormatter.serialize(element, context)
@@ -50,7 +53,8 @@ class OneBotMessageSegmentElementFormatter(
 
     override suspend fun deserialize(
         segments: List<String>,
-        context: Actor?
+        context: Actor?,
+        options: FormatOptions
     ): OneBotMessageSegmentElement {
         return when (segments.getOrNull(1)) {
             "json" -> OneBotJson.create(segments[2])

@@ -2,14 +2,22 @@ package NoMathExpectation.NMEBoot.util
 
 import NoMathExpectation.NMEBoot.message.ComposedMessageReceipt
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.suspendCancellableCoroutine
 import love.forte.simbot.bot.Bot
+import love.forte.simbot.common.atomic.atomicRef
+import love.forte.simbot.common.atomic.update
 import love.forte.simbot.common.id.ID
 import love.forte.simbot.common.id.StringID.Companion.ID
 import love.forte.simbot.common.time.Timestamp
 import love.forte.simbot.component.kook.bot.KookBot
 import love.forte.simbot.component.onebot.v11.message.OneBotMessageReceipt
 import love.forte.simbot.definition.*
+import love.forte.simbot.event.Event
+import love.forte.simbot.event.EventListenerRegistrar
+import love.forte.simbot.event.EventListenerRegistrationHandle
+import love.forte.simbot.event.process
 import love.forte.simbot.message.*
+import kotlin.coroutines.resumeWithException
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -53,4 +61,27 @@ val Bot.platformId
     get() = when (this) {
         is KookBot -> sourceBot.botUserInfo.id.ID
         else -> id
+    }
+
+suspend inline fun <reified E : Event> EventListenerRegistrar.awaitNextEvent(crossinline predicate: suspend (E) -> Boolean): E =
+    suspendCancellableCoroutine { cont ->
+        val handle = atomicRef<EventListenerRegistrationHandle?>(null)
+        cont.invokeOnCancellation {
+            handle.update { null }?.dispose()
+        }
+        handle.value = process<E> { event ->
+            val result = runCatching {
+                predicate(event)
+            }.getOrElse {
+                handle.update { null }?.dispose()
+                cont.resumeWithException(it)
+                return@process
+            }
+            if (result) {
+                handle.update { null }?.let {
+                    it.dispose()
+                    cont.resume(event) { _, _, _ -> }
+                }
+            }
+        }
     }

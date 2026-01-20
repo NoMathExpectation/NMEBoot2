@@ -180,7 +180,9 @@ internal suspend fun tryHandleCommand(event: Event, source: CommandSource<*>) {
         .messages
         .standardize()
         .removeReferencePrefix()
-        .toSerialized(actor, false)
+        .toSerialized(actor) {
+            formatLineFeeds = false
+        }
 
     source.executeCommand(text) {
         originalMessage = event.messageContent

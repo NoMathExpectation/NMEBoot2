@@ -1,5 +1,6 @@
 package NoMathExpectation.NMEBoot.message.format
 
+import NoMathExpectation.NMEBoot.message.FormatOptions
 import NoMathExpectation.NMEBoot.util.nickOrName
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.flow.firstOrNull
@@ -47,15 +48,15 @@ class AtFormatter : MessageElementFormatter<At> {
         return "$prefix$name"
     }
 
-    override suspend fun toReadableString(element: At, context: Actor?): String {
+    override suspend fun toReadableString(element: At, context: Actor?, options: FormatOptions): String {
         return toReadableString(element.target, element.type, context)
     }
 
-    override suspend fun serialize(element: At, context: Actor?): List<String> {
+    override suspend fun serialize(element: At, context: Actor?, options: FormatOptions): List<String> {
         return listOf(type, element.type, element.target.toString())
     }
 
-    override suspend fun deserialize(segments: List<String>, context: Actor?): At {
+    override suspend fun deserialize(segments: List<String>, context: Actor?, options: FormatOptions): At {
         val (_, type, target) = segments
         return At(target.ID, type, toReadableString(target.ID, type, context))
     }

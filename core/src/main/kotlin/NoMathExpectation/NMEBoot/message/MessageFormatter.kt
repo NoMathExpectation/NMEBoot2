@@ -12,6 +12,17 @@ import love.forte.simbot.message.*
 
 private val logger = KotlinLogging.logger { }
 
+data class FormatOptions(
+    var formatLineFeeds: Boolean = true,
+    var persistent: Boolean = false,
+) {
+    companion object {
+        inline operator fun invoke(block: FormatOptions.() -> Unit): FormatOptions {
+            return FormatOptions().apply(block)
+        }
+    }
+}
+
 object MessageFormatter {
     val elementFormatters by lazy {
         koin.koin.getAll<MessageElementFormatter<Message.Element>>()
@@ -60,24 +71,32 @@ object MessageFormatter {
         return message.unescapeIdentifiers(unescapeLineFeeds)
     }
 
-    private suspend fun messageElementToReadableString(element: Message.Element, context: Actor? = null): String {
+    private suspend fun messageElementToReadableString(
+        element: Message.Element,
+        context: Actor? = null,
+        options: FormatOptions = FormatOptions()
+    ): String {
         if (element is PlainText) {
             return element.text
         }
 
         return kotlin.runCatching {
             elementFormatters.first { it.formatClass.isInstance(element) }
-                .toReadableString(element, context)
+                .toReadableString(element, context, options)
         }.getOrElse {
             logger.warn { "Unknown element: $element" }
             ""
         }
     }
 
-    suspend fun messageToReadableString(message: Message, context: Actor? = null): String {
+    suspend fun messageToReadableString(
+        message: Message,
+        context: Actor? = null,
+        options: FormatOptions = FormatOptions()
+    ): String {
         return when (message) {
-            is Message.Element -> messageElementToReadableString(message, context)
-            is Messages -> message.map { messageElementToReadableString(it, context) }.joinToString("")
+            is Message.Element -> messageElementToReadableString(message, context, options)
+            is Messages -> message.map { messageElementToReadableString(it, context, options) }.joinToString("")
             else -> message.toString()
         }
     }
@@ -85,13 +104,14 @@ object MessageFormatter {
     suspend fun messageElementToSerializedList(
         element: Message.Element,
         context: Actor? = null,
+        options: FormatOptions = FormatOptions()
     ): List<String>? {
         val formatter = elementFormatters.firstOrNull { it.formatClass.isInstance(element) } ?: run {
             logger.warn { "Unknown element: $element" }
             return null
         }
         return runCatching {
-            formatter.serialize(element, context)
+            formatter.serialize(element, context, options)
         }.getOrElse {
             logger.error(it) { "Error while serializing message element with ${formatter.formatClass}: $element" }
             null
@@ -101,28 +121,29 @@ object MessageFormatter {
     suspend fun messageElementToSerialized(
         element: Message.Element,
         context: Actor? = null,
-        escapeLineFeeds: Boolean = true
+        options: FormatOptions = FormatOptions()
     ): SerializedMessage {
         if (element is PlainText) {
-            return element.text.escapeIdentifiers(escapeLineFeeds)
+            return element.text.escapeIdentifiers(options.formatLineFeeds)
         }
 
-        return messageElementToSerializedList(element, context)
-            ?.joinToString(":", "[", "]") { it.escapeIdentifiers(escapeLineFeeds) }
+        return messageElementToSerializedList(element, context, options)
+            ?.joinToString(":", "[", "]") { it.escapeIdentifiers(options.formatLineFeeds) }
             ?: ""
     }
 
     suspend fun messageToSerialized(
         message: Message,
         context: Actor? = null,
-        escapeLineFeeds: Boolean = true
+        options: FormatOptions = FormatOptions()
     ): SerializedMessage {
-        return message.asMessages().map { messageElementToSerialized(it, context, escapeLineFeeds) }.joinToString("")
+        return message.asMessages().map { messageElementToSerialized(it, context, options) }.joinToString("")
     }
 
     suspend fun deserializeMessageElementSegmentList(
         segments: List<String>,
-        context: Actor? = null
+        context: Actor? = null,
+        options: FormatOptions = FormatOptions()
     ): Message.Element? {
         if (segments.isEmpty()) {
             logger.debug { "Empty segment list." }
@@ -135,7 +156,7 @@ object MessageFormatter {
         }
 
         return runCatching {
-            formatter.deserialize(segments, context)
+            formatter.deserialize(segments, context, options)
         }.getOrElse {
             logger.error(it) { "Error while deserializing message element with type ${formatter.type}: $segments" }
             null
@@ -145,26 +166,26 @@ object MessageFormatter {
     suspend fun deserializeMessageElement(
         element: SerializedMessage,
         context: Actor? = null,
-        unescapeLineFeeds: Boolean = true
+        options: FormatOptions = FormatOptions(),
     ): Message.Element {
         if (!(element.startsWith("[") && element.endsWith("]"))) {
             return element
-                .unescapeIdentifiers(unescapeLineFeeds)
+                .unescapeIdentifiers(options.formatLineFeeds)
                 .toText()
         }
         val segments = element.removeSurrounding("[", "]")
             .splitUnescaped(':')
-            .map { it.unescapeIdentifiers(unescapeLineFeeds) }
-        return deserializeMessageElementSegmentList(segments, context) ?: "".toText()
+            .map { it.unescapeIdentifiers(options.formatLineFeeds) }
+        return deserializeMessageElementSegmentList(segments, context, options) ?: "".toText()
     }
 
     suspend fun deserializeMessage(
         message: SerializedMessage,
         context: Actor? = null,
-        unescapeLineFeeds: Boolean = true
+        options: FormatOptions = FormatOptions(),
     ): Messages {
         return message.splitByUnescapedPaired('[', ']')
-            .map { deserializeMessageElement(it, context, unescapeLineFeeds) }
+            .map { deserializeMessageElement(it, context, options) }
             .toMessages()
     }
 }
@@ -175,14 +196,17 @@ fun String.escapeMessageFormatIdentifiers(escapeLineFeeds: Boolean = true) =
 fun String.unescapeMessageFormatIdentifiers(unescapeLineFeeds: Boolean = true) =
     MessageFormatter.unescapeMessageFormatIdentifiers(this, unescapeLineFeeds)
 
-suspend inline fun Message.toReadableString(context: Actor? = null) =
-    MessageFormatter.messageToReadableString(this, context)
+suspend inline fun Message.toReadableString(context: Actor? = null, optionsBlock: FormatOptions.() -> Unit = {}) =
+    MessageFormatter.messageToReadableString(this, context, FormatOptions(optionsBlock))
 
-suspend inline fun Message.toSerialized(context: Actor? = null, escapeLineFeeds: Boolean = true) =
-    MessageFormatter.messageToSerialized(this, context, escapeLineFeeds)
+suspend inline fun Message.toSerialized(context: Actor? = null, optionsBlock: FormatOptions.() -> Unit = {}) =
+    MessageFormatter.messageToSerialized(this, context, FormatOptions(optionsBlock))
 
-suspend inline fun SerializedMessage.deserializeToMessage(context: Actor? = null, unescapeLineFeeds: Boolean = true) =
-    MessageFormatter.deserializeMessage(this, context, unescapeLineFeeds)
+suspend inline fun SerializedMessage.deserializeToMessage(
+    context: Actor? = null,
+    optionsBlock: FormatOptions.() -> Unit = {}
+) =
+    MessageFormatter.deserializeMessage(this, context, FormatOptions(optionsBlock))
 
 fun Messages.removeReferencePrefix() = dropWhile {
     it is MessageReference ||
