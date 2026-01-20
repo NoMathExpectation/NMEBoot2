@@ -108,6 +108,7 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandTag() =
                             val tagList = TagData.listTags(globalSubjectId, tagName)
                             if (tagList.isEmpty()) {
                                 it.reply("找不到标签 $tagName。")
+                                return@executes
                             }
 
                             it.reply(
