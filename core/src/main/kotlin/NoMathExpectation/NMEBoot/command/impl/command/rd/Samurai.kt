@@ -27,7 +27,7 @@ data object SamuraiIgnore : Message.Element
 data class Samurai(var enabled: Boolean = false) {
     companion object {
         private val config = mutableMapStorageOf<String, _>("config/samurai.json") { Samurai() }
-        val words = listOf("Samurai.", "Donut.", " Great.", "Nice.")
+        val words = listOf("Samurai.", "Donut.", "Great.", "Nice.")
 
         suspend fun <R> updateConfig(key: String, update: Samurai.() -> R): R {
             return config.referenceUpdate(key) { it.update() }

@@ -38,6 +38,6 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandOffset() =
                 })
             }.onFailure { e ->
                 logger.error(e) { "分析offset失败" }
-                it.reply("分析文件失败")
+                it.reply("分析文件失败：${e.localizedMessage}")
             }
         }

@@ -101,6 +101,6 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandConvert() =
                 })
             }.onFailure { e ->
                 logger.error(e) { "转换失败" }
-                it.reply("转换失败")
+                it.reply("转换失败：${e.localizedMessage}")
             }
         }
