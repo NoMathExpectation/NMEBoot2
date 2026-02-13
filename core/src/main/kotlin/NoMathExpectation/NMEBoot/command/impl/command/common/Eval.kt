@@ -36,7 +36,9 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandEval() =
         .collectGreedyString("code")
         .executes("运行Kotlin代码") {
             val code = getString("code")?.unescapeMessageFormatIdentifiers() ?: error("Code required.")
-            val quoted = it.originalMessage?.referenceMessage()?.messages?.toSerialized(it.target.globalSubject)
+            val quoted = it.originalMessage?.referenceMessage()?.messages?.toSerialized(it.target.globalSubject) {
+                bot = it.target.bot
+            }
 
             val (endpoint, timeout) = configStorage.get()
 

@@ -72,7 +72,7 @@ private suspend fun logMessageEvent(event: MessageEvent) {
     }
 
     val actor = (event as? ActorEvent)?.content()
-    val msgString = event.messageContent.messages.standardize().toSerialized(actor)
+    val msgString = event.messageContent.messages.standardize().toSerialized(actor) { bot = event.bot }
 
     when (event) {
         is ChatChannelMessageEvent -> {
@@ -126,7 +126,7 @@ private suspend fun logPostSendMessage(event: InternalMessagePostSendEvent) {
     }
 
     val source = event.content
-    val msgString = event.message.message.toSerialized(event.target())
+    val msgString = event.message.message.toSerialized(event.target()) { bot = event.content.bot }
     when (source) {
         is GuildMemberCommandSource -> {
             val globalSubject = source.globalSubject
@@ -182,6 +182,7 @@ internal suspend fun tryHandleCommand(event: Event, source: CommandSource<*>) {
         .removeReferencePrefix()
         .toSerialized(actor) {
             formatLineFeeds = false
+            bot = event.bot
         }
 
     source.executeCommand(text) {

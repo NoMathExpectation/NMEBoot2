@@ -121,7 +121,9 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
             }
             try {
                 val message =
-                    event.messageContent.messages.standardize().toSerialized((event as? ActorEvent)?.content())
+                    event.messageContent.messages.standardize().toSerialized((event as? ActorEvent)?.content()) {
+                        bot = event.bot
+                    }
 
                 transaction {
                     new {
@@ -174,7 +176,9 @@ class MessageHistory(id: EntityID<Long>) : LongEntity(id) {
             }
             try {
                 val source = event.content
-                val msgString = event.message.message.toSerialized(event.target())
+                val msgString = event.message.message.toSerialized(event.target()) {
+                    bot = event.content.bot
+                }
                 val botSource = source.botAsSource()
 
                 transaction {

@@ -14,6 +14,7 @@ import NoMathExpectation.NMEBoot.message.toSerialized
 import NoMathExpectation.NMEBoot.util.MutableMapStorage
 import NoMathExpectation.NMEBoot.util.mutableMapStorageOf
 import kotlinx.serialization.Serializable
+import love.forte.simbot.bot.Bot
 import love.forte.simbot.definition.Actor
 import love.forte.simbot.message.Message
 
@@ -45,10 +46,13 @@ object TagData {
         }
     }
 
-    suspend fun updateTag(globalSubject: String, tagName: String, message: Message, context: Actor?) {
+    suspend fun updateTag(globalSubject: String, tagName: String, message: Message, context: Actor?, bot: Bot?) {
         modify(globalSubject) {
             val tag = tags.getOrPut(tagName) { Tag() }
-            tag.content = message.toSerialized(context) { persistent = true }
+            tag.content = message.toSerialized(context) {
+                persistent = true
+                this.bot = bot
+            }
         }
     }
 
@@ -142,7 +146,13 @@ suspend fun LiteralSelectionCommandNode<AnyExecuteContext>.commandTag() =
                                             return@executes
                                         }
 
-                                    TagData.updateTag(globalSubjectId, tagName, tagContent, globalSubject)
+                                    TagData.updateTag(
+                                        globalSubjectId,
+                                        tagName,
+                                        tagContent,
+                                        globalSubject,
+                                        it.target.bot
+                                    )
 
                                     it.reply("标签 $tagName 已更新。")
                                 }

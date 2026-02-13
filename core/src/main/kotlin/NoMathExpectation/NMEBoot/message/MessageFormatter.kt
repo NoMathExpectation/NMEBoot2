@@ -4,6 +4,7 @@ import NoMathExpectation.NMEBoot.message.format.MessageElementFormatter
 import NoMathExpectation.NMEBoot.message.format.SerializedMessage
 import NoMathExpectation.NMEBoot.util.*
 import io.github.oshai.kotlinlogging.KotlinLogging
+import love.forte.simbot.bot.Bot
 import love.forte.simbot.component.kook.message.KookMessages
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotMessageSegmentElement
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotReply
@@ -15,6 +16,7 @@ private val logger = KotlinLogging.logger { }
 data class FormatOptions(
     var formatLineFeeds: Boolean = true,
     var persistent: Boolean = false,
+    var bot: Bot? = null,
 ) {
     companion object {
         inline operator fun invoke(block: FormatOptions.() -> Unit): FormatOptions {

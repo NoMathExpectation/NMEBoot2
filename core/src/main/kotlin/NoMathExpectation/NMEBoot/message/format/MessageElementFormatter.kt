@@ -17,11 +17,3 @@ interface MessageElementFormatter<E : Message.Element> {
 
     suspend fun deserialize(segments: List<String>, context: Actor? = null, options: FormatOptions = FormatOptions()): E
 }
-
-suspend fun <E : Message.Element> MessageElementFormatter<E>.serializeToString(
-    element: E,
-    context: Actor? = null,
-    options: FormatOptions = FormatOptions()
-) =
-    serialize(element, context, options)
-        .joinToString(":", "[", "]")
