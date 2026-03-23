@@ -36,7 +36,7 @@ dependencies {
     implementation("com.mojang:brigadier:1.0.18")
 
     // serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0")
 
     // KStore
     val kStoreVersion = "0.9.1"

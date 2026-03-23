@@ -1,5 +1,7 @@
 package NoMathExpectation.NMEBoot.util
 
+import kotlin.random.Random
+
 fun String.isEscapedAt(index: Int, escapeChar: Char = '\\'): Boolean {
     var backslashCount = 0
     var i = index - 1
@@ -61,6 +63,14 @@ fun String.unescapeLineFeeds() = buildString {
             }
         } else {
             append(char)
+        }
+    }
+}
+
+fun String.randomRemoveChars(ratio: Double = 0.5) = buildString {
+    this@randomRemoveChars.forEach {
+        if (Random.nextDouble() > ratio) {
+            append(it)
         }
     }
 }

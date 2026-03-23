@@ -3,6 +3,7 @@
 package NoMathExpectation.NMEBoot.bot
 
 import NoMathExpectation.NMEBoot.command.impl.command.common.MCChat
+import NoMathExpectation.NMEBoot.command.impl.command.common.aprilFoolModifyMessage
 import NoMathExpectation.NMEBoot.command.impl.command.common.pokeEventForHistory
 import NoMathExpectation.NMEBoot.command.impl.command.rd.handleSamurai
 import NoMathExpectation.NMEBoot.command.impl.executeCommand
@@ -30,6 +31,7 @@ internal suspend fun handleEvent(event: Event) {
 
     if (event is CommandSourcePreSendEvent<*>) {
         handleSamurai(event)
+        aprilFoolModifyMessage(event)
         return
     }
 

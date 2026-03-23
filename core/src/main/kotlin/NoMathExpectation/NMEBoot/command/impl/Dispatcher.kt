@@ -46,6 +46,7 @@ suspend fun initDispatcher() {
                 commandSql()
                 commandHistory()
                 commandTag()
+                commandAprilFool()
 
                 //rd
                 commandChart()
