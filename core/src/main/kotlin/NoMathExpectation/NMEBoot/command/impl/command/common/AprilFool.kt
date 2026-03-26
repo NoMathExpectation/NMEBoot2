@@ -42,7 +42,7 @@ fun aprilFoolModifyMessage(event: InternalMessagePreSendEvent) {
         return
     }
 
-    val ratio = Random.sampleNormalDistribution(0.4, 0.1)
+    val ratio = Random.sampleNormalDistribution(0.5, 0.1)
     event.currentMessage = InteractionMessage.valueOf(event.currentMessage.message.asMessages().map {
         if (it is PlainText) {
             it.text.randomRemoveChars(ratio).toText()

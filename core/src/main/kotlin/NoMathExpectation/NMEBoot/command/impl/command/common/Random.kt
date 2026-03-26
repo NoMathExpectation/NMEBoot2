@@ -10,7 +10,7 @@ import love.forte.simbot.ability.ReplySupport
 
 suspend fun <S> LiteralSelectionCommandNode<S>.commandRandom()
         where S : PermissionAware, S : ReplySupport =
-    literal("random")
+    literal("random", "r")
         .requiresPermission("command.common.random")
         .select {
             help = "生成随机数或随机一个选项"
@@ -95,5 +95,24 @@ suspend fun <S> LiteralSelectionCommandNode<S>.commandRandom()
                             }
                         }
                     }
+
+                val rollCollect = literal("roll", "r")
+                    .collectLong("value")
+                rollCollect.executes {
+                    val list = getOrPut<MutableList<Long>>("list") { mutableListOf() }
+                    val value = getLong("value") ?: error("未提供数值")
+                    require(value >= 1) { "骰子数值必须大于或等于1" }
+                    list += value
+                }.select {
+                    help = "掷出指定数值的骰子"
+
+                    forward(rollCollect)
+
+                    executes("掷出指定数值的骰子") {
+                        val list = get<MutableList<Long>>("list") ?: error("没有数值")
+                        val results = list.map { (1..it).random() }
+                        it.reply("${results.joinToString("+")}=${results.sum()}")
+                    }
+                }
             }
         }
