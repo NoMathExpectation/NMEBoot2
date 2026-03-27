@@ -96,7 +96,7 @@ suspend fun <S> LiteralSelectionCommandNode<S>.commandRandom()
                         }
                     }
 
-                val rollCollect = literal("roll", "r")
+                val rollCollect = literal("roll", "dice", "r", "d")
                     .collectLong("value")
                 rollCollect.executes {
                     val list = getOrPut<MutableList<Long>>("list") { mutableListOf() }
