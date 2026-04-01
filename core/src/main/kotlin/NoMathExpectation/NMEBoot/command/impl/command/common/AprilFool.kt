@@ -7,6 +7,7 @@ import NoMathExpectation.NMEBoot.command.parser.node.LiteralSelectionCommandNode
 import NoMathExpectation.NMEBoot.command.parser.node.executes
 import NoMathExpectation.NMEBoot.command.parser.node.literal
 import NoMathExpectation.NMEBoot.command.parser.node.on
+import NoMathExpectation.NMEBoot.message.event.CommandSourceSendMessageEvent
 import NoMathExpectation.NMEBoot.message.message
 import NoMathExpectation.NMEBoot.util.asMessages
 import NoMathExpectation.NMEBoot.util.randomRemoveChars
@@ -24,21 +25,22 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-private var deactivateUntil = Instant.DISTANT_PAST
+private var deactivateUntilMap = mutableMapOf<String, Instant>()
 
-private val shouldActivate: Boolean
-    get() {
-        val now = Clock.System.now()
-        if (now < deactivateUntil) {
-            return false
-        }
-
-        val currentDateTime = now.toLocalDateTime()
-        return currentDateTime.month == Month.APRIL && currentDateTime.day == 1
+private fun shouldActivate(id: String): Boolean {
+    val now = Clock.System.now()
+    if (now < deactivateUntilMap.getOrDefault(id, Instant.DISTANT_PAST)) {
+        return false
     }
 
+    val currentDateTime = now.toLocalDateTime()
+    return currentDateTime.month == Month.APRIL && currentDateTime.day == 1
+}
+
 fun aprilFoolModifyMessage(event: InternalMessagePreSendEvent) {
-    if (!shouldActivate) {
+    val source = (event as? CommandSourceSendMessageEvent<*>)?.content ?: return
+    val id = source.globalSubjectPermissionId ?: source.subjectPermissionId ?: return
+    if (!shouldActivate(id)) {
         return
     }
 
@@ -53,8 +55,12 @@ fun aprilFoolModifyMessage(event: InternalMessagePreSendEvent) {
 }
 
 fun LiteralSelectionCommandNode<AnyExecuteContext>.commandAprilFool() = literal("aprilfool", "aprilfools")
-    .on { shouldActivate }
+    .on {
+        val id = it.target.globalSubjectPermissionId ?: it.target.subjectPermissionId ?: return@on false
+        shouldActivate(id)
+    }
     .executes {
-        deactivateUntil = Clock.System.now() + 1.hours
+        val id = it.target.globalSubjectPermissionId ?: it.target.subjectPermissionId ?: return@executes
+        deactivateUntilMap[id] = Clock.System.now() + 1.hours
         it.send("你隐约感觉神必力量暂时消失了...")
     }
