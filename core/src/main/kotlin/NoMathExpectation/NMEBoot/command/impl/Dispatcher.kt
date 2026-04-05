@@ -3,6 +3,7 @@ package NoMathExpectation.NMEBoot.command.impl
 import NoMathExpectation.NMEBoot.command.impl.command.admin.commandCooldown
 import NoMathExpectation.NMEBoot.command.impl.command.admin.commandPermission
 import NoMathExpectation.NMEBoot.command.impl.command.admin.commandStop
+import NoMathExpectation.NMEBoot.command.impl.command.commandExport
 import NoMathExpectation.NMEBoot.command.impl.command.commandTransfer
 import NoMathExpectation.NMEBoot.command.impl.command.common.*
 import NoMathExpectation.NMEBoot.command.impl.command.custom.bitterBirds
@@ -55,7 +56,7 @@ suspend fun initDispatcher() {
                 commandSamurai()
 
                 //experimental
-                //commandExport()
+                commandExport()
                 //commandRef()
                 //commandFiles()
                 //commandCopy()
