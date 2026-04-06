@@ -1,9 +1,9 @@
-package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data
+package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.typesense
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data class Result(
+internal data class TypesenseResult(
     val facet_counts: List<Filter>,
     val found: Int,
     val hits: List<MatchedLevel>,

@@ -1,4 +1,4 @@
-package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data
+package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.typesense
 
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer

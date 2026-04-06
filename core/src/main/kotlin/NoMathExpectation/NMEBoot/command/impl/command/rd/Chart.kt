@@ -6,9 +6,8 @@ import NoMathExpectation.NMEBoot.command.parser.argument.*
 import NoMathExpectation.NMEBoot.command.parser.node.*
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.PeerReviewNotifier
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.RhythmCafeSearchEngine
-import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.Request
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.DatasetteRequest
-import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.bodyToLevelStatusList
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.typesense.TypesenseRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger { }
@@ -36,7 +35,6 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                         runCatching {
                             val query = DatasetteRequest.ofRandom(1, peerReview)
                             val level = RhythmCafeSearchEngine.datasetteQuery(query)
-                                .bodyToLevelStatusList()
                                 .firstOrNull() ?: run {
                                 it.reply("没有可以随机的谱面...")
                                 return@executes
@@ -52,7 +50,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                 literal("search", "s")
                     .optionallyCollectString("keyword")
                     .optionallyCollectInt("itemPerPage")
-                    .checkInRange(1, Request.MAX_PER_PAGE)
+                    .checkInRange(1, TypesenseRequest.MAX_PER_PAGE)
                     .optionallyCollectBoolean("peerReview")
                     .executes("查找谱面") {
                         val keyword = getString("keyword")
@@ -123,30 +121,13 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                         it.send(RhythmCafeSearchEngine.getLink(index))
                     }
 
-                literal("link2", "l2")
-                    .collectInt("index")
-                    .executes("获取备用下载链接") {
-                        if (RhythmCafeSearchEngine.isNotSearched()) {
-                            it.send("请先进行一次搜索。")
-                            return@executes
-                        }
-
-                        val index = getInt("index") ?: 1
-                        if (index !in 1..RhythmCafeSearchEngine.currentPageItemCount) {
-                            it.send("索引超出范围。")
-                            return@executes
-                        }
-
-                        it.send(RhythmCafeSearchEngine.getLink2(index))
-                    }
-
                 //todo: 下载谱面并上传
 
                 literal("pending", "pd")
                     .executes("查询待定谱面数量") {
                         runCatching {
                             val count = RhythmCafeSearchEngine.getPendingLevelCount()
-                            val countStr = if (count >= Request.MAX_PER_PAGE) "${count - 1}+" else count
+                            val countStr = if (count >= TypesenseRequest.MAX_PER_PAGE) "${count - 1}+" else count
                             it.send("待定谱面数：$countStr")
                         }.onFailure { e ->
                             logger.error(e) { "查询待定谱面数失败：" }

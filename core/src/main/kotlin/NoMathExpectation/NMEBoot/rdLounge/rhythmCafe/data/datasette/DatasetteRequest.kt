@@ -22,24 +22,24 @@ enum class DatasetteResultShape {
 }
 
 @Serializable
-@Resource("/datasette/combined.json")
+@Resource("/rdlevels.json")
 data class DatasetteRequest(
     val sql: String,
     @SerialName("_shape")
     val shape: DatasetteResultShape = DatasetteResultShape.ARRAY,
 ) {
     companion object {
-        private const val QUERY_SQL_PREFIX = "select * from combined"
+        private const val QUERY_SQL_PREFIX = "select * from rdlevels"
 
         fun ofPending(shape: DatasetteResultShape = DatasetteResultShape.ARRAY) = DatasetteRequest(
-            "$QUERY_SQL_PREFIX where approval = 0",
+            "$QUERY_SQL_PREFIX where ${LevelStatus::approval.name} = 0",
             shape,
         )
 
         fun ofIds(vararg id: String, shape: DatasetteResultShape = DatasetteResultShape.ARRAY) =
             DatasetteRequest(
                 id.joinToString(
-                    prefix = "$QUERY_SQL_PREFIX where id in (",
+                    prefix = "$QUERY_SQL_PREFIX where ${LevelStatus::id.name} in (",
                     postfix = ")",
                 ) { "'$it'" },
                 shape,
@@ -50,7 +50,7 @@ data class DatasetteRequest(
             peerReview: Boolean = true,
             shape: DatasetteResultShape = DatasetteResultShape.ARRAY
         ) = DatasetteRequest(
-            "$QUERY_SQL_PREFIX ${if (peerReview) "where approval >= 10" else ""} order by random() limit $limit",
+            "$QUERY_SQL_PREFIX ${if (peerReview) "where ${LevelStatus::approval.name} >= 10" else ""} order by random() limit $limit",
             shape,
         )
     }

@@ -1,4 +1,4 @@
-package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data
+package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.typesense
 
 import kotlinx.serialization.Serializable
 import love.forte.simbot.message.OfflineURIImage.Companion.toOfflineImage

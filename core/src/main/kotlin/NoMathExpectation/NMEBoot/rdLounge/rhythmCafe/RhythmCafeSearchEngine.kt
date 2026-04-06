@@ -1,8 +1,11 @@
 package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe
 
-import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.Request
-import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.Result
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.DatasetteRequest
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.LevelStatus
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.bodyToLevelStatusList
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.typesense.TypesenseRequest
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.typesense.TypesenseResult
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -10,13 +13,17 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
 object RhythmCafeSearchEngine {
-    private const val apiKey = "nicolebestgirl"
+    private val logger = KotlinLogging.logger {}
+
+    private const val MAIN_URL = "https://api.rhythm.cafe"
+    private const val DATASETTE_URL = "https://datasette.rhythm.cafe"
+    private const val API_KEY = "nicolebestgirl"
+
     private val httpClient = HttpClient(CIO) {
         install(Resources)
         install(ContentNegotiation) {
@@ -28,17 +35,21 @@ object RhythmCafeSearchEngine {
             requestTimeoutMillis = 15 * 1000
         }
         defaultRequest {
-            url("https://api.rhythm.cafe")
-            header("x-typesense-api-key", apiKey)
+            url(MAIN_URL)
+            header("x-requested-with", "DjangoBridge")
+            header("x-typesense-api-key", API_KEY)
         }
     }
 
-    private lateinit var currentRequest: Request
-    private lateinit var currentSearch: Result
+    private lateinit var currentRequest: TypesenseRequest
+    private lateinit var currentSearch: TypesenseResult
 
-    private suspend fun sendRequest(request: Request) {
+    private suspend fun sendRequest(request: TypesenseRequest) {
         val response = httpClient.get(request)
-        require(response.status.isSuccess()) { "请求失败" }
+        require(response.status.isSuccess()) {
+            logger.error { "Error during requesting '${request.q}': ${response.status.description}" }
+            "请求失败"
+        }
 
         currentRequest = request
         currentSearch = response.body()
@@ -51,10 +62,10 @@ object RhythmCafeSearchEngine {
 
         return try {
             sendRequest(
-                Request(
+                TypesenseRequest(
                     q = query ?: "",
                     per_page = itemPerPage,
-                    filter_by = if (peerReview) Request.PR else Request.ANY,
+                    filter_by = if (peerReview) TypesenseRequest.PR else TypesenseRequest.ANY,
                     sort_by = if (peerReview) "_text_match:desc,indexed:desc,last_updated:desc" else "_text_match:desc,last_updated:desc"
                 )
             )
@@ -74,8 +85,6 @@ object RhythmCafeSearchEngine {
     }
 
     fun getLink(index: Int) = currentSearch.hits[index - 1].document.url
-
-    fun getLink2(index: Int) = currentSearch.hits[index - 1].document.url2
 
 //    suspend fun downloadAndUpload(group: Group, index: Int) = try {
 //        FileUtils.uploadFile(group, FileUtils.download(getLink2(index)))
@@ -116,29 +125,15 @@ object RhythmCafeSearchEngine {
 
     fun getDescription(index: Int) = currentSearch.hits[index - 1].document.toDetailedMessage()
 
-    suspend fun getPendingLevelCount() = httpClient.get(
-        Request(
-            filter_by = Request.PENDING,
-            per_page = Request.MAX_PER_PAGE,
-        )
-    ).body<Result>().hits.count()
+    suspend fun getPendingLevelCount() = datasetteQuery(DatasetteRequest.ofPending()).size
 
     fun sendHelp() = buildString {
-        append("//chart...\n")
-        append("help :显示此帮助\n")
-        append("random [peerReview] :随机获取一个谱面\n")
-        append("search [text] [itemPerPage] [peerReview] :搜索谱面（有空格请用引号括起）\n")
-        append("page <i> :将搜索结果翻到第i页\n")
-        append("info <i> :显示当前页中第i个谱面的描述\n")
-        append("link <i> :获取当前页中第i个谱面的链接\n")
-        append("link2 <i> :获取当前页中第i个谱面的镜像链接\n")
-        append("download <i> :下载当前页中第i个谱面（还没做）")
-        append("pending :获取待审谱面数量\n")
-        append("subscribe <name> :订阅pr通知\n")
-        append("unsubscribe :取消订阅pr通知\n")
+        append("此指令已弃用，请使用//help chart")
     }
 
-    suspend fun datasetteQuery(request: DatasetteRequest): HttpResponse {
-        return httpClient.get(request)
+    suspend fun datasetteQuery(request: DatasetteRequest): List<LevelStatus> {
+        return httpClient.get(request) {
+            url("$DATASETTE_URL/rdlevels.json")
+        }.bodyToLevelStatusList()
     }
 }

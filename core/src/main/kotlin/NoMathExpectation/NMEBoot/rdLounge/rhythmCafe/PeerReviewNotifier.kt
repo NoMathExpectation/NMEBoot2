@@ -5,7 +5,6 @@ import NoMathExpectation.NMEBoot.command.impl.source.offline.OfflineCommandSourc
 import NoMathExpectation.NMEBoot.command.impl.source.offline.toOnlineOrNull
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.DatasetteRequest
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.LevelStatus
-import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.bodyToLevelStatusList
 import NoMathExpectation.NMEBoot.util.storageOf
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.*
@@ -18,6 +17,7 @@ import love.forte.simbot.message.At
 import love.forte.simbot.message.Message
 import love.forte.simbot.message.MessagesBuilder
 import love.forte.simbot.message.buildMessages
+import kotlin.time.Duration.Companion.seconds
 
 object PeerReviewNotifier {
     @Serializable
@@ -81,7 +81,6 @@ object PeerReviewNotifier {
 
         pendingLevels.clear()
         RhythmCafeSearchEngine.datasetteQuery(DatasetteRequest.ofPending())
-            .bodyToLevelStatusList()
             .forEach { pendingLevels += it.id }
 
         logger.info { "刷新完成" }
@@ -102,7 +101,6 @@ object PeerReviewNotifier {
         val independentNotifications = mutableListOf<Pair<SubscribeInfo, Message>>()
 
         RhythmCafeSearchEngine.datasetteQuery(DatasetteRequest.ofIds(*pendingLevels.toTypedArray()))
-            .bodyToLevelStatusList()
             .filterNot { it.isPending }
             .forEach { level ->
                 level.authors
@@ -167,14 +165,14 @@ object PeerReviewNotifier {
                     }.onFailure {
                         error = true
                         logger.error(it) { "刷新待审谱面名单失败，将在${data.refreshInterval}秒后重试" }
-                        delay(data.refreshInterval * 1000)
+                        delay(data.refreshInterval.seconds)
                     }
 
                     if (error) {
                         continue
                     }
 
-                    delay(data.interval * 1000)
+                    delay(data.interval.seconds)
 
                     while (true) {
                         error = false
@@ -183,7 +181,7 @@ object PeerReviewNotifier {
                         }.onFailure {
                             error = true
                             logger.error(it) { "通知订阅者失败，将在${data.interval}秒后重试" }
-                            delay(data.interval * 1000)
+                            delay(data.interval.seconds)
                         }
 
                         if (!error) {

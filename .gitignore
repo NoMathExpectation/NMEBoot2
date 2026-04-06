@@ -48,3 +48,5 @@ bin/
 **/config/
 **/logs/
 ./compose/
+!*/src/main/**
+!*/src/test/**

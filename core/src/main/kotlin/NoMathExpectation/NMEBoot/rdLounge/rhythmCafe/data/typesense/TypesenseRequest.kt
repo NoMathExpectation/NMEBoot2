@@ -1,11 +1,11 @@
-package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data
+package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.typesense
 
 import io.ktor.resources.*
 import kotlinx.serialization.Serializable
 
 @Serializable
 @Resource("/typesense/collections/levels/documents/search")
-internal data class Request(
+internal data class TypesenseRequest(
     val q: String = "",
     val query_by: String = "song, authors, artist, tags, description",
     val query_by_weights: String = "12, 8, 6, 5, 4",
