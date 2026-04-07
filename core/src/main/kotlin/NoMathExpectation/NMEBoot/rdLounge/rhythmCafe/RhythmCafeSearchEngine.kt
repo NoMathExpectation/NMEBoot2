@@ -3,8 +3,9 @@ package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.DatasetteRequest
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.LevelStatus
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.bodyToLevelStatusList
-import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.typesense.TypesenseRequest
-import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.typesense.TypesenseResult
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.searchV2.CafeSearchRequest
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.searchV2.CafeSearchResponse
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.searchV2.CafeSearchResult
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -13,7 +14,6 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
-import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
@@ -41,18 +41,24 @@ object RhythmCafeSearchEngine {
         }
     }
 
-    private lateinit var currentRequest: TypesenseRequest
-    private lateinit var currentSearch: TypesenseResult
+    private lateinit var currentRequest: CafeSearchRequest
+    private lateinit var currentSearch: CafeSearchResult
 
-    private suspend fun sendRequest(request: TypesenseRequest) {
-        val response = httpClient.get(request)
-        require(response.status.isSuccess()) {
-            logger.error { "Error during requesting '${request.q}': ${response.status.description}" }
-            "请求失败"
+    private suspend fun searchQuery(request: CafeSearchRequest): CafeSearchResult {
+        runCatching {
+            return httpClient.get(request) {
+                url("https://v2.rhythm.cafe/api/levels/")
+            }.body<CafeSearchResponse>().results
+        }.onFailure {
+            logger.warn(it) { "Failed to fetch search results for '${request.q}', an migration may be needed." }
         }
 
+        return httpClient.get(request).body<CafeSearchResponse>().results
+    }
+
+    private suspend fun sendRequest(request: CafeSearchRequest) {
+        currentSearch = searchQuery(request)
         currentRequest = request
-        currentSearch = response.body()
     }
 
     suspend fun search(query: String?, itemPerPage: Int = 10, peerReview: Boolean = false): String {
@@ -60,18 +66,17 @@ object RhythmCafeSearchEngine {
             return "请输入一个正整数"
         }
 
-        return try {
-            sendRequest(
-                TypesenseRequest(
-                    q = query ?: "",
-                    per_page = itemPerPage,
-                    filter_by = if (peerReview) TypesenseRequest.PR else TypesenseRequest.ANY,
-                    sort_by = if (peerReview) "_text_match:desc,indexed:desc,last_updated:desc" else "_text_match:desc,last_updated:desc"
-                )
-            )
+        val request = CafeSearchRequest(
+            q = query ?: "",
+            perPage = itemPerPage,
+            peerReview = if (peerReview) CafeSearchRequest.PeerReviewFilter.APPROVED else CafeSearchRequest.PeerReviewFilter.ALL,
+        )
+        return runCatching {
+            sendRequest(request)
             toString()
-        } catch (e: HttpRequestTimeoutException) {
-            "请求超时"
+        }.getOrElse {
+            logger.error(it) { "Failed to fetch search results for '${request.q}'." }
+            "请求失败"
         }
     }
 
@@ -84,7 +89,7 @@ object RhythmCafeSearchEngine {
         }
     }
 
-    fun getLink(index: Int) = currentSearch.hits[index - 1].document.url
+    fun getLink(index: Int) = currentSearch.hits[index - 1].rdzipUrl
 
 //    suspend fun downloadAndUpload(group: Group, index: Int) = try {
 //        FileUtils.uploadFile(group, FileUtils.download(getLink2(index)))
@@ -97,24 +102,22 @@ object RhythmCafeSearchEngine {
 
     fun isNotSearched() = !isSearched()
 
-    val itemPerPage get() = currentSearch.request_params.per_page
-
     val currentPageItemCount get() = currentSearch.hits.size
 
     override fun toString() = buildString {
         append("搜索结果:\n")
-        append("找到${currentSearch.found}个谱面，第${currentSearch.page}页，共${(currentSearch.found - 1) / currentSearch.request_params.per_page + 1}页\n")
+        append("找到${currentSearch.estimatedTotalHits}个谱面，第${currentRequest.page}页，共${(currentSearch.estimatedTotalHits - 1) / currentRequest.perPage + 1}页\n")
 
-        for (matchedLevelIndex in currentSearch.hits.indices) {
-            val matchedLevel = currentSearch.hits[matchedLevelIndex]
+        (0..currentSearch.limit).forEach { index ->
+            val matchedLevel = currentSearch.hits[index]
 
-            append(matchedLevelIndex + 1)
-            append(". ${matchedLevel.document.peerReviewed()}\n")
-            append(matchedLevel.document.song)
+            append(currentSearch.offset + index + 1)
+            append(". ${matchedLevel.peerReviewStatus}\n")
+            append(matchedLevel.song)
             append("\n作者: ")
-            append(matchedLevel.document.authors.joinToString())
+            append(matchedLevel.rawAuthors)
             append("\n")
-            append(matchedLevel.document.url2)
+            append(matchedLevel.rdzipUrl)
             append("\n")
         }
     }
@@ -123,12 +126,12 @@ object RhythmCafeSearchEngine {
 //    fun getDescription(index: Int, from: Contact): MessageChain =
 //        runBlocking { RhythmCafeSearchEngine.getDescription(index, from) }
 
-    fun getDescription(index: Int) = currentSearch.hits[index - 1].document.toDetailedMessage()
+    fun getDescription(index: Int) = currentSearch.hits[index - 1].toDetailedMessage()
 
     suspend fun getPendingLevelCount() = datasetteQuery(DatasetteRequest.ofPending()).size
 
     fun sendHelp() = buildString {
-        append("此指令已弃用，请使用//help chart")
+        append("使用//help chart获取帮助")
     }
 
     suspend fun datasetteQuery(request: DatasetteRequest): List<LevelStatus> {

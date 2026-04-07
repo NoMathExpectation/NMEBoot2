@@ -3,6 +3,7 @@ package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette
 import io.ktor.resources.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.reflect.full.memberProperties
 
 enum class DatasetteResultShape {
     @SerialName("arrays")
@@ -27,9 +28,16 @@ data class DatasetteRequest(
     val sql: String,
     @SerialName("_shape")
     val shape: DatasetteResultShape = DatasetteResultShape.ARRAY,
+    @SerialName("_json")
+    val json: List<String> = jsonFields,
 ) {
     companion object {
         private const val QUERY_SQL_PREFIX = "select * from rdlevels"
+
+        private val jsonFields = LevelStatus::class
+            .memberProperties
+            .filter { it.returnType.classifier == List::class }
+            .map { it.annotations.filterIsInstance<SerialName>().singleOrNull()?.value ?: it.name }
 
         fun ofPending(shape: DatasetteResultShape = DatasetteResultShape.ARRAY) = DatasetteRequest(
             "$QUERY_SQL_PREFIX where ${LevelStatus::approval.name} = 0",

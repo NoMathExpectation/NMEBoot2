@@ -7,7 +7,7 @@ import NoMathExpectation.NMEBoot.command.parser.node.*
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.PeerReviewNotifier
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.RhythmCafeSearchEngine
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.DatasetteRequest
-import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.typesense.TypesenseRequest
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.searchV2.CafeSearchRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger { }
@@ -24,7 +24,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
 
                 literal("help", "h")
                     .executes("获取帮助") {
-                        it.send(RhythmCafeSearchEngine.sendHelp())
+                        it.reply(RhythmCafeSearchEngine.sendHelp())
                     }
 
                 literal("random", "r")
@@ -40,7 +40,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                                 return@executes
                             }
 
-                            it.send(level.toDetailedMessage())
+                            it.reply(level.toDetailedMessage())
                         }.onFailure { ex ->
                             logger.error(ex) { "随机谱面失败" }
                             it.reply("请求失败")
@@ -50,7 +50,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                 literal("search", "s")
                     .optionallyCollectString("keyword")
                     .optionallyCollectInt("itemPerPage")
-                    .checkInRange(1, TypesenseRequest.MAX_PER_PAGE)
+                    .checkInRange(1, CafeSearchRequest.MAX_PER_PAGE)
                     .optionallyCollectBoolean("peerReview")
                     .executes("查找谱面") {
                         val keyword = getString("keyword")
@@ -58,7 +58,7 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                         val peerReview = getBoolean("peerReview") == true
 
                         runCatching {
-                            it.send(RhythmCafeSearchEngine.search(keyword, itemPerPage, peerReview))
+                            it.reply(RhythmCafeSearchEngine.search(keyword, itemPerPage, peerReview))
                         }.onFailure { ex ->
                             logger.error(ex) { "请求失败" }
                             it.reply("请求失败")
@@ -69,18 +69,18 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                     .collectInt("page")
                     .executes("翻页") {
                         if (RhythmCafeSearchEngine.isNotSearched()) {
-                            it.send("请先进行一次搜索。")
+                            it.reply("请先进行一次搜索。")
                             return@executes
                         }
 
                         val page = getInt("page") ?: 1
                         if (page < 1) {
-                            it.send("页码不能小于1。")
+                            it.reply("页码不能小于1。")
                             return@executes
                         }
 
                         runCatching {
-                            it.send(RhythmCafeSearchEngine.pageTo(page))
+                            it.reply(RhythmCafeSearchEngine.pageTo(page))
                         }.onFailure { ex ->
                             logger.error(ex) { "请求失败" }
                             it.reply("请求失败")
@@ -91,13 +91,13 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                     .collectInt("index")
                     .executes("获取谱面详细信息") {
                         if (RhythmCafeSearchEngine.isNotSearched()) {
-                            it.send("请先进行一次搜索。")
+                            it.reply("请先进行一次搜索。")
                             return@executes
                         }
 
                         val index = getInt("index") ?: 1
                         if (index !in 1..RhythmCafeSearchEngine.currentPageItemCount) {
-                            it.send("索引超出范围。")
+                            it.reply("索引超出范围。")
                             return@executes
                         }
 
@@ -108,17 +108,17 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                     .collectInt("index")
                     .executes("获取下载链接") {
                         if (RhythmCafeSearchEngine.isNotSearched()) {
-                            it.send("请先进行一次搜索。")
+                            it.reply("请先进行一次搜索。")
                             return@executes
                         }
 
                         val index = getInt("index") ?: 1
                         if (index !in 1..RhythmCafeSearchEngine.currentPageItemCount) {
-                            it.send("索引超出范围。")
+                            it.reply("索引超出范围。")
                             return@executes
                         }
 
-                        it.send(RhythmCafeSearchEngine.getLink(index))
+                        it.reply(RhythmCafeSearchEngine.getLink(index))
                     }
 
                 //todo: 下载谱面并上传
@@ -127,11 +127,11 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                     .executes("查询待定谱面数量") {
                         runCatching {
                             val count = RhythmCafeSearchEngine.getPendingLevelCount()
-                            val countStr = if (count >= TypesenseRequest.MAX_PER_PAGE) "${count - 1}+" else count
-                            it.send("待定谱面数：$countStr")
+                            val countStr = if (count >= CafeSearchRequest.MAX_PER_PAGE) "${count - 1}+" else count
+                            it.reply("待定谱面数：$countStr")
                         }.onFailure { e ->
                             logger.error(e) { "查询待定谱面数失败：" }
-                            it.send("请求失败")
+                            it.reply("请求失败")
                         }
                     }
 
@@ -160,6 +160,6 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
 
             onEndOfArguments()
                 .executes("获取帮助") {
-                    it.send(RhythmCafeSearchEngine.sendHelp())
+                    it.reply(RhythmCafeSearchEngine.sendHelp())
                 }
         }

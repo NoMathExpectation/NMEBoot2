@@ -36,9 +36,9 @@ data class LevelStatus(
     val id: String,
     val artist: String,
     @SerialName("artist_tokens")
-    val artistTokens: @Serializable(StringRepresentationListSerializer::class) List<String>,
+    val artistTokens: List<String>,
     val song: String,
-    val authors: @Serializable(StringRepresentationListSerializer::class) List<String>,
+    val authors: List<String>,
     @SerialName("authors_raw")
     val rawAuthors: String,
     val approval: Int,
@@ -52,7 +52,7 @@ data class LevelStatus(
     val singlePlayer: @Serializable(BooleanToIntSerializer::class) Boolean,
     @SerialName("two_player")
     val twoPlayer: @Serializable(BooleanToIntSerializer::class) Boolean,
-    val tags: @Serializable(StringRepresentationListSerializer::class) List<String>,
+    val tags: List<String>,
     @SerialName("rdzip_url")
     val rdzipUrl: String,
 ) {
