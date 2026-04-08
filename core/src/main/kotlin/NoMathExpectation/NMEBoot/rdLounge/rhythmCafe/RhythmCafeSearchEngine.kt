@@ -84,7 +84,7 @@ object RhythmCafeSearchEngine {
         return try {
             sendRequest(currentRequest.copy(page = page))
             toString()
-        } catch (e: HttpRequestTimeoutException) {
+        } catch (_: HttpRequestTimeoutException) {
             "请求超时"
         }
     }
@@ -108,7 +108,7 @@ object RhythmCafeSearchEngine {
         append("搜索结果:\n")
         append("找到${currentSearch.estimatedTotalHits}个谱面，第${currentRequest.page}页，共${(currentSearch.estimatedTotalHits - 1) / currentRequest.perPage + 1}页\n")
 
-        (0..currentSearch.limit).forEach { index ->
+        (0..<currentSearch.limit).forEach { index ->
             val matchedLevel = currentSearch.hits[index]
 
             append(currentSearch.offset + index + 1)
