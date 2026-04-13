@@ -109,7 +109,7 @@ object RhythmCafeSearchEngine {
         append("找到${currentSearch.estimatedTotalHits}个谱面，第${currentRequest.page}页，共${(currentSearch.estimatedTotalHits - 1) / currentRequest.perPage + 1}页\n")
 
         (0..<currentSearch.limit).forEach { index ->
-            val matchedLevel = currentSearch.hits[index]
+            val matchedLevel = currentSearch.hits.getOrNull(index) ?: return@buildString
 
             append(currentSearch.offset + index + 1)
             append(". ${matchedLevel.peerReviewStatus}\n")
