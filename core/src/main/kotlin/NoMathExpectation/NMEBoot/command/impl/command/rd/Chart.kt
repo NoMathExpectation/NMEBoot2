@@ -159,7 +159,10 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
 
                 literal("daily", "d")
                     .executes("获取每日推荐谱面") {
-                        val level = RhythmCafeSearchEngine.getDailyBlend()
+                        val level = RhythmCafeSearchEngine.getDailyBlend() ?: run {
+                            it.reply("今日暂无推荐谱面")
+                            return@executes
+                        }
                         it.send(level.toDetailedMessage())
                     }
             }

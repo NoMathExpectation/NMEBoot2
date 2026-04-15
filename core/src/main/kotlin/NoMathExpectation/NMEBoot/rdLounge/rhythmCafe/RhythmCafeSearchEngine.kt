@@ -128,7 +128,7 @@ object RhythmCafeSearchEngine {
         }.bodyToLevelStatusList()
     }
 
-    suspend fun getDailyBlend(): LevelStatus {
+    suspend fun getDailyBlend(): LevelStatus? {
         return httpClient.get("/").body<DjangoBridgeAction<CafeIndexProps>>().props.dailyBlendLevel
     }
 }

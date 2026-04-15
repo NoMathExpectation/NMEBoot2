@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CafeIndexProps(
     @SerialName("daily_blend_level")
-    val dailyBlendLevel: LevelStatus
+    val dailyBlendLevel: LevelStatus? = null
 )
