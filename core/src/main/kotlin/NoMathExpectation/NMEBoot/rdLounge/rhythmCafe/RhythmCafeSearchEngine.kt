@@ -3,9 +3,7 @@ package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.DatasetteRequest
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.LevelStatus
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.bodyToLevelStatusList
-import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.searchV2.CafeSearchRequest
-import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.searchV2.CafeSearchResponse
-import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.searchV2.CafeSearchResult
+import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.searchV2.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -128,5 +126,9 @@ object RhythmCafeSearchEngine {
         return httpClient.get(request) {
             url("$DATASETTE_URL/rdlevels.json")
         }.bodyToLevelStatusList()
+    }
+
+    suspend fun getDailyBlend(): LevelStatus {
+        return httpClient.get("/").body<DjangoBridgeAction<CafeIndexProps>>().props.dailyBlendLevel
     }
 }

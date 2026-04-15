@@ -156,6 +156,12 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                         PeerReviewNotifier.removeSubscribe(it.target)
                         it.reply("已取消订阅")
                     }
+
+                literal("daily", "d")
+                    .executes("获取每日推荐谱面") {
+                        val level = RhythmCafeSearchEngine.getDailyBlend()
+                        it.send(level.toDetailedMessage())
+                    }
             }
 
             onEndOfArguments()
