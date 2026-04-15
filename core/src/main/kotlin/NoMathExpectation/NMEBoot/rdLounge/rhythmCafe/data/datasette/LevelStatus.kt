@@ -42,6 +42,8 @@ data class LevelStatus(
     @SerialName("authors_raw")
     val rawAuthors: String,
     val approval: Int,
+    @SerialName("approval_notes_public")
+    val approvalNotesPublic: String,
     @SerialName("image_url")
     val imageUrl: String,
     val difficulty: Int,

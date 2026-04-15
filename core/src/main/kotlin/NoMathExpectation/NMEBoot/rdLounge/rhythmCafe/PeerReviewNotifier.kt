@@ -73,7 +73,11 @@ object PeerReviewNotifier {
         +level.song
         +" "
         +if (level.isApproved) "已经" else "未能"
-        +"通过pr\n"
+        +"通过pr"
+        if (level.approvalNotesPublic.isNotBlank()) {
+            +"：${level.approvalNotesPublic}"
+        }
+        +"\n"
     }
 
     private suspend fun refreshRoutine() {
