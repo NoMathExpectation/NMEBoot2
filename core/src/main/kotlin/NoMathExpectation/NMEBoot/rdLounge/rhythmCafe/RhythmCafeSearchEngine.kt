@@ -20,9 +20,8 @@ import kotlinx.serialization.json.Json
 object RhythmCafeSearchEngine {
     private val logger = KotlinLogging.logger {}
 
-    private const val MAIN_URL = "https://api.rhythm.cafe"
+    private const val MAIN_URL = "https://rhythm.cafe"
     private const val DATASETTE_URL = "https://datasette.rhythm.cafe"
-    private const val API_KEY = "nicolebestgirl"
 
     private val httpClient = HttpClient(CIO) {
         install(Resources)
@@ -37,7 +36,6 @@ object RhythmCafeSearchEngine {
         defaultRequest {
             url(MAIN_URL)
             header("x-requested-with", "DjangoBridge")
-            header("x-typesense-api-key", API_KEY)
         }
     }
 
@@ -45,14 +43,6 @@ object RhythmCafeSearchEngine {
     private lateinit var currentSearch: CafeSearchResult
 
     private suspend fun searchQuery(request: CafeSearchRequest): CafeSearchResult {
-        runCatching {
-            return httpClient.get(request) {
-                url("https://v2.rhythm.cafe/api/levels/")
-            }.body<CafeSearchResponse>().results
-        }.onFailure {
-            logger.warn(it) { "Failed to fetch search results for '${request.q}', an migration may be needed." }
-        }
-
         return httpClient.get(request).body<CafeSearchResponse>().results
     }
 
