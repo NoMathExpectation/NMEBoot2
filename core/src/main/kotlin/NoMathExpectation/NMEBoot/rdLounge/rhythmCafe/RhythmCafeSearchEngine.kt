@@ -131,4 +131,8 @@ object RhythmCafeSearchEngine {
     suspend fun getDailyBlend(): LevelStatus? {
         return httpClient.get("/").body<DjangoBridgeAction<CafeIndexProps>>().props.dailyBlendLevel
     }
+
+    suspend fun getLevelById(id: String): LevelStatus? {
+        return datasetteQuery(DatasetteRequest.ofIds(id)).firstOrNull()
+    }
 }

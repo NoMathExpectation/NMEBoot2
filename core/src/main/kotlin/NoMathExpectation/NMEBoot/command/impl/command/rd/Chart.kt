@@ -88,20 +88,45 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
                     }
 
                 literal("info", "i")
-                    .collectInt("index")
-                    .executes("获取谱面详细信息") {
-                        if (RhythmCafeSearchEngine.isNotSearched()) {
-                            it.reply("请先进行一次搜索。")
-                            return@executes
-                        }
+                    .select {
+                        blockOptions = false
 
-                        val index = getInt("index") ?: 1
-                        if (index !in 1..RhythmCafeSearchEngine.currentPageItemCount) {
-                            it.reply("索引超出范围。")
-                            return@executes
-                        }
+                        collectInt("index")
+                            .executes("获取谱面详细信息") {
+                                if (RhythmCafeSearchEngine.isNotSearched()) {
+                                    it.reply("请先进行一次搜索。")
+                                    return@executes
+                                }
 
-                        it.send(RhythmCafeSearchEngine.getDescription(index))
+                                val index = getInt("index") ?: 1
+                                if (index !in 1..RhythmCafeSearchEngine.currentPageItemCount) {
+                                    it.reply("索引超出范围。")
+                                    return@executes
+                                }
+
+                                it.send(RhythmCafeSearchEngine.getDescription(index))
+                            }
+
+                        collectString("id")
+                            .executes("获取指定id谱面的详细信息") {
+                                val id = getString("id") ?: error("未提供id")
+
+                                if (!id.matches("[0-9a-zA-Z]+".toRegex())) {
+                                    it.reply("id格式不正确")
+                                    return@executes
+                                }
+
+                                runCatching {
+                                    val level = RhythmCafeSearchEngine.getLevelById(id) ?: run {
+                                        it.reply("未找到谱面")
+                                        return@executes
+                                    }
+                                    it.send(level.toDetailedMessage())
+                                }.onFailure { e ->
+                                    logger.error(e) { "查询谱面 $id 失败" }
+                                    it.reply("请求失败")
+                                }
+                            }
                     }
 
                 literal("link", "l")
@@ -159,11 +184,16 @@ suspend fun <T> LiteralSelectionCommandNode<T>.commandChart()
 
                 literal("daily", "d")
                     .executes("获取每日推荐谱面") {
-                        val level = RhythmCafeSearchEngine.getDailyBlend() ?: run {
-                            it.reply("今日暂无推荐谱面")
-                            return@executes
+                        runCatching {
+                            val level = RhythmCafeSearchEngine.getDailyBlend() ?: run {
+                                it.reply("今日暂无推荐谱面")
+                                return@executes
+                            }
+                            it.send(level.toDetailedMessage())
+                        }.onFailure { e ->
+                            logger.error(e) { "查询每日推荐谱面失败" }
+                            it.reply("请求失败")
                         }
-                        it.send(level.toDetailedMessage())
                     }
             }
 

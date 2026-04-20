@@ -82,6 +82,8 @@ data class LevelStatus(
     fun toDetailedMessage() = buildMessages {
         +URI(imageUrl).toOfflineImage()
 
+        +"id: $id\n"
+
         +"歌曲名: $song\n"
 
         +"作曲家: $artist\n"
