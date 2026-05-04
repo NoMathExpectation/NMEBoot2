@@ -33,7 +33,6 @@ object RhythmCafeSearchEngine {
         }
         defaultRequest {
             url(MAIN_URL)
-            header("x-requested-with", "DjangoBridge")
         }
     }
 
@@ -129,7 +128,9 @@ object RhythmCafeSearchEngine {
     }
 
     suspend fun getDailyBlend(): LevelStatus? {
-        return httpClient.get("/").body<DjangoBridgeAction<CafeIndexProps>>().props.dailyBlendLevel
+        return httpClient.get("/") {
+            parameter("_bridge", 1)
+        }.body<DjangoBridgeAction<CafeIndexProps>>().props.dailyBlendLevel
     }
 
     suspend fun getLevelById(id: String): LevelStatus? {
