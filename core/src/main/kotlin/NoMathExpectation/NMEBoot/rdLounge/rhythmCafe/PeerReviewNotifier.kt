@@ -3,7 +3,6 @@ package NoMathExpectation.NMEBoot.rdLounge.rhythmCafe
 import NoMathExpectation.NMEBoot.command.impl.source.CommandSource
 import NoMathExpectation.NMEBoot.command.impl.source.offline.OfflineCommandSource
 import NoMathExpectation.NMEBoot.command.impl.source.offline.toOnlineOrNull
-import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.DatasetteRequest
 import NoMathExpectation.NMEBoot.rdLounge.rhythmCafe.data.datasette.LevelStatus
 import NoMathExpectation.NMEBoot.util.storageOf
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -81,17 +80,17 @@ object PeerReviewNotifier {
     }
 
     private suspend fun refreshRoutine() {
-        logger.info { "开始刷新谱面待审名单" }
+        logger.debug { "开始刷新谱面待审名单" }
 
         pendingLevels.clear()
-        RhythmCafeSearchEngine.datasetteQuery(DatasetteRequest.ofPending())
+        RhythmCafeSearchEngine.getPendingLevels()
             .forEach { pendingLevels += it.id }
 
-        logger.info { "刷新完成" }
+        logger.debug { "刷新完成" }
     }
 
     private suspend fun notifyRoutine() {
-        logger.info { "开始通知订阅者" }
+        logger.debug { "开始通知订阅者" }
 
         val data = dataStorage.get()
         val subjects = data.subscribers
@@ -104,7 +103,9 @@ object PeerReviewNotifier {
         val subjectNotifications = mutableMapOf<String, MessagesBuilder>()
         val independentNotifications = mutableListOf<Pair<SubscribeInfo, Message>>()
 
-        RhythmCafeSearchEngine.datasetteQuery(DatasetteRequest.ofIds(*pendingLevels.toTypedArray()))
+        val currentPendingLevels = RhythmCafeSearchEngine.getPendingLevels().map { it.id }
+        pendingLevels.filterNot { it in currentPendingLevels }
+            .mapNotNull { RhythmCafeSearchEngine.getLevelById(it) }
             .filterNot { it.isPending }
             .forEach { level ->
                 level.authors
@@ -152,7 +153,7 @@ object PeerReviewNotifier {
             }
         }
 
-        logger.info { "通知完成" }
+        logger.debug { "通知完成" }
     }
 
     suspend fun start() {

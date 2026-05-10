@@ -12,6 +12,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
 
@@ -115,7 +116,29 @@ object RhythmCafeSearchEngine {
 
     fun getDescription(index: Int) = currentSearch.hits[index - 1].toDetailedMessage()
 
-    suspend fun getPendingLevelCount() = datasetteQuery(DatasetteRequest.ofPending()).size
+    private suspend fun getLevels(query: CafeSearchRequest): List<LevelStatus> {
+        var page = 1
+        val levels = mutableListOf<LevelStatus>()
+        while (true) {
+            val q = query.copy(
+                perPage = CafeSearchRequest.MAX_PER_PAGE,
+                page = page,
+            )
+            val result = searchQuery(q).hits.take(CafeSearchRequest.MAX_PER_PAGE)
+            if (result.isEmpty()) {
+                return levels
+            }
+
+            levels += result
+            page++
+        }
+    }
+
+    suspend fun getPendingLevels(): List<LevelStatus> =
+        getLevels(CafeSearchRequest(peerReview = CafeSearchRequest.PeerReviewFilter.PENDING))
+
+    suspend fun getPendingLevelCount() =
+        searchQuery(CafeSearchRequest(peerReview = CafeSearchRequest.PeerReviewFilter.PENDING)).estimatedTotalHits
 
     fun sendHelp() = buildString {
         append("使用//help chart获取帮助")
@@ -134,6 +157,12 @@ object RhythmCafeSearchEngine {
     }
 
     suspend fun getLevelById(id: String): LevelStatus? {
-        return datasetteQuery(DatasetteRequest.ofIds(id)).firstOrNull()
+        val response = httpClient.get("/levels/$id/") {
+            parameter("_bridge", 1)
+        }
+        if (response.status == HttpStatusCode.NotFound) {
+            return null
+        }
+        return response.body<DjangoBridgeAction<CafeViewLevelProps>>().props.rdlevel
     }
 }
