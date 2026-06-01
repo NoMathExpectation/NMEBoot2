@@ -2,6 +2,11 @@ package NoMathExpectation.NMEBoot.message
 
 import NoMathExpectation.NMEBoot.util.asMessages
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import love.forte.simbot.component.onebot.v11.message.segment.OneBotJson
+import love.forte.simbot.component.onebot.v11.message.segment.OneBotMessageSegmentElement
 import love.forte.simbot.definition.Actor
 import love.forte.simbot.message.*
 import love.forte.simbot.resource.toResource
@@ -24,10 +29,18 @@ suspend fun Image.toCICode(
 
 suspend fun Message.toReadableStringWithCICode(context: Actor? = null) =
     asMessages().map {
-        if (it is Image) {
-            return@map it.toCICode()
+        return when (it) {
+            is Image -> it.toCICode()
+            is OneBotMessageSegmentElement if it.segment is OneBotJson -> {
+                val json = Json.parseToJsonElement((it.segment as OneBotJson).data.data).jsonObject
+                val prompt = json["prompt"].toString().removeSurrounding("\"")
+                val url = ((json["meta"] as? JsonObject)?.get("detail_1") as? JsonObject)?.get("qqdocurl").toString()
+                    .removeSurrounding("\"")
+                "$prompt $url"
+            }
+
+            else -> MessageFormatter.messageToReadableString(it, context)
         }
-        MessageFormatter.messageToReadableString(it, context)
     }.joinToString("")
 
 @OptIn(ExperimentalEncodingApi::class)
