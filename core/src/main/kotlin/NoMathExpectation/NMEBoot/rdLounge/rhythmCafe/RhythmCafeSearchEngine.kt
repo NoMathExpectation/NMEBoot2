@@ -14,6 +14,8 @@ import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.json.Json
 
 object RhythmCafeSearchEngine {
@@ -44,7 +46,9 @@ object RhythmCafeSearchEngine {
         return httpClient.get(request).body<CafeSearchResponse>().results
     }
 
-    private suspend fun sendRequest(request: CafeSearchRequest) {
+    private val pageMutex = Mutex()
+
+    private suspend fun sendRequest(request: CafeSearchRequest) = pageMutex.withLock {
         currentSearch = searchQuery(request)
         currentRequest = request
     }
