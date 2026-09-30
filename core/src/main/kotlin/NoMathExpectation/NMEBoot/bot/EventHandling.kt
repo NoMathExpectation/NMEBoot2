@@ -15,9 +15,12 @@ import NoMathExpectation.NMEBoot.message.event.CommandSourcePreSendEvent
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
 import NoMathExpectation.NMEBoot.util.nickOrName
 import io.github.oshai.kotlinlogging.KotlinLogging
+import love.forte.simbot.component.onebot.v11.core.OneBot11
+import love.forte.simbot.component.onebot.v11.core.event.message.OneBotMessageEvent
 import love.forte.simbot.component.onebot.v11.core.event.meta.OneBotHeartbeatEvent
 import love.forte.simbot.component.onebot.v11.core.event.notice.OneBotBotSelfPokeEvent
 import love.forte.simbot.component.onebot.v11.core.event.notice.OneBotGroupUploadEvent
+import love.forte.simbot.component.onebot.v11.message.OneBotMessageContent
 import love.forte.simbot.event.*
 import kotlin.time.ExperimentalTime
 
@@ -198,11 +201,16 @@ internal suspend fun tryNotifyMCServers(event: Event) {
     }
 
     val source = CommandSource.get(event) ?: return
-    var content = event.messageContent
-        .messages
-        .removeReferencePrefix()
-        .standardize()
-        .toReadableStringWithCICode(source.globalSubject)
+    val messageContent = event.messageContent
+    var content = if (messageContent !is OneBotMessageContent) {
+        messageContent
+            .messages
+            .removeReferencePrefix()
+            .standardize()
+            .toReadableStringWithCICode(source.globalSubject)
+    } else {
+        OneBot11.DefaultJson.encodeToString(messageContent.sourceSegments)
+    }
 
     val subjectId = source.subjectPermissionId ?: return
     if (MCChat.isIgnoredSender(
