@@ -8,17 +8,24 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import love.forte.simbot.ability.DeleteOption
 import love.forte.simbot.ability.DeleteSupport
 import love.forte.simbot.ability.StandardDeleteOption
 import love.forte.simbot.annotations.ExperimentalSimbotAPI
+import love.forte.simbot.annotations.FragileSimbotAPI
 import love.forte.simbot.common.id.ID
 import love.forte.simbot.common.id.IntID.Companion.ID
 import love.forte.simbot.common.id.LongID
+import love.forte.simbot.common.id.StringID.Companion.ID
 import love.forte.simbot.common.id.UUID
 import love.forte.simbot.component.kook.message.KookCardMessage
+import love.forte.simbot.component.onebot.common.annotations.ExperimentalOneBotAPI
 import love.forte.simbot.component.onebot.v11.core.bot.OneBotBot
 import love.forte.simbot.component.onebot.v11.event.notice.RawGroupUploadEvent
+import love.forte.simbot.component.onebot.v11.message.segment.OneBotMessageSegmentElement
+import love.forte.simbot.component.onebot.v11.message.segment.OneBotUnknownSegment
 import love.forte.simbot.kook.objects.card.CardModule
 import love.forte.simbot.message.Message
 import love.forte.simbot.message.SingleMessageReceipt
@@ -99,6 +106,57 @@ class OneBotIncomingAttachment(
     override fun toString() = "OneBotIncomingAttachment(name=$name)"
 }
 
+class OneBotIncomingMessageAttachment(
+    val bot: OneBotBot,
+    val groupId: LongID,
+    override val id: ID,
+    override val name: String,
+    val url: String,
+) : Attachment {
+    override suspend fun inputStream(): InputStream {
+        val response = downloadClient.get(url)
+        if (!response.status.isSuccess()) {
+            error("下载文件失败")
+        }
+        return response.bodyAsChannel().toInputStream()
+    }
+
+    override suspend fun delete(vararg options: DeleteOption) {
+        runCatching {
+            bot.extApi.deleteGroupFile(
+                groupId, RawGroupUploadEvent.FileInfo(
+                    id,
+                    name,
+                    -1,
+                    -1,
+                )
+            )
+        }.onFailure {
+            if (StandardDeleteOption.IGNORE_ON_FAILURE !in options) {
+                throw it
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalOneBotAPI::class, FragileSimbotAPI::class)
+fun Message.findOneBotSnowlumaAttachments(bot: OneBotBot, groupId: LongID) = asMessages()
+    .asSequence()
+    .filterIsInstance<OneBotMessageSegmentElement>()
+    .map { it.segment }
+    .filterIsInstance<OneBotUnknownSegment>()
+    .filter { it.type == "file" }
+    .mapNotNull { it.data as? JsonObject }
+    .map {
+        OneBotIncomingMessageAttachment(
+            bot,
+            groupId,
+            (it["file_id"] as? JsonPrimitive)?.content?.ID ?: error("file_id not found"),
+            (it["name"] as? JsonPrimitive)?.content ?: error("name not found"),
+            (it["url"] as? JsonPrimitive)?.content ?: error("url not found"),
+        )
+    }.toList()
+
 class KookIncomingAttachment(
     val card: CardModule.Files
 ) : Attachment {
@@ -127,11 +185,13 @@ fun CardModule.Files.asAttachment() = KookIncomingAttachment(this)
 @OptIn(ExperimentalSimbotAPI::class)
 fun Message.findKookAttachment() =
     asMessages()
+        .asSequence()
         .filterIsInstance<KookCardMessage>()
         .flatMap { it.cards }
         .flatMap { it.modules }
         .filterIsInstance<CardModule.Files>()
         .map { it.asAttachment() }
+        .toList()
 
 class InputStreamAttachment(
     override val name: String,

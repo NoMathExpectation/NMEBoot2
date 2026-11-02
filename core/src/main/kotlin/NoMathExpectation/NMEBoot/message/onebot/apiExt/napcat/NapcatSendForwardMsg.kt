@@ -19,7 +19,7 @@ class NapcatSendForwardMsg(
         const val ACTION = "send_forward_msg"
         val RES_SER = OneBotApiResult.serializer(Result.serializer())
 
-        fun createGroup(groupID: StringID, messages: List<OneBotForwardNode>) = NapcatSendForwardMsg(
+        fun createGroup(groupID: LongID, messages: List<OneBotForwardNode>) = NapcatSendForwardMsg(
             Body(
                 groupID,
                 null,
@@ -27,7 +27,7 @@ class NapcatSendForwardMsg(
             )
         )
 
-        fun createPrivate(userID: StringID, messages: List<OneBotForwardNode>) = NapcatSendForwardMsg(
+        fun createPrivate(userID: LongID, messages: List<OneBotForwardNode>) = NapcatSendForwardMsg(
             Body(
                 null,
                 userID,
@@ -39,9 +39,9 @@ class NapcatSendForwardMsg(
     @Serializable
     data class Body(
         @SerialName("group_id")
-        val groupId: StringID?,
+        val groupId: LongID?,
         @SerialName("user_id")
-        val userId: StringID?,
+        val userId: LongID?,
         val messages: List<NapcatForwardNode.Wrapper> = listOf()
     )
 

@@ -13,6 +13,7 @@ import NoMathExpectation.NMEBoot.command.parser.node.collect
 import NoMathExpectation.NMEBoot.message.element.Attachment
 import NoMathExpectation.NMEBoot.message.element.OneBotIncomingAttachment
 import NoMathExpectation.NMEBoot.message.element.findKookAttachment
+import NoMathExpectation.NMEBoot.message.element.findOneBotSnowlumaAttachments
 import NoMathExpectation.NMEBoot.message.onebot.OneBotFileCache
 import love.forte.simbot.common.id.toLong
 import love.forte.simbot.common.id.toLongID
@@ -27,6 +28,16 @@ class AttachmentArgumentCollector : ArgumentCollector<AnyExecuteContext, List<At
                 require(executor is OneBotGroupMemberCommandSource) {
                     "请在群内使用此指令"
                 }
+
+                context.source
+                    .originalMessage
+                    ?.referenceMessage()
+                    ?.messages
+                    ?.findOneBotSnowlumaAttachments(executor.bot, executor.subject.id.toLongID())
+                    ?.takeIf { it.isNotEmpty() }
+                    ?.let {
+                        return it
+                    }
 
                 val keyword = stringCollector.collect(context)
                 val info = OneBotFileCache[executor.subject.id.toLong(), keyword]

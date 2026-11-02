@@ -8,8 +8,6 @@ import NoMathExpectation.NMEBoot.message.onebot.apiExt.toOneBotGroupUploadApi
 import NoMathExpectation.NMEBoot.message.onebot.apiExt.toOneBotPrivateUploadApi
 import love.forte.simbot.common.id.LongID
 import love.forte.simbot.common.id.StringID
-import love.forte.simbot.common.id.StringID.Companion.ID
-import love.forte.simbot.common.id.literal
 import love.forte.simbot.component.onebot.v11.core.bot.OneBotBot
 import love.forte.simbot.component.onebot.v11.event.notice.RawGroupUploadEvent
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotForwardNode
@@ -39,7 +37,7 @@ class OnebotNapcatExtApi(private val bot: OneBotBot) : OnebotExtApi {
         groupId: LongID,
         messages: List<OneBotForwardNode>
     ): MessageReceipt {
-        val api = NapcatSendForwardMsg.createGroup(groupId.literal.ID, messages)
+        val api = NapcatSendForwardMsg.createGroup(groupId, messages)
         val result = bot.executeResult(api)
         return CopiedOneBotMessageReceipt(
             result.dataOrThrowCustom { "发送转发消息失败" }.messageId,
@@ -51,7 +49,7 @@ class OnebotNapcatExtApi(private val bot: OneBotBot) : OnebotExtApi {
         userId: LongID,
         messages: List<OneBotForwardNode>
     ): MessageReceipt {
-        val api = NapcatSendForwardMsg.createPrivate(userId.literal.ID, messages)
+        val api = NapcatSendForwardMsg.createPrivate(userId, messages)
         val result = bot.executeResult(api)
         return CopiedOneBotMessageReceipt(
             result.dataOrThrowCustom { "发送转发消息失败" }.messageId,
