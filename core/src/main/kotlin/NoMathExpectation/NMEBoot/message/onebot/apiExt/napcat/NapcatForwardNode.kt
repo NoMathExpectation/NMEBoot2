@@ -2,9 +2,7 @@ package NoMathExpectation.NMEBoot.message.onebot.apiExt.napcat
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import love.forte.simbot.common.id.StringID
-import love.forte.simbot.common.id.StringID.Companion.ID
-import love.forte.simbot.common.id.literal
+import love.forte.simbot.common.id.ID
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotForwardNode
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotMessageSegment
 import love.forte.simbot.component.onebot.v11.message.segment.OneBotMessageSegmentSerializer
@@ -13,7 +11,7 @@ import love.forte.simbot.component.onebot.v11.message.segment.OneBotMessageSegme
 data class NapcatForwardNode(
     val nickname: String,
     @SerialName("user_id")
-    val userId: StringID,
+    val userId: ID,
     @Serializable(OneBotMessageSegmentSerializer::class)
     val content: List<OneBotMessageSegment> = listOf(),
 ) {
@@ -27,7 +25,7 @@ fun Iterable<NapcatForwardNode>.wrap() = map { it.wrap() }
 
 fun OneBotForwardNode.Data.toNapcat() = NapcatForwardNode(
     nickname = nickname ?: error("name missing"),
-    userId = userId?.literal?.ID ?: error("user id missing"),
+    userId = userId ?: error("user id missing"),
     content = content ?: error("content missing")
 )
 

@@ -7,7 +7,6 @@ import NoMathExpectation.NMEBoot.util.asMessages
 import NoMathExpectation.NMEBoot.util.nickOrName
 import NoMathExpectation.NMEBoot.util.storageOf
 import kotlinx.serialization.Serializable
-import love.forte.simbot.common.id.StringID.Companion.ID
 import love.forte.simbot.common.id.toLongID
 import love.forte.simbot.component.onebot.common.annotations.ExperimentalOneBotAPI
 import love.forte.simbot.component.onebot.common.annotations.InternalOneBotAPI
@@ -58,7 +57,7 @@ object OneBotFolding {
             subject.id.toLongID(),
             listOf(
                 OneBotForwardNode.create(
-                    bot.userId.toString().ID,
+                    bot.userId,
                     subject.botAsMember().nickOrName,
                     messages.resolveToOneBotSegmentList(bot.configuration.defaultImageAdditionalParamsProvider)
                 )
